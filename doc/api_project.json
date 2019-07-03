@@ -1,0 +1,16 @@
+{
+  "name": "HumanID API",
+  "version": "0.0.1",
+  "description": "HumanID API documentation",
+  "title": "HumanID API doc",
+  "url": "https://humanid.herokuapp.com",
+  "sampleUrl": false,
+  "defaultVersion": "0.0.0",
+  "apidoc": "0.3.0",
+  "generator": {
+    "name": "apidoc",
+    "time": "2019-07-03T14:26:27.589Z",
+    "url": "http://apidocjs.com",
+    "version": "0.17.7"
+  }
+}
