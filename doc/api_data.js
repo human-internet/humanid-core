@@ -197,9 +197,10 @@ define({ "api": [
   {
     "type": "post",
     "url": "/apps",
-    "title": "New (partner) app registration",
+    "title": "App registration",
     "name": "CreateApp",
     "group": "WebConsole",
+    "description": "<p>New (partner) app registration</p>",
     "parameter": {
       "fields": {
         "Parameter": [
