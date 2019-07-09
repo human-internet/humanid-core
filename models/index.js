@@ -4,10 +4,10 @@ const fs = require('fs'),
   path = require('path'),
   Sequelize = require('sequelize'),
   Umzug = require('umzug'),  
-  helper = require('../helpers/helper'),
+  helpers = require('../helpers'),
   basename = path.basename(__filename),
   env = process.env.NODE_ENV || 'development',
-  config = helper.config.DATABASE,
+  config = helpers.config.DATABASE,
   db = {}
 
 let sequelize

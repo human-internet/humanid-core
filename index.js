@@ -2,9 +2,9 @@
 
 const express = require('express'),
     bodyParser = require('body-parser'),
-    helper = require('./helpers/helper'),
+    helpers = require('./helpers'),
     models = require('./models/index'),
-    config = helper.config
+    config = helpers.config
 
 const port = config.APP_PORT || process.env.PORT || 3000
 const app = express()

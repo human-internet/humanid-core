@@ -2,6 +2,7 @@
 
 const chai = require('chai'),
     chaiHttp = require('chai-http'),
+    bcrypt = require('bcryptjs'),
     models = require('../models/index'),
     app = require('../index')
 
@@ -13,6 +14,10 @@ describe('Server', () => {
         
     beforeEach(async () => {
         await models.migrate()
+        await models.Admin.create({
+            email: 'admin@local.host', 
+            password: bcrypt.hashSync('admin123'),
+        })
     })
 
     it('index should be publicliy accessible', async () => {
@@ -23,11 +28,29 @@ describe('Server', () => {
     it('should be able to register an app ID', async () => {
         // called by our platform when app owner is 
         // registering to use our API
-        let data = {appId: 'New York Times'}
-        let res = await chai.request(app).post('/apps').send(data)
-        res.should.have.status(200)
-        res.body.id.should.equals(data.appId)
-        res.body.secret.length.should.gte(10)
+        try {
+            let res = await chai.request(app)
+                .post('/login')
+                .send({email: 'admin@local.host', password: 'admin123'})
+            res.should.have.status(200)
+            res.body.accessToken.length.should.gte(10)
+            let accessToken = res.body.accessToken
+            let data = {appId: 'New York Times'}
+            res = await chai.request(app)
+                .post('/apps')
+                .set('Authorization', `Bearer ${accessToken}`)
+                .send(data)
+            res.should.have.status(200)
+            res.body.id.should.equals(data.appId)
+            res.body.secret.length.should.gte(10)
+            res = await chai.request(app)
+                .get('/apps')
+                .set('Authorization', `Bearer ${accessToken}`)
+            res.body.data.length.should.equals(1)
+            res.body.total.should.equals(1)
+        } catch (e) {
+            throw e
+        }
     })
 
     it('should be able to register as new user', async () => {
@@ -35,7 +58,11 @@ describe('Server', () => {
         let req = chai.request(app).keepOpen()
         try {
             // Create an app
-            let res1 = await req.post('/apps').send({appId: data.appId})
+            let res = await req.post('/login')
+                .send({email: 'admin@local.host', password: 'admin123'})
+            let res1 = await req.post('/apps')
+                .set('Authorization', `Bearer ${res.body.accessToken}`)
+                .send({appId: data.appId})
             res1.should.have.status(200)
             res1.body.secret.length.should.gte(10)
             // Called by SDK within partner app
@@ -66,10 +93,16 @@ describe('Server', () => {
         let data2 = {appId: 'The Guardian'}
         let req = chai.request(app).keepOpen()
         try {
+            let res = await req.post('/login')
+                .send({email: 'admin@local.host', password: 'admin123'})            
             // Create two apps
-            let res1 = await req.post('/apps').send({appId: data.appId})
+            let res1 = await req.post('/apps')
+                .set('Authorization', `Bearer ${res.body.accessToken}`)
+                .send({appId: data.appId})
             res1.should.have.status(200)
-            let res2= await req.post('/apps').send({appId: data2.appId})
+            let res2= await req.post('/apps')
+                .set('Authorization', `Bearer ${res.body.accessToken}`)
+                .send({appId: data2.appId})
             res2.should.have.status(200)
 
             // Register the user to 1st app

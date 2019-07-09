@@ -1,7 +1,7 @@
-const helper = require('../helpers/helper'),
+const helpers = require('../helpers'),
     models = require('../models/index'),
-    validate = helper.validate,
-    hmac = helper.hmac,    
+    validate = helpers.validate,
+    hmac = helpers.hmac,    
     app = require('express').Router()
 
 // TODO: API to send push notification for web SDK login

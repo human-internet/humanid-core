@@ -201,6 +201,19 @@ define({ "api": [
     "name": "CreateApp",
     "group": "WebConsole",
     "description": "<p>New (partner) app registration</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p><code>Bearer accessToken</code></p>"
+          }
+        ]
+      }
+    },
     "parameter": {
       "fields": {
         "Parameter": [
@@ -230,6 +243,107 @@ define({ "api": [
             "optional": false,
             "field": "secret",
             "description": "<p>Secret code to invoke secured API</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/webconsole.js",
+    "groupTitle": "WebConsole"
+  },
+  {
+    "type": "get",
+    "url": "/apps",
+    "title": "App list",
+    "name": "ListApps",
+    "group": "WebConsole",
+    "description": "<p>Get list of registered (partner) apps</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p><code>Bearer accessToken</code></p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "data",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "total",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "pages",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/webconsole.js",
+    "groupTitle": "WebConsole"
+  },
+  {
+    "type": "post",
+    "url": "/login",
+    "title": "Login",
+    "name": "login",
+    "group": "WebConsole",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": ""
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "password",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "email",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "accessToken",
+            "description": ""
           }
         ]
       }

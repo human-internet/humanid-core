@@ -12,3 +12,4 @@ HumanID API server. Doc and demo https://humanid.herokuapp.com
 1. Install `nodejs >= 10.x.x`
 2. Clone repo & install dependencies `npm i`
 3. Run test `npm test`
+4. Generate doc `npm run doc`
