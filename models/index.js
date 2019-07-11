@@ -42,27 +42,41 @@ Object.keys(db).forEach(modelName => {
   }
 })
 
-// automigrate
-const umzug = new Umzug({
-  storage: 'sequelize',  
-  storageOptions: {
-    sequelize: sequelize
-  },
-  migrations: {
-    params: [
-      sequelize.getQueryInterface(),
-      Sequelize
-    ],
-    path: path.join(__dirname, '../migrations')
-  }
-})
-
-
 db.sequelize = sequelize
 db.Sequelize = Sequelize
 
+// automigrate
 db.migrate = async () => {
-  return umzug.up()  
+  return new Umzug({
+    storage: 'sequelize',  
+    storageOptions: {
+      sequelize: sequelize
+    },
+    migrations: {
+      params: [
+        sequelize.getQueryInterface(),
+        Sequelize
+      ],
+      path: path.join(__dirname, '../migrations')
+    }
+  }).up()  
 }
+
+db.seed = async () => {
+  return new Umzug({
+    storage: 'sequelize',  
+    storageOptions: {
+      sequelize: sequelize
+    },
+    migrations: {
+      params: [
+        sequelize.getQueryInterface(),
+        Sequelize
+      ],
+      path: path.join(__dirname, '../seeders')
+    }
+  }).up()  
+}
+
 
 module.exports = db

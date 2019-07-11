@@ -16,6 +16,7 @@ const helpers = require('../helpers'),
  * @apiParam {String} phone User mobile phone number
  * @apiParam {String} deviceId User device ID
  * @apiParam {String} verificationCode User phone number verification code (OTP)
+ * @apiParam {String} notifId Push notif ID
  * @apiParam {String} appId Partner app ID
  * @apiParam {String} appSecret Partner app secret
  *
@@ -25,7 +26,7 @@ const helpers = require('../helpers'),
  */
 app.post('/users/register', async (req, res, next) => {
     let body = req.body
-    // TODO: get secret from header
+    
     let error = validate({
         phone: 'required', 
         deviceId: 'required', 
@@ -47,7 +48,7 @@ app.post('/users/register', async (req, res, next) => {
         if (app.secret != body.appSecret) {
             return res.status(401).status(`Invalid secret`)
         }    
-        // TODO: validate verification code with Twilio
+        // TODO: validate verification code with Twilio https://www.twilio.com/verify/api
         // register user if not yet exists
         let hash = hmac(body.phone)
         let user = await models.User.findOrCreate({
@@ -85,6 +86,7 @@ app.post('/users/register', async (req, res, next) => {
  * @apiDescription User login to new partner app using existing hash
  *
  * @apiParam {String} existingHash User existing app hash
+ * @apiParam {String} notifId Push notif ID
  * @apiParam {String} appId Partner app ID
  * @apiParam {String} appSecret Partner app secret
  *
@@ -93,7 +95,7 @@ app.post('/users/register', async (req, res, next) => {
  * @apiSuccess {String} deviceId User unique authentication code for given app
  */
 app.post('/users/login', async (req, res, next) => {
-    // TODO: get secret from header
+    
     let body = req.body
     let error = validate({
         appId: 'required', 
@@ -154,7 +156,7 @@ app.post('/users/login', async (req, res, next) => {
  * @apiSuccess {String} message OK
  */
 app.get('/users/login', async (req, res, next) => {
-    // TODO: get secret from header
+    
     let body = req.query
     let error = validate({
         appId: 'required', 
@@ -188,5 +190,49 @@ app.get('/users/login', async (req, res, next) => {
     }
     
 })
+
+/**
+ * @api {post} /users/verifyPhone Verify phone
+ * @apiName VerifyPhone
+ * @apiGroup Mobile
+ * @apiDescription Trigger OTP SMS code
+ *
+ * @apiParam {String} phone User mobile phone number
+ * @apiParam {String} appId Partner app ID
+ * @apiParam {String} appSecret Partner app secret
+ *
+ * @apiSuccess {String} message OK
+ */
+app.post('/users/verifyPhone', async (req, res, next) => {
+    
+    let body = req.body
+    let error = validate({
+        appId: 'required', 
+        appSecret: 'required', 
+        phone: 'required', 
+    }, body)
+    if (error) {
+        return res.status(400).send(error)
+    }
+
+    try {
+        // check app
+        let app = await models.App.findByPk(body.appId)
+        if (!app) {
+            return res.status(404).status(`App not found ${body.appId}`)
+        }
+        if (app.secret != body.appSecret) {
+            return res.status(401).status(`Invalid secret`)
+        }   
+
+        // TODO: call Twilio verify https://www.twilio.com/verify/api
+        return res.send({message: 'OK'})        
+    } catch (e) {
+        console.error(e)
+        next(e)
+    }
+    
+})
+
 
 module.exports = app

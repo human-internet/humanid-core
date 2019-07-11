@@ -1,5 +1,4 @@
 const fs = require('fs'),
-    path = require('path'),
     crypto = require('crypto'),
     jwt = require('jsonwebtoken'),
     configPath = './config.json'

@@ -5,6 +5,7 @@
         "username": "root",
         "password": null,
         "database": "humanid",
-        "dialect": "sqlite"
+        "dialect": "sqlite",
+        "storage": "db.sqlite"
     }
 }

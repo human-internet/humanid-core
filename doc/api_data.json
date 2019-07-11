@@ -20,6 +20,13 @@
             "group": "Parameter",
             "type": "String",
             "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
             "field": "appId",
             "description": "<p>Partner app ID</p>"
           },
@@ -150,6 +157,13 @@
             "group": "Parameter",
             "type": "String",
             "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
             "field": "appId",
             "description": "<p>Partner app ID</p>"
           },
@@ -186,6 +200,57 @@
             "optional": false,
             "field": "deviceId",
             "description": "<p>User unique authentication code for given app</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/mobile.js",
+    "groupTitle": "Mobile"
+  },
+  {
+    "type": "post",
+    "url": "/users/verifyPhone",
+    "title": "Verify phone",
+    "name": "VerifyPhone",
+    "group": "Mobile",
+    "description": "<p>Trigger OTP SMS code</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>User mobile phone number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>OK</p>"
           }
         ]
       }

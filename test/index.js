@@ -67,7 +67,13 @@ describe('Server', () => {
             res1.body.secret.length.should.gte(10)
             // Called by SDK within partner app
             // when a new user is trying to login
-            let res2 = await req.post('/users/register').send({
+            let res2 = await req.post('/users/verifyPhone').send({
+                appId: data.appId,
+                phone: data.phone, 
+                appSecret: res1.body.secret,
+            })
+            res2.should.have.status(200)
+            res2 = await req.post('/users/register').send({
                 appId: data.appId,
                 phone: data.phone, 
                 deviceId: '122333444455555', 
