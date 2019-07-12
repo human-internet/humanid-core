@@ -25,13 +25,9 @@ app.use(function (err, req, res, next) {
 if (require.main === module) {
     if (process.env.JAWSDB_URL) {
         // heroku drop-create
-        models.sequelize.drop()
-            .then(() => {
-                return models.migrate()
-            })
-            .then(() => {
-                return models.seed()
-            })
+        models.sequelize.dropAllSchemas()
+            .then(models.migrate)
+            .then(models.seed)
             .then(() => {
                 app.listen(port, () => console.log(`Listening on port ${port}..`))            
             })    
