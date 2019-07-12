@@ -30,21 +30,21 @@ describe('Server', () => {
         // registering to use our API
         try {
             let res = await chai.request(app)
-                .post('/login')
+                .post('/console/login')
                 .send({email: 'admin@local.host', password: 'admin123'})
             res.should.have.status(200)
             res.body.accessToken.length.should.gte(10)
             let accessToken = res.body.accessToken
             let data = {appId: 'New York Times'}
             res = await chai.request(app)
-                .post('/apps')
+                .post('/console/apps')
                 .set('Authorization', `Bearer ${accessToken}`)
                 .send(data)
             res.should.have.status(200)
             res.body.id.should.equals(data.appId)
             res.body.secret.length.should.gte(10)
             res = await chai.request(app)
-                .get('/apps')
+                .get('/console/apps')
                 .set('Authorization', `Bearer ${accessToken}`)
             res.body.data.length.should.equals(1)
             res.body.total.should.equals(1)
@@ -54,27 +54,29 @@ describe('Server', () => {
     })
 
     it('should be able to register as new user', async () => {
-        let data = {appId: 'New York Times', phone: '+6280989999'}        
+        let data = {appId: 'New York Times', countryCode: '62', phone: '80989999'}        
         let req = chai.request(app).keepOpen()
         try {
             // Create an app
-            let res = await req.post('/login')
+            let res = await req.post('/console/login')
                 .send({email: 'admin@local.host', password: 'admin123'})
-            let res1 = await req.post('/apps')
+            let res1 = await req.post('/console/apps')
                 .set('Authorization', `Bearer ${res.body.accessToken}`)
                 .send({appId: data.appId})
             res1.should.have.status(200)
             res1.body.secret.length.should.gte(10)
             // Called by SDK within partner app
             // when a new user is trying to login
-            let res2 = await req.post('/users/verifyPhone').send({
+            let res2 = await req.post('/mobile/users/verifyPhone').send({
                 appId: data.appId,
+                countryCode: data.countryCode, 
                 phone: data.phone, 
                 appSecret: res1.body.secret,
             })
             res2.should.have.status(200)
-            res2 = await req.post('/users/register').send({
+            res2 = await req.post('/mobile/users/register').send({
                 appId: data.appId,
+                countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: '122333444455555', 
                 appSecret: res1.body.secret,
@@ -95,25 +97,26 @@ describe('Server', () => {
     })
 
     it('should be able to login using stored hash', async () => {
-        let data = {appId: 'New York Times', phone: '+6280989999', deviceId: '122333444455555'}
+        let data = {appId: 'New York Times', countryCode: '62', phone: '80989999', deviceId: '122333444455555'}
         let data2 = {appId: 'The Guardian'}
         let req = chai.request(app).keepOpen()
         try {
-            let res = await req.post('/login')
+            let res = await req.post('/console/login')
                 .send({email: 'admin@local.host', password: 'admin123'})            
             // Create two apps
-            let res1 = await req.post('/apps')
+            let res1 = await req.post('/console/apps')
                 .set('Authorization', `Bearer ${res.body.accessToken}`)
                 .send({appId: data.appId})
             res1.should.have.status(200)
-            let res2= await req.post('/apps')
+            let res2= await req.post('/console/apps')
                 .set('Authorization', `Bearer ${res.body.accessToken}`)
                 .send({appId: data2.appId})
             res2.should.have.status(200)
 
             // Register the user to 1st app
-            let res3 = await req.post('/users/register').send({
+            let res3 = await req.post('/mobile/users/register').send({
                 appId: data.appId,
+                countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: data.deviceId, 
                 appSecret: res1.body.secret,
@@ -127,7 +130,7 @@ describe('Server', () => {
             // The hash is considered as a replacement for conventional password
             // hence must be encrypted when stored in user's device
             // and decrypted only when being used for login           
-            let res4 = await req.post('/users/login').send({
+            let res4 = await req.post('/mobile/users/login').send({
                 appId: data2.appId, 
                 appSecret: res2.body.secret,
                 existingHash: res3.body.hash,
@@ -141,7 +144,7 @@ describe('Server', () => {
             res4.body.should.not.have.any.keys('userHash')
 
             // check login status
-            let res5 = await req.get('/users/login').query({
+            let res5 = await req.get('/mobile/users/login').query({
                 appId: data.appId, 
                 appSecret: res1.body.secret,
                 hash: res4.body.hash,

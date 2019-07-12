@@ -23,6 +23,7 @@
     "express-paginate": "^1.0.0",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^1.6.5",
+    "request": "^2.88.0",
     "sequelize": "^5.9.0",
     "sqlite3": "^4.0.9"
   },

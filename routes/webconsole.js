@@ -12,7 +12,7 @@ const bcrypt = require('bcryptjs'),
 // TODO: API to delete apps
 
 /**
- * @api {post} /login Login
+ * @api {post} /console/login Login
  * @apiName login
  * @apiGroup WebConsole
  * 
@@ -50,7 +50,7 @@ app.post('/login', async (req, res, next) => {
 })
 
 /**
- * @api {post} /apps App registration
+ * @api {post} /console/apps App registration
  * @apiName CreateApp
  * @apiGroup WebConsole
  * @apiDescription New (partner) app registration
@@ -81,7 +81,7 @@ app.post('/apps', middlewares.verifyJWT, async (req, res, next) => {
 })
 
 /**
- * @api {get} /apps App list
+ * @api {get} /console/apps App list
  * @apiName ListApps
  * @apiGroup WebConsole
  * @apiDescription Get list of registered (partner) apps
@@ -99,6 +99,35 @@ app.get('/apps', middlewares.verifyJWT, async (req, res, next) => {
     try {
         // TODO: standardized paginated result
         let results = await models.App.findAndCountAll({limit: limit, offset: skip})
+        res.send({
+            data: results.rows,
+            total: results.count,
+            pages: Math.ceil(results.count / limit),
+        })
+    } catch (e) {        
+        next(e)
+    }
+})
+
+/**
+ * @api {get} /console/users User list
+ * @apiName ListUser
+ * @apiGroup WebConsole
+ * @apiDescription Get list of registered users
+ * 
+ * @apiHeader {String} Authorization <code>Bearer accessToken</code>
+ * 
+ * @apiSuccess {Array} data
+ * @apiSuccess {Integer} total
+ * @apiSuccess {Integer} pages
+ * 
+ */
+app.get('/users', middlewares.verifyJWT, async (req, res, next) => {
+    let limit = req.query.limit || 10
+    let skip = req.skip || 0
+    try {
+        // TODO: standardized paginated result
+        let results = await models.User.findAndCountAll({limit: limit, offset: skip})
         res.send({
             data: results.rows,
             total: results.count,

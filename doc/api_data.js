@@ -1,7 +1,7 @@
 define({ "api": [
   {
     "type": "post",
-    "url": "/users/login",
+    "url": "/mobile/users/login",
     "title": "User login",
     "name": "LoginUser",
     "group": "Mobile",
@@ -73,7 +73,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/users/login",
+    "url": "/mobile/users/login",
     "title": "Login check",
     "name": "LoginUserCheck",
     "group": "Mobile",
@@ -124,7 +124,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/users/register",
+    "url": "/mobile/users/register",
     "title": "User registration",
     "name": "RegisterUser",
     "group": "Mobile",
@@ -132,6 +132,13 @@ define({ "api": [
     "parameter": {
       "fields": {
         "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "countryCode",
+            "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
+          },
           {
             "group": "Parameter",
             "type": "String",
@@ -210,7 +217,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/users/verifyPhone",
+    "url": "/mobile/users/verifyPhone",
     "title": "Verify phone",
     "name": "VerifyPhone",
     "group": "Mobile",
@@ -218,6 +225,13 @@ define({ "api": [
     "parameter": {
       "fields": {
         "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "countryCode",
+            "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
+          },
           {
             "group": "Parameter",
             "type": "String",
@@ -261,7 +275,7 @@ define({ "api": [
   },
   {
     "type": "post",
-    "url": "/apps",
+    "url": "/console/apps",
     "title": "App registration",
     "name": "CreateApp",
     "group": "WebConsole",
@@ -318,7 +332,7 @@ define({ "api": [
   },
   {
     "type": "get",
-    "url": "/apps",
+    "url": "/console/apps",
     "title": "App list",
     "name": "ListApps",
     "group": "WebConsole",
@@ -368,8 +382,59 @@ define({ "api": [
     "groupTitle": "WebConsole"
   },
   {
+    "type": "get",
+    "url": "/console/users",
+    "title": "User list",
+    "name": "ListUser",
+    "group": "WebConsole",
+    "description": "<p>Get list of registered users</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "Authorization",
+            "description": "<p><code>Bearer accessToken</code></p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Array",
+            "optional": false,
+            "field": "data",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "total",
+            "description": ""
+          },
+          {
+            "group": "Success 200",
+            "type": "Integer",
+            "optional": false,
+            "field": "pages",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/webconsole.js",
+    "groupTitle": "WebConsole"
+  },
+  {
     "type": "post",
-    "url": "/login",
+    "url": "/console/login",
     "title": "Login",
     "name": "login",
     "group": "WebConsole",

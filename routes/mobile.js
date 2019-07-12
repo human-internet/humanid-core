@@ -8,11 +8,12 @@ const helpers = require('../helpers'),
 // TODO: API to receive confirmation from mobile SDK for web login
 
 /**
- * @api {post} /users/register User registration
+ * @api {post} /mobile/users/register User registration
  * @apiName RegisterUser
  * @apiGroup Mobile
  * @apiDescription New user registration
  *
+ * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
  * @apiParam {String} phone User mobile phone number
  * @apiParam {String} deviceId User device ID
  * @apiParam {String} verificationCode User phone number verification code (OTP)
@@ -24,10 +25,11 @@ const helpers = require('../helpers'),
  * @apiSuccess {String} hash User hash (unique authentication code) for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  */
-app.post('/users/register', async (req, res, next) => {
+app.post('/mobile/users/register', async (req, res, next) => {
     let body = req.body
     
     let error = validate({
+        countryCode: 'required', 
         phone: 'required', 
         deviceId: 'required', 
         verificationCode: 'required', 
@@ -48,9 +50,14 @@ app.post('/users/register', async (req, res, next) => {
         if (app.secret != body.appSecret) {
             return res.status(401).status(`Invalid secret`)
         }    
-        // TODO: validate verification code with Twilio https://www.twilio.com/verify/api
-        // register user if not yet exists
-        let hash = hmac(body.phone)
+        // verify code
+        let validCode = await helpers.checkVerificationCode(body.countryCode, body.phone, body.verificationCode)
+        if (!validCode) {
+            return res.status(400).status(`Invalid verification code`)
+        }
+
+        // register user if not yet exists        
+        let hash = hmac(`${body.countryCode}${body.phone}`)
         let user = await models.User.findOrCreate({
             where: {hash: hash},
             defaults: {hash: hash}
@@ -80,7 +87,7 @@ app.post('/users/register', async (req, res, next) => {
 })
 
 /**
- * @api {post} /users/login User login
+ * @api {post} /mobile/users/login User login
  * @apiName LoginUser
  * @apiGroup Mobile
  * @apiDescription User login to new partner app using existing hash
@@ -94,7 +101,7 @@ app.post('/users/register', async (req, res, next) => {
  * @apiSuccess {String} hash User unique authentication code for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  */
-app.post('/users/login', async (req, res, next) => {
+app.post('/mobile/users/login', async (req, res, next) => {
     
     let body = req.body
     let error = validate({
@@ -144,7 +151,7 @@ app.post('/users/login', async (req, res, next) => {
 })
 
 /**
- * @api {get} /users/login Login check
+ * @api {get} /mobile/users/login Login check
  * @apiName LoginUserCheck
  * @apiGroup Mobile
  * @apiDescription Check if user still logged-in (hash is still valid)
@@ -155,7 +162,7 @@ app.post('/users/login', async (req, res, next) => {
  *
  * @apiSuccess {String} message OK
  */
-app.get('/users/login', async (req, res, next) => {
+app.get('/mobile/users/login', async (req, res, next) => {
     
     let body = req.query
     let error = validate({
@@ -192,23 +199,25 @@ app.get('/users/login', async (req, res, next) => {
 })
 
 /**
- * @api {post} /users/verifyPhone Verify phone
+ * @api {post} /mobile/users/verifyPhone Verify phone
  * @apiName VerifyPhone
  * @apiGroup Mobile
  * @apiDescription Trigger OTP SMS code
  *
+ * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
  * @apiParam {String} phone User mobile phone number
  * @apiParam {String} appId Partner app ID
  * @apiParam {String} appSecret Partner app secret
  *
  * @apiSuccess {String} message OK
  */
-app.post('/users/verifyPhone', async (req, res, next) => {
+app.post('/mobile/users/verifyPhone', async (req, res, next) => {
     
     let body = req.body
     let error = validate({
         appId: 'required', 
         appSecret: 'required', 
+        countryCode: 'required', 
         phone: 'required', 
     }, body)
     if (error) {
@@ -225,7 +234,7 @@ app.post('/users/verifyPhone', async (req, res, next) => {
             return res.status(401).status(`Invalid secret`)
         }   
 
-        // TODO: call Twilio verify https://www.twilio.com/verify/api
+        await helpers.requestPhoneVerification(body.countryCode, body.phone)
         return res.send({message: 'OK'})        
     } catch (e) {
         console.error(e)

@@ -13,8 +13,8 @@ app.use(bodyParser.urlencoded({ extended: true }))
 
 // routes
 app.use('/', express.static('doc'))
-app.use('/', require('./routes/webconsole'))
-app.use('/', require('./routes/mobile'))
+app.use('/console', require('./routes/webconsole'))
+app.use('/mobile', require('./routes/mobile'))
 
 // global error handler
 app.use(function (err, req, res, next) {
