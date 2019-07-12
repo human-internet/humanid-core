@@ -24,8 +24,11 @@ app.use(function (err, req, res, next) {
 
 if (require.main === module) {
     if (process.env.JAWSDB_URL) {
-        // heroku
-        models.migrate()
+        // heroku drop-create
+        models.drop()
+            .then(() => {
+                return models.migrate()
+            })
             .then(() => {
                 return models.seed()
             })

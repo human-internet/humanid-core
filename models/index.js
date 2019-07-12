@@ -46,6 +46,22 @@ db.sequelize = sequelize
 db.Sequelize = Sequelize
 
 // automigrate
+db.drop = async () => {
+  return new Umzug({
+    storage: 'sequelize',  
+    storageOptions: {
+      sequelize: sequelize
+    },
+    migrations: {
+      params: [
+        sequelize.getQueryInterface(),
+        Sequelize
+      ],
+      path: path.join(__dirname, '../migrations')
+    }
+  }).down()  
+}
+
 db.migrate = async () => {
   return new Umzug({
     storage: 'sequelize',  
