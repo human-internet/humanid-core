@@ -25,7 +25,7 @@ app.use(function (err, req, res, next) {
 if (require.main === module) {
     if (process.env.JAWSDB_URL) {
         // heroku drop-create
-        models.Sequelize.drop()
+        models.sequelize.drop()
             .then(() => {
                 return models.migrate()
             })
