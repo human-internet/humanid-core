@@ -25,7 +25,10 @@ app.use(function (err, req, res, next) {
 if (require.main === module) {
     if (process.env.JAWSDB_URL) {
         // heroku drop-create
-        models.sequelize.dropAllSchemas()
+        models.sequelize.drop()
+            .then(() => {
+                return models.sequelize.query('DROP TABLE IF EXISTS `SequelizeMeta`')
+            })
             .then(models.migrate)
             .then(models.seed)
             .then(() => {
