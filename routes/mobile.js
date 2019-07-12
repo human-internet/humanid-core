@@ -25,7 +25,7 @@ const helpers = require('../helpers'),
  * @apiSuccess {String} hash User hash (unique authentication code) for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  */
-app.post('/mobile/users/register', async (req, res, next) => {
+app.post('/users/register', async (req, res, next) => {
     let body = req.body
     
     let error = validate({
@@ -101,7 +101,7 @@ app.post('/mobile/users/register', async (req, res, next) => {
  * @apiSuccess {String} hash User unique authentication code for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  */
-app.post('/mobile/users/login', async (req, res, next) => {
+app.post('/users/login', async (req, res, next) => {
     
     let body = req.body
     let error = validate({
@@ -162,7 +162,7 @@ app.post('/mobile/users/login', async (req, res, next) => {
  *
  * @apiSuccess {String} message OK
  */
-app.get('/mobile/users/login', async (req, res, next) => {
+app.get('/users/login', async (req, res, next) => {
     
     let body = req.query
     let error = validate({
@@ -211,7 +211,7 @@ app.get('/mobile/users/login', async (req, res, next) => {
  *
  * @apiSuccess {String} message OK
  */
-app.post('/mobile/users/verifyPhone', async (req, res, next) => {
+app.post('/users/verifyPhone', async (req, res, next) => {
     
     let body = req.body
     let error = validate({
