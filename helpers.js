@@ -16,6 +16,9 @@ if (fs.existsSync(configPath)) {
 // override config
 if (env === 'test') {
   config.AUTHY_API_KEY = ''
+} else {
+  // override if available in env
+  config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || config.AUTHY_API_KEY
 }
 
 const SECRET = config.APP_SECRET || 'ThisIsADefaultSecretPhrase'
