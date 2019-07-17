@@ -1,4 +1,5 @@
-const helpers = require('../helpers'),
+const helpers = require('../helpers/common'),
+    nexmo = require('../helpers/nexmo'),
     models = require('../models/index'),
     validate = helpers.validate,
     hmac = helpers.hmac,    
@@ -51,10 +52,7 @@ app.post('/users/register', async (req, res, next) => {
             return res.status(401).status(`Invalid secret`)
         }    
         // verify code
-        let validCode = await helpers.checkVerificationCode(body.countryCode, body.phone, body.verificationCode)
-        if (!validCode) {
-            return res.status(400).status(`Invalid verification code`)
-        }
+        await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
         // register user if not yet exists        
         let hash = hmac(`${body.countryCode}${body.phone}`)
@@ -234,7 +232,7 @@ app.post('/users/verifyPhone', async (req, res, next) => {
             return res.status(401).status(`Invalid secret`)
         }   
 
-        await helpers.requestPhoneVerification(body.countryCode, body.phone)
+        await nexmo.sendVerificationSMS(body.countryCode, body.phone)
         return res.send({message: 'OK'})        
     } catch (e) {
         console.error(e)

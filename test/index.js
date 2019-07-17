@@ -1,10 +1,13 @@
 'use strict'
 
 const chai = require('chai'),
+    nock = require('nock'),
     chaiHttp = require('chai-http'),
     bcrypt = require('bcryptjs'),
-    models = require('../models/index'),
-    app = require('../index')
+    common = require('../helpers/common'),
+    models = require('../models/index'),    
+    app = require('../index'),
+    config = common.config
 
 // setup chai
 chai.use(chaiHttp)
@@ -13,6 +16,7 @@ chai.should()
 describe('Server', () => {
         
     beforeEach(async () => {
+        await models.sequelize.drop()
         await models.migrate()
         await models.Admin.create({
             email: 'admin@local.host', 
@@ -75,7 +79,7 @@ describe('Server', () => {
         }
     })
 
-    it('should be able to register as new user', async () => {
+    it('should be able to register as new user', async () => {        
         let data = {appId: 'NEW_YORK_TIMES', countryCode: '62', phone: '80989999'}        
         let req = chai.request(app).keepOpen()
         try {
@@ -87,6 +91,18 @@ describe('Server', () => {
                 .send({appId: data.appId})
             res1.should.have.status(200)
             res1.body.secret.length.should.gte(10)
+
+            // mock nexmo api response
+            // nock(config.NEXMO_API_URL)
+            //     .get(/^\/verify/)
+            //     .times(2)
+            //     .reply(200, {status: '0', request_id: 'TEST_REQUEST_ID'})
+
+            nock(config.NEXMO_REST_URL)
+                .post(/^\/sms/)
+                .times(1)
+                .reply(200, {messages: [{status: '0'}]})            
+
             // Called by SDK within partner app
             // when a new user is trying to login
             let res2 = await req.post('/mobile/users/verifyPhone').send({
@@ -96,13 +112,27 @@ describe('Server', () => {
                 appSecret: res1.body.secret,
             })
             res2.should.have.status(200)
+
+            // reject invalid code
             res2 = await req.post('/mobile/users/register').send({
                 appId: data.appId,
                 countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: '122333444455555', 
                 appSecret: res1.body.secret,
-                verificationCode: '123456',
+                verificationCode: 'INVALID_CODE',
+            })
+            res2.should.have.status(400)            
+
+            // valid code
+            let v = await models.Verification.findByPk(common.combinePhone(data.countryCode, data.phone))
+            res2 = await req.post('/mobile/users/register').send({
+                appId: data.appId,
+                countryCode: data.countryCode, 
+                phone: data.phone, 
+                deviceId: '122333444455555', 
+                appSecret: res1.body.secret,
+                verificationCode: v.requestId,
             })
             res2.should.have.status(200)
             res2.body.appId.should.equals(data.appId)
@@ -130,19 +160,40 @@ describe('Server', () => {
                 .set('Authorization', `Bearer ${res.body.accessToken}`)
                 .send({appId: data.appId})
             res1.should.have.status(200)
-            let res2= await req.post('/console/apps')
+            let res2 = await req.post('/console/apps')
                 .set('Authorization', `Bearer ${res.body.accessToken}`)
                 .send({appId: data2.appId})
             res2.should.have.status(200)
 
+            // mock nexmo api response
+            // nock(config.NEXMO_API_URL)
+            //     .get(/^\/verify/)
+            //     .times(2)
+            //     .reply(200, {status: '0', request_id: 'TEST_REQUEST_ID'})                
+
+            nock(config.NEXMO_REST_URL)
+                .post(/^\/sms/)
+                .times(1)
+                .reply(200, {messages: [{status: '0'}]})
+
+            // verify phone
+            let res3 = await req.post('/mobile/users/verifyPhone').send({
+                appId: data.appId,
+                countryCode: data.countryCode, 
+                phone: data.phone, 
+                appSecret: res1.body.secret,
+            })
+            res3.should.have.status(200)
+
             // Register the user to 1st app
-            let res3 = await req.post('/mobile/users/register').send({
+            let v = await models.Verification.findByPk(common.combinePhone(data.countryCode, data.phone))
+            res3 = await req.post('/mobile/users/register').send({
                 appId: data.appId,
                 countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: data.deviceId, 
                 appSecret: res1.body.secret,
-                verificationCode: '123456',
+                verificationCode: v.requestId,
             })
             res3.should.have.status(200)
 

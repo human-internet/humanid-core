@@ -1,5 +1,5 @@
 const bcrypt = require('bcryptjs'),
-    helpers = require('../helpers'),
+    helpers = require('../helpers/common'),
     middlewares = require('../middlewares'),
     models = require('../models/index'),
     validate = helpers.validate,

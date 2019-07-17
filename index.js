@@ -2,7 +2,7 @@
 
 const express = require('express'),
     bodyParser = require('body-parser'),
-    helpers = require('./helpers'),
+    helpers = require('./helpers/common'),
     models = require('./models/index'),
     config = helpers.config
 
@@ -19,7 +19,7 @@ app.use('/mobile', require('./routes/mobile'))
 // global error handler
 app.use(function (err, req, res, next) {
     // console.error(err)
-    if (err.name === 'SequelizeValidationError') {
+    if (err.name === 'SequelizeValidationError' || err.name === 'ValidationError') {
         return res.status(400).send(err.message)
     } else {
         return res.status(500).send(err.message)

@@ -63,18 +63,19 @@ For `DATABASE` configuration please refer to [Sequelize configuration](http://do
 }
 ```
 
-**Twilio Authy**
+**Nexmo Verify**
 
-To enable phone number verification SMS please provide valid Twilio Authy API URL and API Key. Example:
+To enable phone number verification SMS please provide valid API URL, API Key and API Secret from https://www.nexmo.com/products/sms. Example:
 
 ```
 {
     ...
-    "AUTHY_API_URL": "https://api.authy.com",
-    "AUTHY_API_KEY": "MQLNW0xQMh4Hh6sxDDyIqLJilIjS2gNp",
+    "NEXMO_REST_URL": "https://rest.nexmo.com",
+    "NEXMO_API_KEY": "abcd1234",
+    "NEXMO_API_KEY": "abcdefgh12345678",
 }
 ```
-> If either `AUTHY_API_URL` or `AUTHY_API_KEY` is missing, no verification SMS will be triggered and verification code is not validated (**always considered valid**)
+> If one or more value are missing, no verification SMS will be triggered and verification code is not validated (**always considered valid**)
 
 ## Class/Entity Relationship Diagram
 

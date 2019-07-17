@@ -1,8 +1,9 @@
 {
     "APP_PORT": 3000,
     "APP_SECRET": "APP_SECRET",
-    "AUTHY_API_URL": "https://api.authy.com",
-    "AUTHY_API_KEY": "AUTHY_API_KEY",
+    "NEXMO_REST_URL": "https://rest.nexmo.com",
+    "NEXMO_API_KEY": "NEXMO_API_KEY",
+    "NEXMO_API_SECRET": "NEXMO_API_SECRET",
     "DATABASE": {
         "username": "username",
         "password": "password",

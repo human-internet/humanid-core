@@ -1,7 +1,7 @@
 'use strict';
 
 const bcrypt = require('bcryptjs'),
-  helpers = require('../helpers')
+  helpers = require('../helpers/common')
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
