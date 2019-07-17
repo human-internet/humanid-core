@@ -314,7 +314,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "id",
-            "description": "<p>Application ID</p>"
+            "description": "<p>Application ID (must be unique 5-20 characters alphanumeric)</p>"
           },
           {
             "group": "Success 200",

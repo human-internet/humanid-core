@@ -59,7 +59,7 @@ app.post('/login', async (req, res, next) => {
  * 
  * @apiParam {String} appId Application ID
  *
- * @apiSuccess {String} id Application ID
+ * @apiSuccess {String} id Application ID (must be unique 5-20 characters alphanumeric)
  * @apiSuccess {String} secret Secret code to invoke secured API
  */
 app.post('/apps', middlewares.verifyJWT, async (req, res, next) => {

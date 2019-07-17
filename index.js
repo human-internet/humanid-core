@@ -18,12 +18,16 @@ app.use('/mobile', require('./routes/mobile'))
 
 // global error handler
 app.use(function (err, req, res, next) {
-    console.error(err)
-    return res.status(500).send(err.message)
+    // console.error(err)
+    if (err.name === 'SequelizeValidationError') {
+        return res.status(400).send(err.message)
+    } else {
+        return res.status(500).send(err.message)
+    }    
 })
 
 if (require.main === module) {
-    if (process.env.JAWSDB_URL) {
+    if (process.env.DROP_CREATE === '1') {
         // heroku drop-create
         models.sequelize.drop()
             .then(() => {

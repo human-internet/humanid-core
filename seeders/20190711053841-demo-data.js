@@ -12,7 +12,7 @@ module.exports = {
       createdAt: now,
       updatedAt: now,
     }
-    let app1 = {id: 'Demo App', createdAt: now, updatedAt: now}
+    let app1 = {id: 'DEMO_APP', createdAt: now, updatedAt: now}
     app1.secret = helpers.hmac(app1.id)
     return queryInterface.bulkInsert('Admins', [admin1])
       .then(() => {

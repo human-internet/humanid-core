@@ -35,7 +35,7 @@ describe('Server', () => {
             res.should.have.status(200)
             res.body.accessToken.length.should.gte(10)
             let accessToken = res.body.accessToken
-            let data = {appId: 'New York Times'}
+            let data = {appId: 'NEW_YORK_TIMES'}
             res = await chai.request(app)
                 .post('/console/apps')
                 .set('Authorization', `Bearer ${accessToken}`)
@@ -53,8 +53,30 @@ describe('Server', () => {
         }
     })
 
+    it('should reject invalid app ID registration', async () => {
+        // called by our platform when app owner is 
+        // registering to use our API
+        try {
+            let res = await chai.request(app)
+                .post('/console/login')
+                .send({email: 'admin@local.host', password: 'admin123'})
+            res.should.have.status(200)
+            res.body.accessToken.length.should.gte(10)
+            let accessToken = res.body.accessToken
+            let data = {appId: 'invalid@pp!d'}
+            res = await chai.request(app)
+                .post('/console/apps')
+                .set('Authorization', `Bearer ${accessToken}`)
+                .send(data)
+            res.text.should.equals('Validation error: App ID must be 5-20 alphanumeric characters')
+            res.should.have.status(400)
+        } catch (e) {
+            throw e
+        }
+    })
+
     it('should be able to register as new user', async () => {
-        let data = {appId: 'New York Times', countryCode: '62', phone: '80989999'}        
+        let data = {appId: 'NEW_YORK_TIMES', countryCode: '62', phone: '80989999'}        
         let req = chai.request(app).keepOpen()
         try {
             // Create an app
@@ -97,8 +119,8 @@ describe('Server', () => {
     })
 
     it('should be able to login using stored hash', async () => {
-        let data = {appId: 'New York Times', countryCode: '62', phone: '80989999', deviceId: '122333444455555'}
-        let data2 = {appId: 'The Guardian'}
+        let data = {appId: 'NEW_YORK_TIMES', countryCode: '62', phone: '80989999', deviceId: '122333444455555'}
+        let data2 = {appId: 'THE_GUARDIAN'}
         let req = chai.request(app).keepOpen()
         try {
             let res = await req.post('/console/login')

@@ -4,7 +4,7 @@ HumanID API server. API doc and demo https://humanid.herokuapp.com
 
 Demo credentials:
 * Webconsole admin email/password: `admin@local.host` / `admin123`
-* Mobile app ID/secret: `Demo App` / `2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0`
+* Mobile app ID/secret: `DEMO_APP` / `2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0`
 
 ## Prerequisites
 

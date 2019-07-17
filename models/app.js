@@ -4,7 +4,13 @@ module.exports = (sequelize, DataTypes) => {
     id: {
       type: DataTypes.STRING,
       primaryKey: true,
-      allowNull: false, 
+      allowNull: false,
+      validate: {        
+        is: {
+          args: ["^[a-zA-Z0-9_]{5,20}$",'i'],
+          msg: 'App ID must be 5-20 alphanumeric characters',
+        },
+      }, 
     },
     secret: DataTypes.STRING,
   }, {})
