@@ -1,5 +1,7 @@
 # HumanID API
 
+[![Build Status](https://travis-ci.org/bluenumberfoundation/humanid-api.png?branch=master)](https://travis-ci.org/bluenumberfoundation/humanid-api)
+
 HumanID API server. API doc and demo https://humanid.herokuapp.com
 
 Demo credentials:
