@@ -8,7 +8,7 @@ const fs = require('fs'),
 	configPath = 'config.json'
 
 // load config
-let config = {}
+let config = {DATABASE: {}}
 if (fs.existsSync(path.join('.', configPath))) {
 	config = require('../' + configPath)
 } else {
