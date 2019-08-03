@@ -80,24 +80,13 @@ describe('Server', () => {
     })
 
     it('should be able to register as new user', async () => {        
-        let data = {appId: 'NEW_YORK_TIMES', countryCode: '62', phone: '80989999'}        
+        let appIds = ['NEW_YORK_TIMES', 'THE_GUARDIAN']
+        let data = {countryCode: '62', phone: '80989999', deviceId: '122333444455555'}        
         let req = chai.request(app).keepOpen()
         try {
-            // Create an app
-            let res = await req.post('/console/login')
-                .send({email: 'admin@local.host', password: 'admin123'})
-            let res1 = await req.post('/console/apps')
-                .set('Authorization', `Bearer ${res.body.accessToken}`)
-                .send({appId: data.appId})
-            res1.should.have.status(200)
-            res1.body.secret.length.should.gte(10)
-
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+                        
             // mock nexmo api response
-            // nock(config.NEXMO_API_URL)
-            //     .get(/^\/verify/)
-            //     .times(2)
-            //     .reply(200, {status: '0', request_id: 'TEST_REQUEST_ID'})
-
             nock(config.NEXMO_REST_URL)
                 .post(/^\/sms/)
                 .times(1)
@@ -106,36 +95,36 @@ describe('Server', () => {
             // Called by SDK within partner app
             // when a new user is trying to login
             let res2 = await req.post('/mobile/users/verifyPhone').send({
-                appId: data.appId,
                 countryCode: data.countryCode, 
                 phone: data.phone, 
-                appSecret: res1.body.secret,
+                appId: app1.id,
+                appSecret: app1.secret,
             })
             res2.should.have.status(200)
 
             // reject invalid code
             res2 = await req.post('/mobile/users/register').send({
-                appId: data.appId,
                 countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: '122333444455555', 
-                appSecret: res1.body.secret,
                 verificationCode: 'INVALID_CODE',
+                appId: app1.id,
+                appSecret: app1.secret,
             })
             res2.should.have.status(400)            
 
             // valid code
             let v = await models.Verification.findByPk(common.combinePhone(data.countryCode, data.phone))
             res2 = await req.post('/mobile/users/register').send({
-                appId: data.appId,
                 countryCode: data.countryCode, 
                 phone: data.phone, 
                 deviceId: '122333444455555', 
-                appSecret: res1.body.secret,
                 verificationCode: v.requestId,
+                appId: app1.id,
+                appSecret: app1.secret,
             })
             res2.should.have.status(200)
-            res2.body.appId.should.equals(data.appId)
+            res2.body.appId.should.equals(app1.id)
             // The hash is unique per app per user
             // this hash should be encrypted and stored 
             // on user device
@@ -149,53 +138,24 @@ describe('Server', () => {
     })
 
     it('should be able to login using stored hash', async () => {
-        let data = {appId: 'NEW_YORK_TIMES', countryCode: '62', phone: '80989999', deviceId: '122333444455555'}
-        let data2 = {appId: 'THE_GUARDIAN'}
+        let appIds = ['NEW_YORK_TIMES', 'THE_GUARDIAN']
+        let phones = [
+            ['62', '80989999'],
+        ]
         let req = chai.request(app).keepOpen()
         try {
-            let res = await req.post('/console/login')
-                .send({email: 'admin@local.host', password: 'admin123'})            
-            // Create two apps
-            let res1 = await req.post('/console/apps')
-                .set('Authorization', `Bearer ${res.body.accessToken}`)
-                .send({appId: data.appId})
-            res1.should.have.status(200)
-            let res2 = await req.post('/console/apps')
-                .set('Authorization', `Bearer ${res.body.accessToken}`)
-                .send({appId: data2.appId})
-            res2.should.have.status(200)
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1])})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
 
-            // mock nexmo api response
-            // nock(config.NEXMO_API_URL)
-            //     .get(/^\/verify/)
-            //     .times(2)
-            //     .reply(200, {status: '0', request_id: 'TEST_REQUEST_ID'})                
-
-            nock(config.NEXMO_REST_URL)
-                .post(/^\/sms/)
-                .times(1)
-                .reply(200, {messages: [{status: '0'}]})
-
-            // verify phone
-            let res3 = await req.post('/mobile/users/verifyPhone').send({
-                appId: data.appId,
-                countryCode: data.countryCode, 
-                phone: data.phone, 
-                appSecret: res1.body.secret,
+            // reject wrong hash
+            let res3 = await req.post('/mobile/users/login').send({
+                appId: app2.id, 
+                appSecret: app2.secret,
+                existingHash: 'INVALID_HASH',
             })
-            res3.should.have.status(200)
-
-            // Register the user to 1st app
-            let v = await models.Verification.findByPk(common.combinePhone(data.countryCode, data.phone))
-            res3 = await req.post('/mobile/users/register').send({
-                appId: data.appId,
-                countryCode: data.countryCode, 
-                phone: data.phone, 
-                deviceId: data.deviceId, 
-                appSecret: res1.body.secret,
-                verificationCode: v.requestId,
-            })
-            res3.should.have.status(200)
+            res3.should.have.status(401)
 
             // Login to 2nd app
             // Called by SDK within partner app/server
@@ -204,12 +164,12 @@ describe('Server', () => {
             // hence must be encrypted when stored in user's device
             // and decrypted only when being used for login           
             let res4 = await req.post('/mobile/users/login').send({
-                appId: data2.appId, 
-                appSecret: res2.body.secret,
-                existingHash: res3.body.hash,
+                appId: app2.id, 
+                appSecret: app2.secret,
+                existingHash: appUser1.hash,
             })
             res4.should.have.status(200)
-            res4.body.appId.should.equals(data2.appId)
+            res4.body.appId.should.equals(app2.id)
             // The hash is unique per app per user
             // this hash should be encrypted and stored 
             // on user device
@@ -218,15 +178,75 @@ describe('Server', () => {
 
             // check login status
             let res5 = await req.get('/mobile/users/login').query({
-                appId: data.appId, 
-                appSecret: res1.body.secret,
+                appId: app2.id, 
+                appSecret: app2.secret,
                 hash: res4.body.hash,
             })
-            res5.should.have.status(200)
+            res5.should.have.status(200)            
         } catch (e) {
             throw e
         } finally {
             req.close()
         }
     })
+
+    it('should be able to update number', async () => {
+        let appIds = ['NEW_YORK_TIMES', 'THE_GUARDIAN']
+        let phones = [
+            ['62', '80989999'],
+            ['62', '81234567'],
+        ]
+        let req = chai.request(app).keepOpen()
+        try {
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1])})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
+            let appUser2 = await models.AppUser.create({appId: app2.id, userId: user.id, hash: common.hmac(`${user.id}${app2.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_2'})
+            let verification = await models.Verification.create({number: `${phones[1][0]}${phones[1][1]}`, requestId: 'DUMMY_CODE'})
+
+            // reject invalid user hash
+            let res0 = await req.post('/mobile/users/updatePhone').send({
+                countryCode: phones[1][0], 
+                phone: phones[1][1], 
+                existingHash: 'INVALID_HASH', 
+                appId: app1.id,
+                appSecret: app1.secret,
+                verificationCode: verification.requestId,
+            })
+            res0.should.have.status(401)
+
+            // update phone number
+            let res1 = await req.post('/mobile/users/updatePhone').send({
+                countryCode: phones[1][0], 
+                phone: phones[1][1], 
+                existingHash: appUser1.hash, 
+                appId: app1.id,
+                appSecret: app1.secret,
+                verificationCode: verification.requestId,
+            })
+            res1.should.have.status(200)
+            let updatedUser = await models.User.findByPk(user.id)
+            updatedUser.hash.should.equals(common.hmac(`${phones[1][0]}${phones[1][1]}`))
+
+            // check login status
+            let res2 = await req.get('/mobile/users/login').query({
+                appId: app1.id, 
+                appSecret: app1.secret,
+                hash: appUser1.hash,
+            })
+            res2.should.have.status(200)
+            let res3 = await req.get('/mobile/users/login').query({
+                appId: app2.id, 
+                appSecret: app2.secret,
+                hash: appUser2.hash,
+            })
+            res3.should.have.status(200)
+        } catch (e) {
+            throw e
+        } finally {
+            req.close()
+        }
+    })
+
 })

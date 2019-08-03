@@ -10,12 +10,12 @@ module.exports = {
           key: 'id',
         },
       },
-      userHash: {
-        type: Sequelize.STRING,
+      userId: {
+        type: Sequelize.INTEGER,
         primaryKey: true,
         references: {
           model: 'Users',
-          key: 'hash',
+          key: 'id',
         },
       },
       deviceId: {

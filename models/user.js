@@ -3,7 +3,6 @@ module.exports = (sequelize, DataTypes) => {
   const User = sequelize.define('User', {
     hash: {
       type: DataTypes.STRING,
-      primaryKey: true,
       allowNull: false, 
     },
   }, {})
@@ -11,7 +10,7 @@ module.exports = (sequelize, DataTypes) => {
     User.belongsToMany(models.App, {
       through: models.AppUser,
       as: 'apps',
-      foreignKey: 'userHash',
+      foreignKey: 'userId',
       otherKey: 'appId',
     })
   }

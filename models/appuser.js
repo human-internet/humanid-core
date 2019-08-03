@@ -21,14 +21,14 @@ module.exports = (sequelize, DataTypes) => {
       as: 'app',
     })
     AppUser.belongsTo(models.User, {
-      foreignKey: 'userHash',
+      foreignKey: 'userId',
       as: 'user',
     })
   }
 
   AppUser.prototype.toJSON = function() {
     let values = Object.assign({}, this.get())
-    delete values.userHash
+    delete values.userId
     delete values.notifId
     return values
   }

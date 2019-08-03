@@ -217,6 +217,78 @@ define({ "api": [
   },
   {
     "type": "post",
+    "url": "/mobile/users/updatePhone",
+    "title": "Update phone",
+    "name": "UpdatePhone",
+    "group": "Mobile",
+    "description": "<p>Update phone number of logged-in account and, consequently, invalidate login from old phone number</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "countryCode",
+            "description": "<p>User new mobile phone country code (eg. 62 for Indonesia)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>User new mobile phone number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "verificationCode",
+            "description": "<p>User new phone number verification code (OTP)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "existingHash",
+            "description": "<p>User existing app hash</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>OK</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "routes/mobile.js",
+    "groupTitle": "Mobile"
+  },
+  {
+    "type": "post",
     "url": "/mobile/users/verifyPhone",
     "title": "Verify phone",
     "name": "VerifyPhone",
