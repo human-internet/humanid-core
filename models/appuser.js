@@ -12,6 +12,7 @@ module.exports = (sequelize, DataTypes) => {
     hash: {
       type: DataTypes.STRING,
       allowNull: false, 
+      unique: true,
     },
   }, {})
   
@@ -28,8 +29,11 @@ module.exports = (sequelize, DataTypes) => {
 
   AppUser.prototype.toJSON = function() {
     let values = Object.assign({}, this.get())
+    // exclude internal user ID
     delete values.userId
-    delete values.notifId
+    // exclude relations
+    if (values.app) delete values.app
+    if (values.user) delete values.user
     return values
   }
 

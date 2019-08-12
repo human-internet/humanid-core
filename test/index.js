@@ -249,4 +249,34 @@ describe('Server', () => {
         }
     })
 
+    it('should be able to notifId', async () => {
+        let appIds = ['NEW_YORK_TIMES']
+        let phones = [
+            ['62', '80989999'],
+        ]
+        let req = chai.request(app).keepOpen()
+        try {
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
+            let newNotifId = 'NEW_NOTIF_ID'
+
+            // update phone number
+            let res1 = await req.put('/mobile/users').send({
+                notifId: newNotifId,
+                hash: appUser1.hash, 
+                appId: app1.id,
+                appSecret: app1.secret,
+            })
+            res1.should.have.status(200)
+            let updateAppUser = await models.AppUser.findOne({where: {hash: appUser1.hash}})
+            updateAppUser.notifId.should.equals(newNotifId)
+        } catch (e) {
+            throw e
+        } finally {
+            req.close()
+        }
+    })
+
+
 })

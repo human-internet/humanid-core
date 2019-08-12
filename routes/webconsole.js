@@ -1,3 +1,5 @@
+'use strict'
+
 const bcrypt = require('bcryptjs'),
     helpers = require('../helpers/common'),
     middlewares = require('../middlewares'),

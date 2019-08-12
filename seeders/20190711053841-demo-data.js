@@ -1,7 +1,6 @@
 'use strict';
 
-const bcrypt = require('bcryptjs'),
-  helpers = require('../helpers/common')
+const bcrypt = require('bcryptjs')
 
 module.exports = {
   up: (queryInterface, Sequelize) => {
@@ -13,7 +12,6 @@ module.exports = {
       updatedAt: now,
     }
     let app1 = {id: 'DEMO_APP', createdAt: now, updatedAt: now}
-    // app1.secret = helpers.hmac(app1.id)
     app1.secret = '2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0'
     return queryInterface.bulkInsert('Admins', [admin1])
       .then(() => {

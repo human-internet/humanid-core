@@ -1,3 +1,5 @@
+'use strict'
+
 const helpers = require('../helpers/common'),
     nexmo = require('../helpers/nexmo'),
     models = require('../models/index'),
@@ -6,8 +8,50 @@ const helpers = require('../helpers/common'),
     app = require('express').Router()
 
 // TODO: API to update notifId
-// TODO: API to send push notification for web SDK login
-// TODO: API to receive confirmation from mobile SDK for web login
+
+/**
+ * Validate app credentials
+ */
+const validateAppCredentials = async (appId, appSecret, app) => {
+    if (!app) {
+        app = await models.App.findByPk(appId)
+    }
+    if (!app || app.id !== appId) {
+        throw new Error(`Invalid app ID: ${appId}`)
+    }
+    if (app.secret !== appSecret) {
+        throw new Error(`Invalid secret: ${appSecret}`)
+    }
+    return app
+}
+
+/**
+ * Validate app user credentials and return user object
+ */
+const validateAppUserCredentials = async (hash, appId, appSecret) => {
+    // validate login hash
+    let appUser = await models.AppUser.findOne({
+        where: { hash: hash },
+        include: [{ all: true }],
+    })
+    if (!appUser) {
+        throw new Error(`Invalid login hash`)
+    }
+    // validate app credentials
+    validateAppCredentials(appId, appSecret, appUser.app)
+    return appUser
+}
+
+/**
+ * 
+ * @apiDefine AppUser
+ * @apiSuccess {String} appId Partner app ID
+ * @apiSuccess {String} hash User hash (unique authentication code) for given app
+ * @apiSuccess {String} deviceId User unique authentication code for given app
+ * @apiSuccess {String} notifId Push notif ID
+ * 
+ */
+
 
 /**
  * @api {post} /mobile/users/register User registration
@@ -23,9 +67,7 @@ const helpers = require('../helpers/common'),
  * @apiParam {String} appId Partner app ID
  * @apiParam {String} appSecret Partner app secret
  *
- * @apiSuccess {String} appId Partner app ID
- * @apiSuccess {String} hash User hash (unique authentication code) for given app
- * @apiSuccess {String} deviceId User unique authentication code for given app
+ * @apiUse AppUser
  */
 app.post('/users/register', async (req, res, next) => {
     let body = req.body
@@ -42,16 +84,16 @@ app.post('/users/register', async (req, res, next) => {
     if (error) {
         return res.status(400).send(error)
     }
-    
+
+    // validate app
+    let app = null
     try {
-        // check app
-        let app = await models.App.findByPk(body.appId)
-        if (!app) {
-            return res.status(404).send(`App not found ${body.appId}`)
-        }
-        if (app.secret != body.appSecret) {
-            return res.status(401).send(`Invalid secret`)
-        }    
+        app = await validateAppCredentials(body.appId, body.appSecret)
+    } catch (e) {
+        return res.status(401).send(e.message)
+    }
+
+    try {
         // verify code
         await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
@@ -97,9 +139,8 @@ app.post('/users/register', async (req, res, next) => {
  * @apiParam {String} appId Partner app ID
  * @apiParam {String} appSecret Partner app secret
  *
- * @apiSuccess {String} appId Partner app ID
- * @apiSuccess {String} hash User unique authentication code for given app
- * @apiSuccess {String} deviceId User unique authentication code for given app
+ * @apiUse AppUser
+ * 
  */
 app.post('/users/login', async (req, res, next) => {
     
@@ -114,7 +155,7 @@ app.post('/users/login', async (req, res, next) => {
     }
 
     try {
-        // check app
+        // validate new app
         let newApp = await models.App.findByPk(body.appId)
         if (!newApp) {
             return res.status(404).send(`App not found ${body.appId}`)
@@ -123,7 +164,7 @@ app.post('/users/login', async (req, res, next) => {
             return res.status(401).send(`Invalid secret`)
         }    
         
-        // check user
+        // validate existing app user
         let existingAppUser = await models.AppUser.findOne({
             where: { hash: body.existingHash },
         })
@@ -170,30 +211,17 @@ app.get('/users/login', async (req, res, next) => {
         appSecret: 'required', 
         hash: 'required', 
     }, body)
+
     if (error) {
         return res.status(400).send(error)
     }
 
     try {
-        // check app
-        let app = await models.App.findByPk(body.appId)
-        if (!app) {
-            return res.status(404).send(`App not found ${body.appId}`)
-        }
-        if (app.secret != body.appSecret) {
-            return res.status(401).send(`Invalid secret`)
-        }   
-
-        let appUser = await models.AppUser.findOne({
-            where: { hash: body.hash },
-        })
-        if (!appUser) {
-            return res.status(401).send(`User is not yet registered on app: ${body.appId}`)
-        }
+        // validate credentials
+        await validateAppUserCredentials(body.hash, body.appId, body.appSecret)
         return res.send({message: 'OK'})        
     } catch (e) {
-        console.error(e)
-        next(e)
+        return res.status(401).send(e.message)
     }
     
 })
@@ -220,20 +248,19 @@ app.post('/users/verifyPhone', async (req, res, next) => {
         countryCode: 'required', 
         phone: 'required', 
     }, body)
+
     if (error) {
         return res.status(400).send(error)
     }
 
+    // validate credentials
     try {
-        // check app
-        let app = await models.App.findByPk(body.appId)
-        if (!app) {
-            return res.status(404).send(`App not found ${body.appId}`)
-        }
-        if (app.secret != body.appSecret) {
-            return res.status(401).send(`Invalid secret`)
-        }   
+        await validateAppCredentials(body.appId, body.appSecret)
+    } catch (e) {
+        return res.status(401).send(e.message)
+    }
 
+    try {
         await nexmo.sendVerificationSMS(body.countryCode, body.phone)
         return res.send({message: 'OK'})        
     } catch (e) {
@@ -274,24 +301,15 @@ app.post('/users/updatePhone', async (req, res, next) => {
         return res.status(400).send(error)
     }
     
+    // validate credentials
+    let existingAppUser = null
     try {
-        // check hash
-        let existingAppUser = await models.AppUser.findOne({
-            where: { hash: body.existingHash },
-            include: [{ all: true }],
-        })
-        if (!existingAppUser) {
-            return res.status(401).send(`Invalid login`)
-        }
+        existingAppUser = await validateAppUserCredentials(body.existingHash, body.appId, body.appSecret)
+    } catch (e) {
+        return res.status(401).send(e.message)
+    }
 
-        // check app
-        if (existingAppUser.app.id !== body.appId) {
-            return res.status(401).send(`Invalid app ID ${body.appId}`)
-        }
-        if (existingAppUser.app.secret !== body.appSecret) {
-            return res.status(401).send(`Invalid secret`)
-        }
-
+    try {
         // verify code
         await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
@@ -304,5 +322,52 @@ app.post('/users/updatePhone', async (req, res, next) => {
         next(e)
     }
 })
+
+
+/**
+ * @api {put} /mobile/users Update
+ * @apiName Update
+ * @apiGroup Mobile
+ * @apiDescription Update notif ID
+ *
+ * @apiParam {String} notifId Push notif ID
+ * @apiParam {String} hash User app hash
+ * @apiParam {String} appId Partner app ID
+ * @apiParam {String} appSecret Partner app secret
+ *
+ * @apiUse AppUser
+ */
+app.put('/users', async (req, res, next) => {
+    let body = req.body
+    
+    let error = validate({
+        notifId: 'required', 
+        hash: 'required', 
+        appId: 'required', 
+        appSecret: 'required',        
+    }, body)
+
+    if (error) {
+        return res.status(400).send(error)
+    }
+
+    // validate credentials
+    let existingAppUser = null
+    try {
+        existingAppUser = await validateAppUserCredentials(body.hash, body.appId, body.appSecret)
+    } catch (e) {
+        return res.status(401).send(e.message)
+    }    
+    
+    try {
+        // update notifId
+        existingAppUser.notifId = body.notifId
+        await existingAppUser.save()
+        return res.send(existingAppUser)
+    } catch (e) {
+        next(e)
+    }
+})
+
 
 module.exports = app

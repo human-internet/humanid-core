@@ -29,6 +29,7 @@ module.exports = {
       hash: {
         type: Sequelize.STRING,
         allowNull: false,
+        unique: true,
       },
       createdAt: {
         allowNull: false,
