@@ -62,6 +62,7 @@ class WebConsoleController extends BaseController {
          *
          * @apiSuccess {String} id Application ID (must be unique 5-20 characters alphanumeric)
          * @apiSuccess {String} secret Secret code to invoke secured API
+         * @apiSuccess {String} [urls] Whitelisted domain URLs for web client (comma-separated). Example: <code>https://foo.com,https://bar.com</code>
          */
         this.router.post('/apps', this.middlewares.verifyJWT, async (req, res, next) => {
             let body = req.body

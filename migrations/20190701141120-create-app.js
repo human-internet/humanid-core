@@ -11,6 +11,9 @@ module.exports = {
       secret: {
         type: Sequelize.STRING,
       },
+      urls: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

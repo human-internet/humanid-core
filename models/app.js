@@ -13,6 +13,7 @@ module.exports = (sequelize, DataTypes) => {
       }, 
     },
     secret: DataTypes.STRING,
+    urls: DataTypes.STRING,
   }, {})
   App.associate = function(models) {
     App.hasMany(models.AppUser, {
