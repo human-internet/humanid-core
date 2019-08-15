@@ -18,8 +18,11 @@ Demo credentials:
 1. Install `nodejs >= 10.x.x`
 2. Clone repo & install dependencies `npm i`
 3. Run test `npm test`
-4. Generate doc `npm run doc` (requires `apidoc` http://apidocjs.com/)
+4. Generate database (drop & create) by running `npm run db:refresh` on Linux/MacOS
+5. Generate doc `npm run doc` (requires `apidoc` http://apidocjs.com/)
    
+> To generate database on Windows **maybe** you can run `setx NODE_ENV=DATABASE && npx sequelize db:drop && sequelize db:create && npx sequelize db:migrate && npx sequelize db:seed:all` **(UNTESTED)**
+
 ## Configuration
 
 App configuration is read from `config.json`. You can reuse the provided example in `config.json.example`. 
@@ -65,19 +68,40 @@ For `DATABASE` configuration please refer to [Sequelize configuration](http://do
 }
 ```
 
-**Nexmo Verify**
+**SMS Verification**
 
-To enable phone number verification SMS please provide valid API URL, API Key and API Secret from https://www.nexmo.com/products/sms. Example:
+To enable phone number verification SMS using [Nexmo](https://www.nexmo.com/products/sms) please provide valid configuration like below (replace values with your own account details):
 
 ```
 {
-    ...
     "NEXMO_REST_URL": "https://rest.nexmo.com",
     "NEXMO_API_KEY": "abcd1234",
     "NEXMO_API_KEY": "abcdefgh12345678",
 }
 ```
 > If one or more value are missing, no verification SMS will be triggered and verification code is not validated (**always considered valid**)
+
+**Push Notification**
+
+To enable push notification using [Firebase Cloud Messaging](https://firebase.google.com/docs/admin/setup?authuser=0#initialize_the_sdk), provide valid like below (replace values with your own account details):
+
+```
+{
+    "FIREBASE_DB_URL": "https://humanid.firebaseio.com",
+    "FIREBASE_ACCOUNT_KEY": {
+        "type": "service_account",
+        "project_id": "humanid",
+        "private_key_id": "humanidprivatekey",
+        "private_key": "-----BEGIN PRIVATE KEY-----\nhumanidprivatekey\n-----END PRIVATE KEY-----\n",
+        "client_email": "firebase-adminsdk@humanid.iam.gserviceaccount.com",
+        "client_id": "1111111111111111111",
+        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+        "token_uri": "https://oauth2.googleapis.com/token",
+        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk%40humanid.iam.gserviceaccount.com"
+    },
+}
+```
 
 ## Class/Entity Relationship Diagram
 
