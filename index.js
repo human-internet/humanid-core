@@ -1,30 +1,13 @@
 'use strict'
 
-const express = require('express'),
-    bodyParser = require('body-parser'),
-    helpers = require('./helpers/common'),
-    models = require('./models/index'),
-    config = helpers.config
+const common = require('./helpers/common'),
+    nexmo = require('./helpers/nexmo'),
+    models = require('./models/index'),    
+    middlewares = require('./middlewares'),
+    Server = require('./server')
 
-const port = config.APP_PORT || process.env.PORT || 3000
-const app = express()
-app.use(bodyParser.json())
-app.use(bodyParser.urlencoded({ extended: true }))
-
-// routes
-app.use('/', express.static('doc'))
-app.use('/console', require('./routes/webconsole'))
-app.use('/mobile', require('./routes/mobile'))
-
-// global error handler
-app.use(function (err, req, res, next) {
-    // console.error(err)
-    if (err.name === 'SequelizeValidationError' || err.name === 'ValidationError') {
-        return res.status(400).send(err.message)
-    } else {
-        return res.status(500).send(err.message)
-    }    
-})
+const port = common.config.APP_PORT || process.env.PORT || 3000
+const app = new Server(models, common, middlewares, nexmo).app
 
 if (require.main === module) {
     if (process.env.DROP_CREATE === '1') {

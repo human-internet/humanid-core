@@ -7,7 +7,7 @@
     "start": "node index.js",
     "test": "mocha",
     "dev": "nodemon index.js",
-    "doc": "apidoc -i routes/ -o doc/",
+    "doc": "apidoc -i controllers/ -o doc/",
     "db:refresh": "NODE_ENV=DATABASE npx sequelize db:drop; NODE_ENV=DATABASE sequelize db:create; NODE_ENV=DATABASE npx sequelize db:migrate; NODE_ENV=DATABASE npx sequelize db:seed:all"
   },
   "keywords": [
@@ -21,6 +21,7 @@
     "body-parser": "^1.19.0",
     "express": "^4.17.1",
     "express-paginate": "^1.0.0",
+    "firebase-admin": "^8.3.0",
     "jsonwebtoken": "^8.5.1",
     "mysql2": "^1.6.5",
     "request": "^2.88.0",
@@ -35,6 +36,7 @@
     "nock": "^10.0.6",
     "nodemon": "^1.19.1",
     "sequelize-cli": "^5.5.0",
+    "sinon": "^7.4.1",
     "umzug": "^2.2.0"
   }
 }

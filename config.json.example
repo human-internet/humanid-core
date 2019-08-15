@@ -4,6 +4,8 @@
     "NEXMO_REST_URL": "https://rest.nexmo.com",
     "NEXMO_API_KEY": "NEXMO_API_KEY",
     "NEXMO_API_SECRET": "NEXMO_API_SECRET",
+    "FIREBASE_KEY_JSON": "serviceAccountKey.json",
+    "FIREBASE_DB_URL": "https://animated-backup-247611.firebaseio.com",
     "DATABASE": {
         "username": "username",
         "password": "password",

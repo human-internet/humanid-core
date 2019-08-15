@@ -7,6 +7,7 @@ module.exports = (sequelize, DataTypes) => {
     },
   }, {})
   User.associate = function(models) {
+    User.hasMany(models.AppUser)
     User.belongsToMany(models.App, {
       through: models.AppUser,
       as: 'apps',

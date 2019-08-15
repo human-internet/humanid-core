@@ -4,7 +4,7 @@ const fs = require('fs'),
 	path = require('path'),
 	crypto = require('crypto'),
 	jwt = require('jsonwebtoken'),
-	env = process.env.NODE_ENV || 'development',
+	firebase = require('firebase-admin'),
 	configPath = 'config.json'
 
 // load config
@@ -16,20 +16,39 @@ if (fs.existsSync(path.join('.', configPath))) {
 }
 
 // override config
-config.AUTHY_API_URL = process.env.AUTHY_API_KEY || 'https://api.authy.com'
+config.APP_SECRET = process.env.APP_SECRET || config.APP_SECRET || 'ThisIsADefaultSecretPhrase'
+
+config.AUTHY_API_URL = process.env.AUTHY_API_URL || 'https://api.authy.com'
 config.NEXMO_API_URL = process.env.NEXMO_API_URL || 'https://api.nexmo.com'
 config.NEXMO_REST_URL = process.env.NEXMO_REST_URL || 'https://rest.nexmo.com'
-if (env === 'test') {	
-	config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || ''
-	config.NEXMO_API_KEY = process.env.NEXMO_API_KEY || ''
-	config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || ''
-} else {	
-	config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || config.AUTHY_API_KEY
-	config.NEXMO_API_KEY = process.env.NEXMO_API_KEY || config.NEXMO_API_KEY
-	config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || config.NEXMO_API_SECRET
+config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || config.AUTHY_API_KEY
+config.NEXMO_API_KEY = process.env.NEXMO_API_KEY || config.NEXMO_API_KEY
+config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || config.NEXMO_API_SECRET
+
+config.FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || config.FIREBASE_DB_URL
+config.FIREBASE_ACCOUNT_KEY = config.FIREBASE_ACCOUNT_KEY || {}
+config.FIREBASE_ACCOUNT_KEY.type = process.env.FIREBASE_ACCOUNT_KEY_type || config.FIREBASE_ACCOUNT_KEY.type
+config.FIREBASE_ACCOUNT_KEY.project_id = process.env.FIREBASE_ACCOUNT_KEY_project_id || config.FIREBASE_ACCOUNT_KEY.project_id
+config.FIREBASE_ACCOUNT_KEY.private_key_id = process.env.FIREBASE_ACCOUNT_KEY_private_key_id || config.FIREBASE_ACCOUNT_KEY.private_key_id
+config.FIREBASE_ACCOUNT_KEY.private_key = process.env.FIREBASE_ACCOUNT_KEY_private_key || config.FIREBASE_ACCOUNT_KEY.private_key
+config.FIREBASE_ACCOUNT_KEY.client_email = process.env.FIREBASE_ACCOUNT_KEY_client_email || config.FIREBASE_ACCOUNT_KEY.client_email
+config.FIREBASE_ACCOUNT_KEY.client_id = process.env.FIREBASE_ACCOUNT_KEY_client_id || config.FIREBASE_ACCOUNT_KEY.client_id
+config.FIREBASE_ACCOUNT_KEY.auth_uri = process.env.FIREBASE_ACCOUNT_KEY_auth_uri || config.FIREBASE_ACCOUNT_KEY.auth_uri
+config.FIREBASE_ACCOUNT_KEY.token_uri = process.env.FIREBASE_ACCOUNT_KEY_token_uri || config.FIREBASE_ACCOUNT_KEY.token_uri
+config.FIREBASE_ACCOUNT_KEY.auth_provider_x509_cert_url = process.env.FIREBASE_ACCOUNT_KEY_auth_provider_x509_cert_url || config.FIREBASE_ACCOUNT_KEY.auth_provider_x509_cert_url
+config.FIREBASE_ACCOUNT_KEY.client_x509_cert_url = process.env.FIREBASE_ACCOUNT_KEY_client_x509_cert_url || config.FIREBASE_ACCOUNT_KEY.client_x509_cert_url
+
+// firebase
+if (config.FIREBASE_ACCOUNT_KEY && config.FIREBASE_DB_URL) {
+	firebase.initializeApp({
+		credential: firebase.credential.cert(config.FIREBASE_ACCOUNT_KEY),
+		databaseURL: config.FIREBASE_DB_URL,
+	})
+} else {
+	console.warn(`FIREBASE_ACCOUNT_KEY and/or FIREBASE_DB_URL are not configured`)
 }
 
-const SECRET = config.APP_SECRET || 'ThisIsADefaultSecretPhrase'
+const SECRET = config.APP_SECRET
 
 // hash data using secret
 const hmac = (data) => {
@@ -93,4 +112,5 @@ module.exports = {
 	verifyJWT: verifyJWT,
 	randStr: randStr,
 	combinePhone: combinePhone,
+	firebase: firebase,
 }

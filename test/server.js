@@ -4,10 +4,21 @@ const chai = require('chai'),
     nock = require('nock'),
     chaiHttp = require('chai-http'),
     bcrypt = require('bcryptjs'),
+    sinon = require('sinon'),
     common = require('../helpers/common'),
+    nexmo = require('../helpers/nexmo'),
     models = require('../models/index'),    
-    app = require('../index'),
-    config = common.config
+    middlewares = require('../middlewares'),
+    Server = require('../server'),
+    app = new Server(models, common, middlewares, nexmo).app
+
+
+// fake config
+common.config = {
+    NEXMO_REST_URL: "https://rest.nexmo.com",
+    NEXMO_API_KEY: "NEXMO_API_KEY",
+    NEXMO_API_SECRET: "NEXMO_API_SECRET",
+}
 
 // setup chai
 chai.use(chaiHttp)
@@ -25,7 +36,7 @@ describe('Server', () => {
     })
 
     it('index should be publicliy accessible', async () => {
-        let res = await chai.request(app).get('/')            
+        let res = await chai.request(app).get('/')
         res.should.have.status(200)
     })
 
@@ -35,7 +46,7 @@ describe('Server', () => {
         try {
             let res = await chai.request(app)
                 .post('/console/login')
-                .send({email: 'admin@local.host', password: 'admin123'})
+                .send({email: 'admin@local.host', password: 'admin123'})            
             res.should.have.status(200)
             res.body.accessToken.length.should.gte(10)
             let accessToken = res.body.accessToken
@@ -79,7 +90,7 @@ describe('Server', () => {
         }
     })
 
-    it('should be able to register as new user', async () => {        
+    it('should be able to register as new user', async () => {      
         let appIds = ['NEW_YORK_TIMES', 'THE_GUARDIAN']
         let data = {countryCode: '62', phone: '80989999', deviceId: '122333444455555'}        
         let req = chai.request(app).keepOpen()
@@ -87,7 +98,7 @@ describe('Server', () => {
             let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
                         
             // mock nexmo api response
-            nock(config.NEXMO_REST_URL)
+            nock(common.config.NEXMO_REST_URL)
                 .post(/^\/sms/)
                 .times(1)
                 .reply(200, {messages: [{status: '0'}]})            
@@ -167,7 +178,7 @@ describe('Server', () => {
                 appId: app2.id, 
                 appSecret: app2.secret,
                 existingHash: appUser1.hash,
-            })
+            })            
             res4.should.have.status(200)
             res4.body.appId.should.equals(app2.id)
             // The hash is unique per app per user
@@ -191,6 +202,7 @@ describe('Server', () => {
     })
 
     it('should be able to update number', async () => {
+        let app = new Server(models, common, middlewares, nexmo).app
         let appIds = ['NEW_YORK_TIMES', 'THE_GUARDIAN']
         let phones = [
             ['62', '80989999'],
@@ -249,7 +261,7 @@ describe('Server', () => {
         }
     })
 
-    it('should be able to notifId', async () => {
+    it('should be able to update notifId', async () => {
         let appIds = ['NEW_YORK_TIMES']
         let phones = [
             ['62', '80989999'],
@@ -278,5 +290,88 @@ describe('Server', () => {
         }
     })
 
+
+    it('should be able to process web login', async () => {
+        const MESSAGE_ID = 'MESSAGE_ID'
+        common.firebase = {
+            messaging: () => {
+                return { send: async (obj) => Promise.resolve(MESSAGE_ID) }
+            }
+        }
+        let appIds = ['NEW_YORK_TIMES']
+        let phones = [['62', '80989999']]
+        let req = chai.request(app).keepOpen()
+        try {
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
+
+            // web login
+            let res1 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res1.should.have.status(202) // success but pending
+            res1.body.messageId.should.equals(MESSAGE_ID)
+            res1.body.type.should.equals(models.Confirmation.TypeCode.WEB_LOGIN_REQUEST)
+            res1.body.status.should.equals(models.Confirmation.StatusCode.PENDING)
+            res1.body.appId.should.equals(app1.id)
+            res1.body.should.not.have.any.keys(['userId'])
+
+            let confirmation = await models.Confirmation.findByPk(res1.body.id)
+            confirmation.userId.should.equals(user.id)
+        } catch (e) {
+            throw e
+        } finally {
+            req.close()
+        }
+
+    })
+
+    it('should be able to confirm web login', async () => {
+        let appIds = ['NEW_YORK_TIMES']
+        let phones = [['62', '80989999']]
+        let req = chai.request(app).keepOpen()
+        try {
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
+            let confirmation = await models.Confirmation.create({
+                type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+                appId: app1.id,
+                userId: user.id,
+                status: models.Confirmation.StatusCode.PENDING,
+            })
+
+            // mobile confirm
+            let res1 = await req.post('/web/users/confirm').send({
+                hash: appUser1.hash, 
+                requestingAppId: app1.id, // same app
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })       
+            res1.should.have.status(200)
+            let confirmedConfirmation = await models.Confirmation.findByPk(confirmation.id)
+            confirmedConfirmation.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+
+            // login again should return confirmed
+            let res2 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res2.should.have.status(200)
+            res2.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            
+        } catch (e) {
+            throw e
+        } finally {
+            req.close()
+        }
+        
+    })
 
 })

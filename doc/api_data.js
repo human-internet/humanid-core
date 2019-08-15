@@ -40,6 +40,9 @@ define({ "api": [
         ]
       }
     },
+    "version": "0.0.0",
+    "filename": "controllers/mobile.js",
+    "groupTitle": "Mobile",
     "success": {
       "fields": {
         "Success 200": [
@@ -55,7 +58,7 @@ define({ "api": [
             "type": "String",
             "optional": false,
             "field": "hash",
-            "description": "<p>User unique authentication code for given app</p>"
+            "description": "<p>User hash (unique authentication code) for given app</p>"
           },
           {
             "group": "Success 200",
@@ -63,13 +66,17 @@ define({ "api": [
             "optional": false,
             "field": "deviceId",
             "description": "<p>User unique authentication code for given app</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
           }
         ]
       }
-    },
-    "version": "0.0.0",
-    "filename": "routes/mobile.js",
-    "groupTitle": "Mobile"
+    }
   },
   {
     "type": "get",
@@ -119,7 +126,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/mobile.js",
+    "filename": "controllers/mobile.js",
     "groupTitle": "Mobile"
   },
   {
@@ -184,6 +191,9 @@ define({ "api": [
         ]
       }
     },
+    "version": "0.0.0",
+    "filename": "controllers/mobile.js",
+    "groupTitle": "Mobile",
     "success": {
       "fields": {
         "Success 200": [
@@ -207,13 +217,96 @@ define({ "api": [
             "optional": false,
             "field": "deviceId",
             "description": "<p>User unique authentication code for given app</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
+          }
+        ]
+      }
+    }
+  },
+  {
+    "type": "put",
+    "url": "/mobile/users",
+    "title": "Update",
+    "name": "Update",
+    "group": "Mobile",
+    "description": "<p>Update notif ID</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "hash",
+            "description": "<p>User app hash</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
           }
         ]
       }
     },
     "version": "0.0.0",
-    "filename": "routes/mobile.js",
-    "groupTitle": "Mobile"
+    "filename": "controllers/mobile.js",
+    "groupTitle": "Mobile",
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "hash",
+            "description": "<p>User hash (unique authentication code) for given app</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "deviceId",
+            "description": "<p>User unique authentication code for given app</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "notifId",
+            "description": "<p>Push notif ID</p>"
+          }
+        ]
+      }
+    }
   },
   {
     "type": "post",
@@ -284,7 +377,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/mobile.js",
+    "filename": "controllers/mobile.js",
     "groupTitle": "Mobile"
   },
   {
@@ -342,8 +435,73 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/mobile.js",
+    "filename": "controllers/mobile.js",
     "groupTitle": "Mobile"
+  },
+  {
+    "type": "post",
+    "url": "/web/users/confirm",
+    "title": "Confirm",
+    "name": "Confirm",
+    "group": "Web",
+    "description": "<p>Confirm web login</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "hash",
+            "description": "<p>User hash (unique authentication code) of confirming app</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "requestingAppId",
+            "description": "<p>App ID that requests confirmation</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "type",
+            "description": "<p>Confirmation type eg. <code>WEB_LOGIN_REQUEST</code></p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": ""
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/web.js",
+    "groupTitle": "Web"
   },
   {
     "type": "post",
@@ -399,7 +557,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/webconsole.js",
+    "filename": "controllers/webconsole.js",
     "groupTitle": "WebConsole"
   },
   {
@@ -450,7 +608,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/webconsole.js",
+    "filename": "controllers/webconsole.js",
     "groupTitle": "WebConsole"
   },
   {
@@ -501,7 +659,7 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/webconsole.js",
+    "filename": "controllers/webconsole.js",
     "groupTitle": "WebConsole"
   },
   {
@@ -551,7 +709,88 @@ define({ "api": [
       }
     },
     "version": "0.0.0",
-    "filename": "routes/webconsole.js",
+    "filename": "controllers/webconsole.js",
     "groupTitle": "WebConsole"
+  },
+  {
+    "type": "post",
+    "url": "/web/users/login",
+    "title": "Login",
+    "name": "Login",
+    "group": "Web",
+    "description": "<p>Send login push notification to one of mobile app. The notification contains data: <code>{\"type\": \"WEB_LOGIN_REQUEST\", \"requestingAppId\": \"APP_ID\"}</code> Where <code>type</code> always be <code>WEB_LOGIN_REQUEST</code>,  and <code>requestingAppId</code> is the ID of the app that requests login</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "countryCode",
+            "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "phone",
+            "description": "<p>User mobile phone number</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "200": [
+          {
+            "group": "200",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "200",
+            "type": "String",
+            "optional": false,
+            "field": "status",
+            "description": "<p><code>CONFIRMED</code></p>"
+          }
+        ],
+        "202": [
+          {
+            "group": "202",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "202",
+            "type": "String",
+            "optional": false,
+            "field": "status",
+            "description": "<p><code>PENDING</code></p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/web.js",
+    "groupTitle": "Web"
   }
 ] });
