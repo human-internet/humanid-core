@@ -151,3 +151,50 @@ To simulate web login without mobile device, follow these steps:
 4. Go to the other tab `http://localhost:3000/examples/login.html` and you should see **success** alert
 
 > In the actual implementation, every actions in `confirm.html` can only be done from mobile device. Because it requires login hash which should be kept secret per user/app.
+
+
+## Mobile API Recipes
+
+Registration (login when no other HumanID app installed)
+
+1. Verify user phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
+2. Register user [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser)
+3. Store the `hash` safely
+
+Login to new app (login when there is existing HumanID app(s) installed)
+
+1. Login (using installed app `hash`) [POST /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUser)
+2. Store the new `hash` safely
+   
+Validation (check if a `hash` is still valid)
+
+1. Login check [GET /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUserCheck)
+2. Logout if not success (eg. device or number changed)
+
+Login from new device (no other HumanID app installed, but already registered once)
+
+> The same as new registration. Everything else is handled in server/backend
+
+1. Verify user phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
+2. Register user [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser)
+3. Store the `hash` safely
+
+Update phone number (from logged-in/authenticated app):
+
+1. Verify user **new** phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
+2. Update phone [POST /mobile/users/updatePhone](https://humanid.herokuapp.com/#api-Mobile-UpdatePhone)
+
+Web login confirmation:
+
+1. Update notification ID (get it from Firebase Cloud Messaging SDK) [PUT /mobile/users](https://humanid.herokuapp.com/#api-Mobile-Update) 
+2. On push notification, confirm [POST /web/users/confirm](https://humanid.herokuapp.com/#api-Web-Confirm)
+3. Or reject [POST /web/users/reject](https://humanid.herokuapp.com/#api-Web-Reject)
+
+Push notification payload that need to be handled:
+
+```
+{
+    "type": "WEB_LOGIN_REQUEST", 
+    "requestingAppId": "APP_ID"
+}
+```
