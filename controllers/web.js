@@ -162,56 +162,100 @@ class WebController extends BaseController {
 		 * @apiParam {String} appId Partner app ID
 		 * @apiParam {String} appSecret Partner app secret
 		 *
-		 * @apiSuccess {String} message
+		 * @apiSuccess {String} id Confirmation ID
+		 * @apiSuccess {String} appId Requesting App ID
+		 * @apiSuccess {String} type Confirmation type
+		 * @apiSuccess {String} confirmingAppId Confirming App ID
+		 * @apiSuccess {String} status
 		 * 
 		 */
 		router.post('/users/confirm', async (req, res, next) => {
-			let body = req.body
-			let error = this.validate({
-				hash: 'required', 
-				requestingAppId: 'required', 
-				appId: 'required', 
-				appSecret: 'required', 
-			}, body)
-			if (error) {
-				return res.status(400).send(error)
-			}    
-
-			// default to models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
-			body.type = body.type || models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
-
-			let appUser = null
 			try {
-				appUser = await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)        
-			} catch (e) {
-				return res.status(401).send(e.message)
-			}
-
-			// find Confirmation
-			let confirmation = null
-			try {
-				confirmation = await models.Confirmation.findOne({where: {
-					type: body.type,
-					appId: body.requestingAppId,
-					userId: appUser.userId,
-				}})
-				if (!confirmation) {
-					return res.status(404).send('Confirmation not found')
-				}
-				if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED) {
-					return res.status(403).send('Already confirmed')
-				} else {
-					// update Confirmation status
-					confirmation.status = models.Confirmation.StatusCode.CONFIRMED
-					await confirmation.save()
-				}        
-				return res.send(confirmation)
+				return this.updateLoginConfirmation(models.Confirmation.StatusCode.CONFIRMED, req, res)	
 			} catch (e) {
 				return res.status(500).send(e.message)
-			}    
+			}
+		})
+
+		/**
+		 * @api {post} /web/users/reject Reject
+		 * @apiName Reject
+		 * @apiGroup Web
+		 * @apiDescription Reject web login
+		 *
+		 * @apiParam {String} hash User hash (unique authentication code) of confirming app
+		 * @apiParam {String} requestingAppId App ID that requests confirmation
+		 * @apiParam {String} [type] Confirmation type eg. <code>WEB_LOGIN_REQUEST</code>
+		 * @apiParam {String} appId Partner app ID
+		 * @apiParam {String} appSecret Partner app secret
+		 *
+		 * @apiSuccess {String} id Confirmation ID
+		 * @apiSuccess {String} appId Requesting App ID
+		 * @apiSuccess {String} type Confirmation type
+		 * @apiSuccess {String} confirmingAppId Confirming App ID
+		 * @apiSuccess {String} status
+		 * 
+		 */
+		router.post('/users/reject', async (req, res, next) => {
+			try {
+				return this.updateLoginConfirmation(models.Confirmation.StatusCode.REJECTED, req, res)	
+			} catch (e) {
+				return res.status(500).send(e.message)
+			}			
 		})
 
 		this.router = router
+	}
+
+	// update login request confirmation
+	async updateLoginConfirmation(status, req, res) {
+		let body = req.body
+		let error = this.validate({
+			hash: 'required', 
+			requestingAppId: 'required', 
+			appId: 'required', 
+			appSecret: 'required', 
+		}, body)
+		if (error) {
+			return res.status(400).send(error)
+		}    
+
+		// default to models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
+		body.type = body.type || this.models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
+
+		let appUser = null
+		try {
+			appUser = await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)        
+		} catch (e) {
+			return res.status(401).send(e.message)
+		}
+
+		// find Confirmation
+		let confirmation = null
+		try {
+			confirmation = await this.models.Confirmation.findOne({where: {
+				type: body.type,
+				appId: body.requestingAppId,
+				userId: appUser.userId,
+			}})
+			if (!confirmation) {
+				return res.status(404).send('Confirmation not found')
+			}
+			if (confirmation.status === status) {
+				return res.status(403).send(`Already confirmed ${status}`)
+			} else {
+				// update Confirmation status
+				confirmation.status = status
+				if (status === this.models.Confirmation.StatusCode.CONFIRMED) {
+					await confirmation.save()
+				} else if (status === this.models.Confirmation.StatusCode.REJECTED) {
+					await confirmation.destroy()
+				}
+			}        
+			return res.send(confirmation)
+		} catch (e) {
+			return res.status(500).send(e.message)
+		}    
 	}
 }
 

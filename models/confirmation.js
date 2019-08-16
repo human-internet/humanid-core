@@ -24,6 +24,7 @@ module.exports = (sequelize, DataTypes) => {
   Confirmation.StatusCode = {
     PENDING: 'PENDING',
     CONFIRMED: 'CONFIRMED',
+    REJECTED: 'REJECTED',
   }
 
   Confirmation.TypeCode = { 

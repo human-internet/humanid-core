@@ -1,0 +1,154 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Confirm</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+  </head>
+  <body class="text-center">	
+
+    <!-- content here -->
+
+  <!-- scripts -->
+  <script src="https://code.jquery.com/jquery-3.4.1.min.js" integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" crossorigin="anonymous"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/5.10.0/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/5.10.0/firebase-messaging.js"></script>
+  <script>
+// mobile credentials
+const credential = {
+  hash: '7a009b9c3203ac3ff081146137e658583d2d60cf867acdb49716b84f1603f8a4',
+  appId: 'DEMO_APP',
+  appSecret: '2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0',  
+}
+
+// Initialize Firebase
+firebase.initializeApp({
+    apiKey: "AIzaSyDfvs9Cu3tmMf9rlhM9FxFq5ulDWGNQOqo",
+    authDomain: "humanid-6aef9.firebaseapp.com",
+    databaseURL: "https://humanid-6aef9.firebaseio.com",
+    projectId: "humanid-6aef9",
+    storageBucket: "humanid-6aef9.appspot.com",
+    messagingSenderId: "371521361553",
+})
+
+// Retrieve Firebase Messaging object
+const messaging = firebase.messaging()
+
+// Add the public key generated from the console here.
+messaging.usePublicVapidKey("BC80DwMizgBrGq_Vi_nE1kIVlq_HPA6tMAk0q9Sg_D5BYf3F6BHr3mJ7c5-O5M2JzbzTEK8ZxxhmXRqF6k-PfdE")
+
+// update token
+const updateToken =  (token) => {
+  return new Promise((resolve, reject) => {
+    let params = {
+      notifId: token,
+      hash: credential.hash,
+      appId: credential.appId,
+      appSecret: credential.appSecret,
+    }
+    $.ajax({
+      url: '/mobile/users',
+      type: 'PUT',
+      contentType: 'application/json',
+      data: JSON.stringify(params), // access in body
+    })
+    .done(resolve)
+    .fail(reject)
+  }) 
+}
+
+// Callback fired if Instance ID token is updated.
+messaging.onTokenRefresh(function () {
+  messaging.getToken()
+    .then(function (token) {
+        // console.log(`Token refreshed: ${token}`)
+        updateToken(token)
+    })
+    .catch(function (err) {
+        console.error('Unable to retrieve refreshed token ', err)
+    })
+})
+
+// accept message when on foreground
+messaging.onMessage(function (payload) {
+  console.log(payload)
+  let modalStr = `<div class="modal fade" tabindex="-1" role="dialog" style="display: none;" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Login Confirmation</h5>
+            </div>
+            <div class="modal-body">
+              <p>${payload.data.requestingAppId} is requesting for web login</p>
+              <br>
+              <div class="btn btn-info btn-confirm">Confirm</div>
+              <div class="btn btn-reject">Reject</div>
+            </div>
+        </div>
+    </div>
+  </div>`
+  // init modal
+  let modal = $(modalStr)
+  modal.modal({backdrop: 'static', keyboard: false, show: true})
+  // close handler
+  modal.on('hidden.bs.modal', function (e) {
+    $(this).modal('dispose')
+  })
+  // click handler
+  $('.btn', modal).on('click', function (e) {
+    let params = {
+      hash: credential.hash, 
+      requestingAppId: payload.data.requestingAppId, 
+      appId: credential.appId,
+      appSecret: credential.appSecret,
+    }
+    console.log(this)
+    if($(this).hasClass('btn-confirm')) {
+      $.post('/web/users/confirm', params)
+        .done(function() { $(modal).modal('hide') })
+        .fail(function(xhr, status, e) { alert(`Fail to confirm: ${e.message}`) })
+    } else if($(this).hasClass('btn-cancel')) {
+      $.post('/web/users/reject', params)
+        .done(function() { $(modal).modal('hide') })
+        .fail(function(xhr, status, e) { alert(`Fail to reject: ${e.message}`) })
+    }
+  })
+})
+
+const enableNotifAlert = `<div class="alert alert-warning alert-has-icon alert-enable-notif">
+    <div class="alert-icon"><i class="far fa-lightbulb"></i></div>
+    <div class="alert-body">Push notification is disabled &nbsp; <a class="btn btn-info" target="_blank" href="https://support.google.com/chrome/answer/3220216?co=GENIE.Platform%3DAndroid&hl=en&oco=1">How to turn on?</a></div>
+</div>`
+
+// enable notification
+const enableNotification = async () => {
+    try {
+        $('.alert-enable-notif').remove()
+        await messaging.requestPermission()
+        let token = await messaging.getToken()
+        await updateToken(token)
+        console.log(token)
+    } catch (e) {        
+        $('body').prepend($(enableNotifAlert))
+        $('.alert-enable-notif .btn:first-child').on('click', enableNotification)
+        console.error(e)
+    }
+}
+
+// init
+navigator.serviceWorker.register('firebase-messaging-sw.js')
+  .then((registration) => {
+    messaging.useServiceWorker(registration)
+    enableNotification()
+  })
+
+  </script>		
+  </body>
+</html>

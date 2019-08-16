@@ -493,7 +493,35 @@ define({ "api": [
             "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "message",
+            "field": "id",
+            "description": "<p>Confirmation ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Requesting App ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Confirmation type</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "confirmingAppId",
+            "description": "<p>Confirming App ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "status",
             "description": ""
           }
         ]
@@ -792,6 +820,99 @@ define({ "api": [
             "optional": false,
             "field": "status",
             "description": "<p><code>PENDING</code></p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/web.js",
+    "groupTitle": "Web"
+  },
+  {
+    "type": "post",
+    "url": "/web/users/reject",
+    "title": "Reject",
+    "name": "Reject",
+    "group": "Web",
+    "description": "<p>Reject web login</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "hash",
+            "description": "<p>User hash (unique authentication code) of confirming app</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "requestingAppId",
+            "description": "<p>App ID that requests confirmation</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": true,
+            "field": "type",
+            "description": "<p>Confirmation type eg. <code>WEB_LOGIN_REQUEST</code></p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "id",
+            "description": "<p>Confirmation ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Requesting App ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "type",
+            "description": "<p>Confirmation type</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "confirmingAppId",
+            "description": "<p>Confirming App ID</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "status",
+            "description": ""
           }
         ]
       }

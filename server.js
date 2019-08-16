@@ -16,6 +16,8 @@ class Server {
 		
 		// routes
 		this.app.use('/', express.static('doc'))
+		this.app.use('/lib', express.static('client/dist'))
+		this.app.use('/examples', express.static('examples'))
 		this.app.use('/console', new WebConsoleController(models, common, middlewares).router)
 		this.app.use('/mobile',  new MobileController(models, common, middlewares, nexmo).router)
 		this.app.use('/web', new WebController(models, common).router)

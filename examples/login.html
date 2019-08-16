@@ -1,0 +1,144 @@
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
+    <style>
+html,
+body {
+  height: 100%;
+}
+
+body {
+  display: -ms-flexbox;
+  display: -webkit-box;
+  display: flex;
+  -ms-flex-align: center;
+  -ms-flex-pack: center;
+  -webkit-box-align: center;
+  align-items: center;
+  -webkit-box-pack: center;
+  justify-content: center;
+  padding-top: 40px;
+  padding-bottom: 40px;
+  background-color: #f5f5f5;
+}
+
+.form-signin {
+  width: 100%;
+  max-width: 330px;
+  padding: 15px;
+  margin: 0 auto;
+}
+.form-signin .checkbox {
+  font-weight: 400;
+}
+.form-signin .form-control {
+  position: relative;
+  box-sizing: border-box;
+  height: auto;
+  padding: 10px;
+  font-size: 16px;
+}
+.form-signin .form-control:focus {
+  z-index: 2;
+}
+.form-signin input[type="email"] {
+  margin-bottom: -1px;
+  border-bottom-right-radius: 0;
+  border-bottom-left-radius: 0;
+}
+.form-signin input[type="password"] {
+  margin-bottom: 10px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}		
+	</style>
+  </head>
+
+  <body class="text-center">
+    <form class="form-signin">
+      <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+	  <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
+	  <div class="row">
+		<div class="col-md-4">
+			<input type="number" name="countryCode" class="form-control" placeholder="62" required autofocus>
+		</div>		
+		<div class="col">
+			<input type="number" name="phone" class="form-control" placeholder="81234567890" required>
+		</div>		
+	  </div>	  
+	  <br>
+      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
+	</form>
+	
+	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
+	<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>	
+
+	<!-- include humanid client script -->
+	<script src="/lib/humanid-min.js"></script>
+	<script>
+
+const modalStr = `<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<p>Please check notification on your mobile phone to confirm login..</p>
+				<br>
+				<button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>`
+
+// init humanid client
+const humanID = new HumanID({
+	apiUrl: 'http://localhost:3000',
+	appId: 'DEMO_APP', 
+	appSecret: '2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0',
+})
+
+// handle submit action
+$('form.form-signin').on('submit', function () {
+	// get data
+	let countryCode = $('input[name=countryCode]').val()
+	let phone = $('input[name=phone]').val()
+
+	// show blocking modal
+	let modal = $(modalStr)
+	modal.modal({backdrop: 'static', keyboard: false, show: true})
+
+	// initiate humanid login after modal shown
+	modal.on('shown.bs.modal', function (e) {
+		// invoke humanid login with success callback
+		humanID.login(countryCode, phone)
+		.then(() => {
+			// confirmed. proceed with login flow
+			alert('Success')
+		})		
+		.catch((e) => {
+			// failed. rejected or error
+			alert(`Failed: ${e.message}`)
+		})
+		.finally(() => {
+			$(this).modal('hide')
+		})
+	})
+
+	// destroy modal on hide/close
+	modal.on('hidden.bs.modal', function (e) {
+      $(this).modal('dispose')
+	})
+	
+	return false
+})
+	</script>		
+  </body>
+</html>

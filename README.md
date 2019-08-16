@@ -4,9 +4,35 @@
 
 HumanID API server. API doc and demo https://humanid.herokuapp.com
 
-Demo credentials:
-* Webconsole admin email/password: `admin@local.host` / `admin123`
-* Mobile app ID/secret: `DEMO_APP` / `2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0`
+Demo data:
+
+**Admin**
+
+```
+{
+    "email": "admin@local.host",
+    "password": "admin123"
+}
+```
+
+**Apps**
+
+```
+{
+    "id": "DEMO_APP",
+    "secret": "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0"
+}
+```
+
+**Users**
+
+```
+{
+    "countryCode": "62",
+    "phone": "81234567890",
+    "hash": "7a009b9c3203ac3ff081146137e658583d2d60cf867acdb49716b84f1603f8a4" // For DEMO_APP
+}
+```
 
 ## Prerequisites
 
@@ -20,6 +46,7 @@ Demo credentials:
 3. Run test `npm test`
 4. Generate database (drop & create) by running `npm run db:refresh` on Linux/MacOS
 5. Generate doc `npm run doc` (requires `apidoc` http://apidocjs.com/)
+6. Build client SDK (javascript) `npm run build`
    
 > To generate database on Windows **maybe** you can run `setx NODE_ENV=DATABASE && npx sequelize db:drop && sequelize db:create && npx sequelize db:migrate && npx sequelize db:seed:all` **(UNTESTED)**
 
@@ -110,3 +137,17 @@ The API server stores data in given structure:
 > `SequelizeMeta` is just ORM migration metadata which is not related to business process
 
 ![Class/Entity Relationship Diagram](erd.png)
+
+
+## Examples
+
+Web login implementation example can be found in `http://localhost:3000/examples/login.html` (publishing from `examples/` dir). 
+
+To simulate web login without mobile device, follow these steps:
+
+1. Open in a tab `http://localhost:3000/examples/confirm.html` and **allow** notification. Leave it open
+2. Open in **another** tab `http://localhost:3000/examples/login.html` enter country code & phone number (demo data provided above) and click **Sign In**
+3. Go to previous tab that points to `http://localhost:3000/examples/confirm.html`. A confirmation dialog should be shown. Click **Confirm**
+4. Go to the other tab `http://localhost:3000/examples/login.html` and you should see **success** alert
+
+> In the actual implementation, every actions in `confirm.html` can only be done from mobile device. Because it requires login hash which should be kept secret per user/app.
