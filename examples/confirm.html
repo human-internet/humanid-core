@@ -109,7 +109,6 @@ messaging.onMessage(function (payload) {
       appId: credential.appId,
       appSecret: credential.appSecret,
     }
-    console.log(this)
     if($(this).hasClass('btn-confirm')) {
       $.post('/web/users/confirm', params)
         .done(function() { $(modal).modal('hide') })
