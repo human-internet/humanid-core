@@ -121,6 +121,8 @@ class WebController extends BaseController {
 						confirmationData.messageId = await common.firebase.messaging().send({
 							token: appUser.notifId,
 							data: {
+								title: 'Web Login Request',
+								body: 'Please confirm web login request',
 								type: confirmationData.type,
 								requestingAppId: confirmationData.appId,
 								updatedAt: confirmationData.updatedAt.toISOString(),
