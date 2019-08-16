@@ -2,7 +2,7 @@
 
 class HumanID {
 	constructor(config) {
-		this.baseUrl = config.apiUrl
+		this.baseUrl = config.apiUrl || ''
 		this.appId = config.appId
 		this.appSecret = config.appSecret
 		this.interval = config.interval || 5000
