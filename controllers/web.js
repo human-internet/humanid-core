@@ -95,6 +95,10 @@ class WebController extends BaseController {
 						// send the confirmation object (containing status)
 						let code = confirmation.status === models.Confirmation.StatusCode.CONFIRMED ? 200 : 202
 						return res.status(code).send(confirmation)
+					} else if (confirmation.status === models.Confirmation.StatusCode.REJECTED) { 
+						// delete confirmation to allow requesting again
+						await confirmation.destroy()
+						return res.status(401).send(confirmation)
 					} else {
 						// if Pending and expired update updatedAt
 						confirmation.updatedAt = new Date()
@@ -246,11 +250,7 @@ class WebController extends BaseController {
 			} else {
 				// update Confirmation status
 				confirmation.status = status
-				if (status === this.models.Confirmation.StatusCode.CONFIRMED) {
-					await confirmation.save()
-				} else if (status === this.models.Confirmation.StatusCode.REJECTED) {
-					await confirmation.destroy()
-				}
+				await confirmation.save()
 			}        
 			return res.send(confirmation)
 		} catch (e) {

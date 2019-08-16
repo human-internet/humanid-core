@@ -114,7 +114,7 @@ messaging.onMessage(function (payload) {
       $.post('/web/users/confirm', params)
         .done(function() { $(modal).modal('hide') })
         .fail(function(xhr, status, e) { alert(`Fail to confirm: ${e.message}`) })
-    } else if($(this).hasClass('btn-cancel')) {
+    } else if($(this).hasClass('btn-reject')) {
       $.post('/web/users/reject', params)
         .done(function() { $(modal).modal('hide') })
         .fail(function(xhr, status, e) { alert(`Fail to reject: ${e.message}`) })
