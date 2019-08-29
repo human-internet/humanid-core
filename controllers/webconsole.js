@@ -62,11 +62,16 @@ class WebConsoleController extends BaseController {
          *
          * @apiSuccess {String} id Application ID (must be unique 5-20 characters alphanumeric)
          * @apiSuccess {String} secret Secret code to invoke secured API
+         * @apiSuccess {String} platform Platform <code>{'ANDROID', 'IOS'}</code>
+         * @apiSuccess {String} [serverKey] Firebase Cloud Messaging Server Key
          * @apiSuccess {String} [urls] Whitelisted domain URLs for web client (comma-separated). Example: <code>https://foo.com,https://bar.com</code>
          */
         this.router.post('/apps', this.middlewares.verifyJWT, async (req, res, next) => {
             let body = req.body
-            let error = this.validate({appId: 'required'}, body)
+            let error = this.validate({
+                appId: 'required',
+                platform: 'required',
+            }, body)
             if (error) {
                 return res.status(400).send(error)
             }
@@ -74,7 +79,7 @@ class WebConsoleController extends BaseController {
                 let hash = this.hmac(body.appId)
                 let app = await this.models.App.findOrCreate({
                     where: {id: body.appId},
-                    defaults: {id: body.appId, secret: hash}
+                    defaults: {id: body.appId, secret: hash, platform: body.platform, serverKey: body.serverKey}
                 })
                 return res.send(app[0])
             } catch (e) {

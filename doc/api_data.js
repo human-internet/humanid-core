@@ -584,6 +584,20 @@ define({ "api": [
           {
             "group": "Success 200",
             "type": "String",
+            "optional": false,
+            "field": "platform",
+            "description": "<p>Platform <code>{'ANDROID', 'IOS'}</code></p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": true,
+            "field": "serverKey",
+            "description": "<p>Firebase Cloud Messaging Server Key</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
             "optional": true,
             "field": "urls",
             "description": "<p>Whitelisted domain URLs for web client (comma-separated). Example: <code>https://foo.com,https://bar.com</code></p>"

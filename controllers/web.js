@@ -4,8 +4,6 @@ const BaseController = require('./base'),
 	cors = require('cors'),	
 	router = require('express').Router()
 
-const CONFIRMATION_EXPIRY_MS = 30000
-
 class WebController extends BaseController {
 	constructor(models, common) {
 		super(models)
@@ -62,10 +60,20 @@ class WebController extends BaseController {
 			let app = null
 			try {
 				let hash = common.hmac(`${body.countryCode}${body.phone}`)
-				user = await models.User.findOne({where: {hash: hash}, include: models.AppUser})
+				user = await models.User.findOne({
+					where: { hash: hash }, 
+					include: [{
+						model: models.AppUser, 
+						include: {
+							model: models.App,
+							as: 'app',
+						} 
+					}]
+				})				
 				if (!user) throw new Error(`Account not found: (${body.countryCode}) ${body.phone}`)   
 				app = await this.validateAppCredentials(body.appId, body.appSecret)
 			} catch (e) {
+				// console.error(e)
 				return res.status(401).send(e.message)
 			}
 			
@@ -88,9 +96,10 @@ class WebController extends BaseController {
 					}
 				})
 			
-				if (confirmation) {                 
+				if (confirmation) {  
+					let lastCheck = new Date() - confirmation.updatedAt	
 					if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED
-						|| new Date() - confirmation.updatedAt < CONFIRMATION_EXPIRY_MS) {
+						|| lastCheck < common.config.CONFIRMATION_EXPIRY_MS) {
 						// if Confirmed or not yet expired,
 						// send the confirmation object (containing status)
 						let code = confirmation.status === models.Confirmation.StatusCode.CONFIRMED ? 200 : 202
@@ -101,10 +110,10 @@ class WebController extends BaseController {
 						return res.status(401).send(confirmation)
 					} else {
 						// if Pending and expired update updatedAt
-						confirmation.updatedAt = new Date()
+						confirmation.changed('updatedAt', true)
 						await confirmation.save()
 						// sync data for push notif
-						confirmationData.updatedAt = confirmation.updatedAt   
+						confirmationData.updatedAt = confirmation.updatedAt 
 					}
 				}        
 			} catch (e) {
@@ -116,10 +125,21 @@ class WebController extends BaseController {
 			let results = []
 			while (!confirmationData.messageId && i < user.AppUsers.length) {
 				let appUser = user.AppUsers[i] 
-				try {                                       
-					if (appUser.notifId) {                        
-						confirmationData.messageId = await common.firebase.messaging().send({
-							token: appUser.notifId,
+				try {
+					// get server key based on platform
+					let serverKey = common.config.FIREBASE_SERVER_KEY
+					if (appUser.app.platform === models.App.PlatformCode.ANDROID) {
+						serverKey = appUser.app.serverKey
+					} // else models.App.PlatformCode.IOS use common.config.FIREBASE_SERVER_KEY
+
+					// validate or send push notif
+					if (!serverKey) {
+						throw new Error('Missing server key')
+					} else if (!appUser.notifId) {
+						throw new Error('Missing notifId')
+					} else {
+						confirmationData.messageId = await common.pushNotif({
+							to: appUser.notifId,
 							data: {
 								title: 'Web Login Request',
 								body: 'Please confirm web login request',
@@ -127,13 +147,11 @@ class WebController extends BaseController {
 								requestingAppId: confirmationData.appId,
 								updatedAt: confirmationData.updatedAt.toISOString(),
 							},
-						})                        
-						results.push({appId: appUser.appId, success: true, reason: null})
-					} else {
-						results.push({appId: appUser.appId, success: false, reason: 'Missing notifId'})
+						}, serverKey)
+						results.push({appId: appUser.appId, platform: appUser.app.platform, success: true, reason: null})						
 					}            
 				} catch (e) {
-					results.push({appId: appUser.appId, success: false, reason: `Push notif failed: ${e.message}`})
+					results.push({appId: appUser.appId, platform: appUser.app.platform, success: false, reason: `Push notif failed: ${e.message}`})
 				} finally {
 					i++
 				}        
@@ -151,7 +169,7 @@ class WebController extends BaseController {
 					confirmation = await models.Confirmation.create(confirmationData)
 				}        
 				return res.status(202).send(confirmation)
-			} catch (e) {
+			} catch (e) {				
 				return res.status(500).send(e.message)
 			}
 		})

@@ -12,14 +12,6 @@ const chai = require('chai'),
     Server = require('../server'),
     app = new Server(models, common, middlewares, nexmo).app
 
-
-// fake config
-common.config = {
-    NEXMO_REST_URL: "https://rest.nexmo.com",
-    NEXMO_API_KEY: "NEXMO_API_KEY",
-    NEXMO_API_SECRET: "NEXMO_API_SECRET",
-}
-
 // setup chai
 chai.use(chaiHttp)
 chai.should()
@@ -50,7 +42,7 @@ describe('Server', () => {
             res.should.have.status(200)
             res.body.accessToken.length.should.gte(10)
             let accessToken = res.body.accessToken
-            let data = {appId: 'NEW_YORK_TIMES'}
+            let data = {appId: 'NEW_YORK_TIMES', platform: models.App.PlatformCode.ANDROID }
             res = await chai.request(app)
                 .post('/console/apps')
                 .set('Authorization', `Bearer ${accessToken}`)
@@ -78,7 +70,7 @@ describe('Server', () => {
             res.should.have.status(200)
             res.body.accessToken.length.should.gte(10)
             let accessToken = res.body.accessToken
-            let data = {appId: 'invalid@pp!d'}
+            let data = {appId: 'invalid@pp!d', platform: models.App.PlatformCode.ANDROID }
             res = await chai.request(app)
                 .post('/console/apps')
                 .set('Authorization', `Bearer ${accessToken}`)
@@ -95,7 +87,7 @@ describe('Server', () => {
         let data = {countryCode: '62', phone: '80989999', deviceId: '122333444455555'}        
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID})
                         
             // mock nexmo api response
             nock(common.config.NEXMO_REST_URL)
@@ -155,8 +147,8 @@ describe('Server', () => {
         ]
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
-            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID})
+            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1]), platform: models.App.PlatformCode.ANDROID})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
             let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
 
@@ -210,8 +202,8 @@ describe('Server', () => {
         ]
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
-            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID})
+            let app2 = await models.App.create({id: appIds[1], secret: common.hmac(appIds[1]), platform: models.App.PlatformCode.ANDROID})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
             let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
             let appUser2 = await models.AppUser.create({appId: app2.id, userId: user.id, hash: common.hmac(`${user.id}${app2.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_2'})
@@ -268,7 +260,7 @@ describe('Server', () => {
         ]
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
             let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
             let newNotifId = 'NEW_NOTIF_ID'
@@ -293,16 +285,12 @@ describe('Server', () => {
 
     it('should be able to process web login', async () => {
         const MESSAGE_ID = 'MESSAGE_ID'
-        common.firebase = {
-            messaging: () => {
-                return { send: async (obj) => Promise.resolve(MESSAGE_ID) }
-            }
-        }
+        common.pushNotif = () => Promise.resolve(MESSAGE_ID)
         let appIds = ['NEW_YORK_TIMES']
         let phones = [['62', '80989999']]
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
             await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
 
@@ -321,7 +309,30 @@ describe('Server', () => {
             res1.body.should.not.have.any.keys(['userId'])
 
             let confirmation = await models.Confirmation.findByPk(res1.body.id)
+            let lastUpdatedAt = confirmation.updatedAt
             confirmation.userId.should.equals(user.id)
+
+            // when called again should not send notif
+            res1 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })
+            await confirmation.reload()            
+            confirmation.updatedAt.toISOString().should.equals(lastUpdatedAt.toISOString())
+
+            // after expiry limit should send notif
+            await common.sleep(common.config.CONFIRMATION_EXPIRY_MS)
+            res1 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })
+            await confirmation.reload()            
+            confirmation.updatedAt.toISOString().should.not.equals(lastUpdatedAt.toISOString())            
+            
         } catch (e) {
             throw e
         } finally {
@@ -335,7 +346,7 @@ describe('Server', () => {
         let phones = [['62', '80989999']]
         let req = chai.request(app).keepOpen()
         try {
-            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0])})
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
             let appUser1 = await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
             let confirmation = await models.Confirmation.create({

@@ -14,6 +14,13 @@ module.exports = {
       urls: {
         type: Sequelize.STRING,
       },
+      platform: {
+        type: Sequelize.STRING,
+        allowNull: false,
+      },
+      serverKey: {
+        type: Sequelize.STRING,
+      },
       createdAt: {
         allowNull: false,
         type: Sequelize.DATE,

@@ -18,10 +18,19 @@ Demo data:
 **Apps**
 
 ```
-{
+[{
     "id": "DEMO_APP",
-    "secret": "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0"
+    "secret": "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0",
+    "platform": "ANDROID",
+	"serverKey": "AAAA....S4"    
+},
+{
+    "id": "DEMO_APP_IOS",
+    "secret": "541ec90bf636f0a8847885af37faedc258dcc875481f870d507c64d0e785bc1e",
+    "platform": "IOS",
+	"serverKey": null
 }
+]
 ```
 
 **Users**
@@ -30,7 +39,10 @@ Demo data:
 {
     "countryCode": "62",
     "phone": "81234567890",
-    "hash": "7a009b9c3203ac3ff081146137e658583d2d60cf867acdb49716b84f1603f8a4" // For DEMO_APP
+    "hash": [
+        "7a009b9c3203ac3ff081146137e658583d2d60cf867acdb49716b84f1603f8a4", // For DEMO_APP
+        "0c88468123e1c193a5f2e925d360266025f739f30ed0eeab7321887905f8c68c", // For DEMO_APP_IOS
+    ]
 }
 ```
 
@@ -114,21 +126,11 @@ To enable push notification using [Firebase Cloud Messaging](https://firebase.go
 
 ```
 {
-    "FIREBASE_DB_URL": "https://humanid.firebaseio.com",
-    "FIREBASE_ACCOUNT_KEY": {
-        "type": "service_account",
-        "project_id": "humanid",
-        "private_key_id": "humanidprivatekey",
-        "private_key": "-----BEGIN PRIVATE KEY-----\nhumanidprivatekey\n-----END PRIVATE KEY-----\n",
-        "client_email": "firebase-adminsdk@humanid.iam.gserviceaccount.com",
-        "client_id": "1111111111111111111",
-        "auth_uri": "https://accounts.google.com/o/oauth2/auth",
-        "token_uri": "https://oauth2.googleapis.com/token",
-        "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
-        "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk%40humanid.iam.gserviceaccount.com"
-    },
+    "FIREBASE_SERVER_KEY": "AAAAVo...BmFpE",
 }
 ```
+
+> Currently this is only used for IOS. For Android, `serverKey` for each apps are used
 
 ## Class/Entity Relationship Diagram
 

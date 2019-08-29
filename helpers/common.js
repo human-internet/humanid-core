@@ -4,7 +4,7 @@ const fs = require('fs'),
 	path = require('path'),
 	crypto = require('crypto'),
 	jwt = require('jsonwebtoken'),
-	firebase = require('firebase-admin'),
+	request = require('request'),
 	configPath = 'config.json'
 
 // load config
@@ -16,44 +16,26 @@ if (fs.existsSync(path.join('.', configPath))) {
 }
 
 // override config
+config.CONFIRMATION_EXPIRY_MS = process.env.CONFIRMATION_EXPIRY_MS || config.CONFIRMATION_EXPIRY_MS || 30000
 config.APP_SECRET = process.env.APP_SECRET || config.APP_SECRET || 'ThisIsADefaultSecretPhrase'
-
 config.AUTHY_API_URL = process.env.AUTHY_API_URL || 'https://api.authy.com'
 config.NEXMO_API_URL = process.env.NEXMO_API_URL || 'https://api.nexmo.com'
 config.NEXMO_REST_URL = process.env.NEXMO_REST_URL || 'https://rest.nexmo.com'
 config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || config.AUTHY_API_KEY
 config.NEXMO_API_KEY = process.env.NEXMO_API_KEY || config.NEXMO_API_KEY
 config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || config.NEXMO_API_SECRET
-
-config.FIREBASE_DB_URL = process.env.FIREBASE_DB_URL || config.FIREBASE_DB_URL
-config.FIREBASE_ACCOUNT_KEY = config.FIREBASE_ACCOUNT_KEY || {}
-config.FIREBASE_ACCOUNT_KEY.type = process.env.FIREBASE_ACCOUNT_KEY_type || config.FIREBASE_ACCOUNT_KEY.type
-config.FIREBASE_ACCOUNT_KEY.project_id = process.env.FIREBASE_ACCOUNT_KEY_project_id || config.FIREBASE_ACCOUNT_KEY.project_id
-config.FIREBASE_ACCOUNT_KEY.private_key_id = process.env.FIREBASE_ACCOUNT_KEY_private_key_id || config.FIREBASE_ACCOUNT_KEY.private_key_id
-config.FIREBASE_ACCOUNT_KEY.private_key = process.env.FIREBASE_ACCOUNT_KEY_private_key || config.FIREBASE_ACCOUNT_KEY.private_key
-config.FIREBASE_ACCOUNT_KEY.client_email = process.env.FIREBASE_ACCOUNT_KEY_client_email || config.FIREBASE_ACCOUNT_KEY.client_email
-config.FIREBASE_ACCOUNT_KEY.client_id = process.env.FIREBASE_ACCOUNT_KEY_client_id || config.FIREBASE_ACCOUNT_KEY.client_id
-config.FIREBASE_ACCOUNT_KEY.auth_uri = process.env.FIREBASE_ACCOUNT_KEY_auth_uri || config.FIREBASE_ACCOUNT_KEY.auth_uri
-config.FIREBASE_ACCOUNT_KEY.token_uri = process.env.FIREBASE_ACCOUNT_KEY_token_uri || config.FIREBASE_ACCOUNT_KEY.token_uri
-config.FIREBASE_ACCOUNT_KEY.auth_provider_x509_cert_url = process.env.FIREBASE_ACCOUNT_KEY_auth_provider_x509_cert_url || config.FIREBASE_ACCOUNT_KEY.auth_provider_x509_cert_url
-config.FIREBASE_ACCOUNT_KEY.client_x509_cert_url = process.env.FIREBASE_ACCOUNT_KEY_client_x509_cert_url || config.FIREBASE_ACCOUNT_KEY.client_x509_cert_url
-
-// firebase
-if (config.FIREBASE_ACCOUNT_KEY && config.FIREBASE_DB_URL) {
-	firebase.initializeApp({
-		credential: firebase.credential.cert(config.FIREBASE_ACCOUNT_KEY),
-		databaseURL: config.FIREBASE_DB_URL,
-	})
-} else {
-	console.warn(`FIREBASE_ACCOUNT_KEY and/or FIREBASE_DB_URL are not configured`)
-}
+config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_SERVER_KEY
 
 const SECRET = config.APP_SECRET
 
 // hash data using secret
-const hmac = (data) => {
-	return crypto.createHmac('sha256', SECRET).update(data).digest('hex')
+const hmac = (data, secret) => {
+	secret = secret || SECRET
+	return crypto.createHmac('sha256', secret).update(data).digest('hex')
 }
+
+// sleep
+const sleep = require('util').promisify(setTimeout)
 
 // validate body
 const validate = (rules, body) => {
@@ -104,13 +86,34 @@ const combinePhone = (countryCode, phone) => {
 	return countryCode + phone
 }
 
+// send push notif
+const pushNotif = async (data, serverKey) => {
+	let options = {
+		method: 'post',
+		url: 'https://fcm.googleapis.com/fcm/send',
+		headers: {'Authorization': `key=${serverKey}`},
+		json: true,
+		body: data,
+	}
+	return new Promise((resolve, reject) => {
+		request(options, (error, res, body) => {
+			if (error) {
+				reject(error)
+			} else {
+				resolve(body.results[0].message_id)
+			}
+		})  
+	})
+}
+
 module.exports = {
 	config: config,
+	sleep: sleep,
 	hmac: hmac,
 	validate: validate,
 	createJWT: createJWT,
 	verifyJWT: verifyJWT,
 	randStr: randStr,
 	combinePhone: combinePhone,
-	firebase: firebase,
+	pushNotif: pushNotif,
 }

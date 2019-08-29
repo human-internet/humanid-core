@@ -1,5 +1,11 @@
 'use strict'
 module.exports = (sequelize, DataTypes) => {
+  
+  const PLATFORMS = {
+    ANDROID: 'ANDROID',
+    IOS: 'IOS',
+  }
+
   const App = sequelize.define('App', {
     id: {
       type: DataTypes.STRING,
@@ -13,6 +19,12 @@ module.exports = (sequelize, DataTypes) => {
       }, 
     },
     secret: DataTypes.STRING,
+    platform: {
+      type: DataTypes.STRING,
+      allowNull: false,
+      isIn: Object.values(PLATFORMS),
+    },
+    serverKey: DataTypes.STRING,
     urls: DataTypes.STRING,
   }, {})
   App.associate = function(models) {
@@ -27,5 +39,9 @@ module.exports = (sequelize, DataTypes) => {
       otherKey: 'userHash',
     })
   }
+
+  // constants
+  App.PlatformCode = PLATFORMS
+  
   return App
 }
