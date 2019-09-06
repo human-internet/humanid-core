@@ -5,7 +5,7 @@ const BaseController = require('./base'),
 	router = require('express').Router()
 
 class WebController extends BaseController {
-	constructor(models, common) {
+	constructor(models, common, nexmo) {
 		super(models)
 		
 		// apply cors
@@ -30,10 +30,11 @@ class WebController extends BaseController {
 		 * @apiDescription <p>Send login push notification to one of mobile app.
 		 * The notification contains data: <code>{"type": "WEB_LOGIN_REQUEST", "requestingAppId": "APP_ID"}</code>
 		 * Where <code>type</code> always be <code>WEB_LOGIN_REQUEST</code>, 
-		 * and <code>requestingAppId</code> is the ID of the app that requests login</p>
+		 * and <code>requestingAppId</code> is the ID of the app that requests login. Since it can be called multiple time, it can also be used to validate login status (from partner web server)</p>
 		 *
 		 * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
 		 * @apiParam {String} phone User mobile phone number
+		 * @apiParam {String} [verificationCode] User phone number verification code (OTP)
 		 * @apiParam {String} appId Partner app ID
 		 * @apiParam {String} appSecret Partner app secret
 		 *
@@ -76,7 +77,8 @@ class WebController extends BaseController {
 				// console.error(e)
 				return res.status(401).send(e.message)
 			}
-			
+
+			// push notif confirmation
 			let confirmationData = {
 				type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
 				appId: app.id,
@@ -119,7 +121,22 @@ class WebController extends BaseController {
 			} catch (e) {
 				return res.status(500).send(e.message)
 			}
-									
+			
+			// try to verify OTP code
+			if (body.verificationCode) {
+				try {				
+					await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
+					confirmationData.status = models.Confirmation.StatusCode.CONFIRMED
+					confirmationData.messageId = 'OTP'
+					confirmation = await models.Confirmation.create(confirmationData)
+					// immediately success
+					return res.send(confirmation)
+				} catch (error) {
+					let status = error.name === 'ValidationError' ? 400 : 500				
+					return res.status(status).send(error.message)
+				}
+			}
+
 			// try to send push notif to each apps                
 			let i = 0
 			let results = []
@@ -205,7 +222,7 @@ class WebController extends BaseController {
 		 * @api {post} /web/users/reject Reject
 		 * @apiName Reject
 		 * @apiGroup Web
-		 * @apiDescription Reject web login
+		 * @apiDescription Reject or revoke web login
 		 *
 		 * @apiParam {String} hash User hash (unique authentication code) of confirming app
 		 * @apiParam {String} requestingAppId App ID that requests confirmation
@@ -227,6 +244,50 @@ class WebController extends BaseController {
 				return res.status(500).send(e.message)
 			}			
 		})
+
+        /**
+         * @api {post} /web/users/verifyPhone Verify phone
+         * @apiName VerifyPhone
+         * @apiGroup Web
+         * @apiDescription Trigger OTP SMS code
+         *
+         * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
+         * @apiParam {String} phone User mobile phone number
+         * @apiParam {String} appId Partner app ID
+         * @apiParam {String} appSecret Partner app secret
+         *
+         * @apiSuccess {String} message OK
+         */
+        router.post('/users/verifyPhone', async (req, res, next) => {
+            
+            let body = req.body
+            let error = this.validate({
+                appId: 'required', 
+                appSecret: 'required', 
+                countryCode: 'required', 
+                phone: 'required', 
+            }, body)
+
+            if (error) {
+                return res.status(400).send(error)
+            }
+
+            // validate credentials
+            try {
+                await this.validateAppCredentials(body.appId, body.appSecret)
+            } catch (e) {
+                return res.status(401).send(e.message)
+            }
+
+            try {
+                await nexmo.sendVerificationSMS(body.countryCode, body.phone)
+                return res.send({message: 'OK'})        
+            } catch (e) {
+                console.error(e)
+                next(e)
+            }
+            
+        })
 
 		this.router = router
 	}
@@ -266,7 +327,7 @@ class WebController extends BaseController {
 				return res.status(404).send('Confirmation not found')
 			}
 			if (confirmation.status === status) {
-				return res.status(403).send(`Already confirmed ${status}`)
+				return res.status(403).send(`Already ${status}`)
 			} else {
 				// update Confirmation status
 				confirmation.status = status

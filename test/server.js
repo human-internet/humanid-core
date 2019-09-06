@@ -282,8 +282,80 @@ describe('Server', () => {
         }
     })
 
+    it('should be able to process web login using OTP SMS', async () => {
+        const MESSAGE_ID = 'MESSAGE_ID'
+        common.pushNotif = () => Promise.resolve(MESSAGE_ID)
+        let appIds = ['NEW_YORK_TIMES']
+        let phones = [['62', '80989999']]
+        let req = chai.request(app).keepOpen()
+        try {
+            let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
+            let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
+            await models.AppUser.create({appId: app1.id, userId: user.id, hash: common.hmac(`${user.id}${app1.secret}`), deviceId: 'DEVICE_ID', notifId: 'NOTIF_ID_1'})
+                        
+            // mock nexmo api response
+            nock(common.config.NEXMO_REST_URL)
+                .post(/^\/sms/)
+                .times(1)
+                .reply(200, {messages: [{status: '0'}]})            
 
-    it('should be able to process web login', async () => {
+            // request OTP SMS
+            let res = await req.post('/web/users/verifyPhone').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id,
+                appSecret: app1.secret,
+            })
+            res.should.have.status(200)
+
+            // reject invalid code
+            res = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                verificationCode: '99999', // INVALID CODE
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })
+            res.should.have.status(400)
+
+            // valid code login
+            let v = await models.Verification.findByPk(common.combinePhone(phones[0][0], phones[0][1]))
+            let res1 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                verificationCode: v.requestId,
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res1.should.have.status(200) // success
+            res1.body.messageId.should.equals('OTP')
+            res1.body.type.should.equals(models.Confirmation.TypeCode.WEB_LOGIN_REQUEST)
+            res1.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            res1.body.appId.should.equals(app1.id)
+            res1.body.should.not.have.any.keys(['userId'])
+            
+            // once success, it should always 
+            // return same success confirmation object
+            // and does not require any confirmation code again
+            let res2 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res2.should.have.status(200)
+            res2.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            res2.body.updatedAt.should.equals(res1.body.updatedAt) // must not be updated
+
+        } catch (e) {
+            throw e
+        } finally {
+            req.close()
+        }
+
+    })    
+
+    it('should be able to process web login using push notif', async () => {
         const MESSAGE_ID = 'MESSAGE_ID'
         common.pushNotif = () => Promise.resolve(MESSAGE_ID)
         let appIds = ['NEW_YORK_TIMES']

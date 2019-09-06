@@ -29,8 +29,7 @@ Demo data:
     "secret": "541ec90bf636f0a8847885af37faedc258dcc875481f870d507c64d0e785bc1e",
     "platform": "IOS",
 	"serverKey": null
-}
-]
+}]
 ```
 
 **Users**
@@ -157,40 +156,48 @@ To simulate web login without mobile device, follow these steps:
 
 ## Mobile API Recipes
 
-Registration (login when no other HumanID app installed)
+**Registration**
 
-1. Verify user phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
-2. Register user [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser)
-3. Store the `hash` safely
+Fresh login (no other partner app logged-in yet):
 
-Login to new app (login when there is existing HumanID app(s) installed)
+1. [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone) Verify user phone number (request OTP SMS) 
+2. [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser) Register user. Get the `hash` from response and store safely in device
 
-1. Login (using installed app `hash`) [POST /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUser)
-2. Store the new `hash` safely
+**Login**
+
+Login when there is another existing partner app logged-in:
+
+1. [POST /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUser) Login using existing partner app `hash`. Get the `hash` for the new app and store it safely
    
-Validation (check if a `hash` is still valid)
+**Validation**
 
-1. Login check [GET /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUserCheck)
-2. Logout if not success (eg. device or number changed)
+Check if a `hash` is still valid:
 
-Login from new device (no other HumanID app installed, but already registered once)
+1. [GET /mobile/users/login](https://humanid.herokuapp.com/#api-Mobile-LoginUserCheck) Get login status
+
+**Switch Device** 
+
+Login from a new device (previously logged-in from different device):
 
 > The same as new registration. Everything else is handled in server/backend
 
-1. Verify user phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
-2. Register user [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser)
-3. Store the `hash` safely
+1. [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone) Verify user phone number (request OTP SMS) 
+2. [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser) Register user. Get the `hash` from response and store safely in device 
 
-Update phone number (from logged-in/authenticated app):
+**Update phone**
 
-1. Verify user **new** phone number (request OTP SMS) [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone)
-2. Update phone [POST /mobile/users/updatePhone](https://humanid.herokuapp.com/#api-Mobile-UpdatePhone)
+Update phone number from an logged-in app:
 
-Web login confirmation:
+1. [POST /mobile/users/verifyPhone](https://humanid.herokuapp.com/#api-Mobile-VerifyPhone) Verify user **new** phone number (request OTP SMS) 
+2. [POST /mobile/users/updatePhone](https://humanid.herokuapp.com/#api-Mobile-UpdatePhone) Update phone 
 
-1. Update notification ID (get it from Firebase Cloud Messaging SDK) [PUT /mobile/users](https://humanid.herokuapp.com/#api-Mobile-Update) 
-2. On push notification, confirm [POST /web/users/confirm](https://humanid.herokuapp.com/#api-Web-Confirm)
-3. Or reject [POST /web/users/reject](https://humanid.herokuapp.com/#api-Web-Reject)
+**Web login confirmation**
+
+Confirm login request from web client:
+
+1. [PUT /mobile/users](https://humanid.herokuapp.com/#api-Mobile-Update) Update notification ID (get it from Firebase Cloud Messaging SDK) 
+2. [POST /web/users/confirm](https://humanid.herokuapp.com/#api-Web-Confirm) Confirm (after receiving push notification)
+3. [POST /web/users/reject](https://humanid.herokuapp.com/#api-Web-Reject) Or reject 
 
 Push notification payload that need to be handled:
 
