@@ -60,7 +60,7 @@ class WebController extends BaseController {
 			let user = null
 			let app = null
 			try {
-				let hash = common.hmac(`${body.countryCode}${body.phone}`)
+				let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
 				user = await models.User.findOne({
 					where: { hash: hash }, 
 					include: [{
@@ -124,12 +124,13 @@ class WebController extends BaseController {
 			
 			// try to verify OTP code
 			if (body.verificationCode) {
-				try {				
+				try {
 					await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 					confirmationData.status = models.Confirmation.StatusCode.CONFIRMED
 					confirmationData.messageId = 'OTP'
 					confirmation = await models.Confirmation.create(confirmationData)
 					// immediately success
+					console.log('here 2')
 					return res.send(confirmation)
 				} catch (error) {
 					let status = error.name === 'ValidationError' ? 400 : 500				

@@ -2,10 +2,11 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="utf-8">
+	<meta charset="utf-8">
+	<link rel="icon" type="image/png" href="/examples/favicon.png">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <meta name="description" content="">
-    <meta name="author" content="">
+    <meta name="description" content="HumanID examples">
+    <meta name="author" content="HumanID">
     <title>Login</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
     <style>
@@ -62,8 +63,8 @@ body {
   </head>
 
   <body class="text-center">
-    <form class="form-signin">
-      <img class="mb-4" src="https://getbootstrap.com/docs/4.0/assets/brand/bootstrap-solid.svg" alt="" width="72" height="72">
+    <div class="form-signin">
+      <img class="mb-4" src="/examples/favicon.png" alt="HumanID">
 	  <h1 class="h3 mb-3 font-weight-normal">Please sign in</h1>
 	  <div class="row">
 		<div class="col-md-4">
@@ -74,9 +75,10 @@ body {
 		</div>		
 	  </div>	  
 	  <br>
-      <button class="btn btn-lg btn-primary btn-block" type="submit">Sign in</button>
+      <div id="login-phone-btn" class="btn btn-lg btn-primary btn-block">Login by App</div>
+      <div id="login-otp-btn" class="btn btn-lg btn-info btn-block">Login by SMS</div>
       <p class="mt-5 mb-3 text-muted">&copy; 2019</p>
-	</form>
+	</div>
 	
 	<script src="https://code.jquery.com/jquery-3.2.1.slim.min.js" integrity="sha384-KJ3o2DKtIkvYIK3UENzmM7KCkRr/rE9/Qpg6aAZGJwFDMVNA/GpGFF93hXpG5KkN" crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js" integrity="sha384-ApNbgh9B+Y1QKtv3Rn7W3mgPxhU9K/ScQsAP7hUibX39j7fakFPskvXusvfa0b4Q" crossorigin="anonymous"></script>
@@ -86,7 +88,7 @@ body {
 	<script src="/lib/humanid-min.js"></script>
 	<script>
 
-const modalStr = `<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+const modalPhoneStr = `<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
 	<div class="modal-dialog modal-dialog-centered" role="document">
 		<div class="modal-content">
 			<div class="modal-body">
@@ -105,14 +107,14 @@ const humanID = new HumanID({
 	appSecret: '2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0',
 })
 
-// handle submit action
-$('form.form-signin').on('submit', function () {
+// login by phone (push notif)
+$('#login-phone-btn').on('click', function () {
 	// get data
 	let countryCode = $('input[name=countryCode]').val()
 	let phone = $('input[name=phone]').val()
 
 	// show blocking modal
-	let modal = $(modalStr)
+	let modal = $(modalPhoneStr)
 	modal.modal({backdrop: 'static', keyboard: false, show: true})
 
 	// initiate humanid login after modal shown
@@ -121,6 +123,7 @@ $('form.form-signin').on('submit', function () {
 		humanID.login(countryCode, phone)
 		.then(() => {
 			// confirmed. proceed with login flow
+			// call web login api from server to validate
 			alert('Success')
 		})		
 		.catch((e) => {
@@ -128,8 +131,77 @@ $('form.form-signin').on('submit', function () {
 			alert(`Failed: ${e.message}`)
 		})
 		.finally(() => {
-			$(this).modal('hide')
+			modal.modal('hide')
 		})
+	})
+
+	// destroy modal on hide/close
+	modal.on('hidden.bs.modal', function (e) {
+      modal.modal('dispose')
+	})
+	
+	return false
+})
+
+const modalOTPStr = `<div class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog modal-dialog-centered" role="document">
+		<div class="modal-content">
+			<div class="modal-body">
+				<p>Please enter OTP code sent to your phone</p>
+				<input type="text" name="verificationCode" class="form-control mb-3" required autofocus>
+				<button id="verify-btn" type="button" class="btn btn-primary" disabled>Verify & Login</button>
+				<button type="button" class="btn btn-warning" data-dismiss="modal">Cancel</button>
+			</div>
+		</div>
+	</div>
+</div>`
+
+// login by OTP (sms)
+$('#login-otp-btn').on('click', function () {
+	// get data
+	let countryCode = $('input[name=countryCode]').val()
+	let phone = $('input[name=phone]').val()
+
+	// show blocking modal
+	let modal = $(modalOTPStr)
+	modal.modal({backdrop: 'static', keyboard: false, show: true})
+
+	// initiate humanid login after modal shown
+	modal.on('shown.bs.modal', function (e) {
+		humanID.requestOTP(countryCode, phone)
+			.then(() => {
+				// on success, enable verify button
+				alert('OTP requested. Please enter code from the SMS')
+				modal.find('#verify-btn').removeAttr('disabled')
+			})
+			.catch((e) => {
+				// failed. rejected or error
+				alert(`Failed: ${e.message}`)
+			})
+	})
+
+	// verify button
+	modal.find('#verify-btn').on('click', function (e) {
+		// disable button
+		modal.find('#verify-btn').prop('disabled', true)
+		let verificationCode = modal.find('input[name=verificationCode]').val()
+		if (verificationCode) {
+			// login with verification code
+			humanID.login(countryCode, phone, verificationCode)
+				.then(() => {
+					// confirmed. proceed with login flow
+					// call web login api from server to validate
+					alert('Success')
+					modal.modal('hide')
+				})
+				.catch((e) => {
+					// failed. rejected or error
+					alert(`Failed: ${e.message}`)
+					// enable button
+					modal.find('#verify-btn').removeAttr('disabled')
+				})
+			
+		}
 	})
 
 	// destroy modal on hide/close
@@ -139,6 +211,7 @@ $('form.form-signin').on('submit', function () {
 	
 	return false
 })
+
 	</script>		
   </body>
 </html>

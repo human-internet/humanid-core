@@ -17,6 +17,7 @@ if (fs.existsSync(path.join('.', configPath))) {
 
 // override config
 config.CONFIRMATION_EXPIRY_MS = process.env.CONFIRMATION_EXPIRY_MS || config.CONFIRMATION_EXPIRY_MS || 30000
+config.OTP_EXPIRY_MS = process.env.OTP_EXPIRY_MS || config.OTP_EXPIRY_MS || 60000
 config.APP_SECRET = process.env.APP_SECRET || config.APP_SECRET || 'ThisIsADefaultSecretPhrase'
 config.AUTHY_API_URL = process.env.AUTHY_API_URL || 'https://api.authy.com'
 config.NEXMO_API_URL = process.env.NEXMO_API_URL || 'https://api.nexmo.com'

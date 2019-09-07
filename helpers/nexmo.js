@@ -6,39 +6,58 @@ const request = require('request'),
     config = helpers.config
 
 // create random verification code and send SMS
-const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {
-    if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {
+const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {    
+    if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {        
         let number = helpers.combinePhone(countryCode, phone)
-        let verificationCode = testVerificationCode || helpers.randStr(4, 1)
-        let verification = await models.Verification.create({number: number, requestId: verificationCode})
-        let options = {
-            method: 'post',
-            url: `${config.NEXMO_REST_URL}/sms/json`,
-            form: {
-                from: 'HumanID',
-                text: `Your HumanID verification code is ${verificationCode}`,
-                to: number,
-                api_key: config.NEXMO_API_KEY, 
-                api_secret: config.NEXMO_API_SECRET, 
-            },
-            json: true,
+        let verification = await models.Verification.findOne({where: {number: number}})
+        let resend = true
+        if (verification && verification.requestId) {
+            let lastUpdate = new Date() - verification.updatedAt	
+            resend = lastUpdate >= config.OTP_EXPIRY_MS            
         }
-
-        return new Promise((resolve, reject) => {
-            request(options, (error, res, body) => {
-                // console.log(body)
-                if (error) {
-                    reject(error)
-                } else {
-                    if (body.messages && body.messages.length == 1 && body.messages[0].status === '0') {
-                        resolve(verification)
+        if (!resend) {
+            // just return object
+            return Promise.resolve(verification)
+        } else {
+            let verificationCode = testVerificationCode || helpers.randStr(4, 1)
+            if (!verification) {
+                // create new
+                verification = await models.Verification.create({number: number, requestId: verificationCode})
+            } else {
+                // update code
+                verification.requestId = verificationCode
+                await verification.save()
+            }
+            let options = {
+                method: 'post',
+                url: `${config.NEXMO_REST_URL}/sms/json`,
+                form: {
+                    from: 'HumanID',
+                    text: `Your HumanID verification code is ${verificationCode}`,
+                    to: number,
+                    api_key: config.NEXMO_API_KEY, 
+                    api_secret: config.NEXMO_API_SECRET, 
+                },
+                json: true,
+            }
+    
+            // send OTP
+            return new Promise((resolve, reject) => {
+                request(options, (error, res, body) => {
+                    if (error) {
+                        console.error(error)
+                        reject(error)
                     } else {
-                        console.error(body)
-                        resolve(body)
-                    }  
-                }
-            })  
-        })
+                        if (body.messages && body.messages.length == 1 && body.messages[0].status === '0') {
+                            resolve(verification)
+                        } else {
+                            console.error(body)
+                            resolve(body)
+                        }  
+                    }
+                })  
+            })
+        }
     } else {
         return Promise.resolve('TEST_CODE')
     }

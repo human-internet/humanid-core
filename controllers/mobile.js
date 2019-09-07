@@ -66,7 +66,7 @@ class MobileController extends BaseController {
                 await this.nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
                 // register user if not yet exists        
-                let hash = this.hmac(`${body.countryCode}${body.phone}`)
+                let hash = this.hmac(common.combinePhone(body.countryCode, body.phone))
                 let user = await this.models.User.findOrCreate({
                     where: {hash: hash},
                     defaults: {hash: hash}
@@ -282,7 +282,7 @@ class MobileController extends BaseController {
                 await this.nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
                 // update user hash
-                let newHash = this.hmac(`${body.countryCode}${body.phone}`)
+                let newHash = this.hmac(common.combinePhone(body.countryCode, body.phone))
                 await existingAppUser.user.update({hash: newHash})
 
                 return res.send({message: 'OK'}) 

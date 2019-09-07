@@ -24,8 +24,7 @@ class Server {
 		
 		// global error handler
 		this.app.use(function (err, req, res, next) {
-			// TODO: log to file and hide on test
-			// console.error(err)
+			console.error(err)
 			if (err.name === 'SequelizeValidationError' || err.name === 'ValidationError') {
 				return res.status(400).send(err.message)
 			} else {
