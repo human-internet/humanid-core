@@ -114,7 +114,7 @@ To enable phone number verification SMS using [Nexmo](https://www.nexmo.com/prod
 {
     "NEXMO_REST_URL": "https://rest.nexmo.com",
     "NEXMO_API_KEY": "abcd1234",
-    "NEXMO_API_KEY": "abcdefgh12345678",
+    "NEXMO_API_SECRET": "abcdefgh12345678",
 }
 ```
 > If one or more value are missing, no verification SMS will be triggered and verification code is not validated (**always considered valid**)
