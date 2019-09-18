@@ -34,6 +34,9 @@ module.exports = {
       messageId: {
         type: Sequelize.STRING
       },
+      sessionId: {
+        type: Sequelize.STRING
+      },
       status: {
         type: Sequelize.STRING,
         allowNull: false,

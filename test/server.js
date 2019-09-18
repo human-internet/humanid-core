@@ -287,7 +287,7 @@ describe('Server', () => {
         common.pushNotif = () => Promise.resolve(MESSAGE_ID)
         let appIds = ['NEW_YORK_TIMES']
         let phones = [['62', '80989999']]
-        let req = chai.request(app).keepOpen()
+        let req = chai.request.agent(app).keepOpen()
         try {
             let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
@@ -347,6 +347,24 @@ describe('Server', () => {
             res2.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
             res2.body.updatedAt.should.equals(res1.body.updatedAt) // must not be updated
 
+            // logout
+            let res3 = await req.post('/web/users/logout').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })   
+            res3.should.have.status(204)
+
+            // once logout, login should trigger confirmation again
+            let res4 = await req.post('/web/users/login').send({
+                countryCode: phones[0][0], 
+                phone: phones[0][1], 
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res4.should.have.status(202)
+
         } catch (e) {
             throw e
         } finally {
@@ -360,7 +378,7 @@ describe('Server', () => {
         common.pushNotif = () => Promise.resolve(MESSAGE_ID)
         let appIds = ['NEW_YORK_TIMES']
         let phones = [['62', '80989999']]
-        let req = chai.request(app).keepOpen()
+        let req = chai.request.agent(app).keepOpen()
         try {
             let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
@@ -416,7 +434,7 @@ describe('Server', () => {
     it('should be able to confirm web login', async () => {
         let appIds = ['NEW_YORK_TIMES']
         let phones = [['62', '80989999']]
-        let req = chai.request(app).keepOpen()
+        let req = chai.request.agent(app).keepOpen()
         try {
             let app1 = await models.App.create({id: appIds[0], secret: common.hmac(appIds[0]), platform: models.App.PlatformCode.ANDROID, serverKey: 'SERVER_KEY'})
             let user = await models.User.create({hash: common.hmac(`${phones[0][0]}${phones[0][1]}`)})
@@ -426,6 +444,7 @@ describe('Server', () => {
                 appId: app1.id,
                 userId: user.id,
                 status: models.Confirmation.StatusCode.PENDING,
+                sessionId: 'SESSION_ID',
             })
 
             // mobile confirm
@@ -434,13 +453,15 @@ describe('Server', () => {
                 requestingAppId: app1.id, // same app
                 appId: app1.id, 
                 appSecret: app1.secret,
-            })       
+            })                   
             res1.should.have.status(200)
             let confirmedConfirmation = await models.Confirmation.findByPk(confirmation.id)
             confirmedConfirmation.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
 
             // login again should return confirmed
-            let res2 = await req.post('/web/users/login').send({
+            let res2 = await req.post('/web/users/login')
+            .set('Cookie', `sessionId=${confirmation.sessionId};`)
+            .send({
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 appId: app1.id, 

@@ -2,12 +2,13 @@
 
 const BaseController = require('./base'),
 	cors = require('cors'),	
+	cookieParser = require('cookie-parser'),
 	router = require('express').Router()
 
 class WebController extends BaseController {
 	constructor(models, common, nexmo) {
-		super(models)
-		
+		super(models)		
+
 		// apply cors
 		router.use(cors((req, callback) => {			
 			if (req.body.appId) {
@@ -22,6 +23,9 @@ class WebController extends BaseController {
 				callback(null, {origin: true})
 			}
 		}))
+
+		// cookie parser
+		router.use(cookieParser())
 
 		/**
 		 * @api {post} /web/users/login Login
@@ -79,6 +83,13 @@ class WebController extends BaseController {
 			}
 
 			// push notif confirmation
+			let sessionId = req.cookies.sessionId
+			if (!sessionId) {
+				// generate new sessionId					
+				let phoneHash = common.combinePhone(body.countryCode, body.phone)
+				sessionId = common.hmac(`${app.id}_${phoneHash}_${Date.now()}`)
+			}
+
 			let confirmationData = {
 				type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
 				appId: app.id,
@@ -86,6 +97,7 @@ class WebController extends BaseController {
 				status: models.Confirmation.StatusCode.PENDING,
 				updatedAt: new Date(),
 				messageId: null,
+				sessionId: sessionId,
 			}
 			let confirmation = null
 			try {        
@@ -97,19 +109,23 @@ class WebController extends BaseController {
 						userId: user.id,
 					}
 				})
-			
+							
 				if (confirmation) {  
 					let lastCheck = new Date() - confirmation.updatedAt	
-					if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED
+					// if different sessionID or rejected
+					if (confirmation.sessionId !== confirmationData.sessionId 
+						|| confirmation.status === models.Confirmation.StatusCode.REJECTED) { 
+						// delete confirmation to allow requesting again
+						await confirmation.destroy()
+						return res.status(401).send(confirmation)
+					} else if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED
 						|| lastCheck < common.config.CONFIRMATION_EXPIRY_MS) {
 						// if Confirmed or not yet expired,
 						// send the confirmation object (containing status)
 						let code = confirmation.status === models.Confirmation.StatusCode.CONFIRMED ? 200 : 202
+						// set sessionId cookie
+						res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
 						return res.status(code).send(confirmation)
-					} else if (confirmation.status === models.Confirmation.StatusCode.REJECTED) { 
-						// delete confirmation to allow requesting again
-						await confirmation.destroy()
-						return res.status(401).send(confirmation)
 					} else {
 						// if Pending and expired update updatedAt
 						confirmation.changed('updatedAt', true)
@@ -130,7 +146,8 @@ class WebController extends BaseController {
 					confirmationData.messageId = 'OTP'
 					confirmation = await models.Confirmation.create(confirmationData)
 					// immediately success
-					console.log('here 2')
+					// set sessionId cookie
+					res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
 					return res.send(confirmation)
 				} catch (error) {
 					let status = error.name === 'ValidationError' ? 400 : 500				
@@ -183,13 +200,89 @@ class WebController extends BaseController {
 			try {
 				// create confirmation object
 				// to be updated by mobile app
-				if (!confirmation) {
-					confirmation = await models.Confirmation.create(confirmationData)
-				}        
+				if (!confirmation) {					
+					confirmation = await models.Confirmation.create(confirmationData)										
+				}
+				// set sessionId cookie
+				res.cookie('sessionId', confirmation.sessionId, { httpOnly: true })
 				return res.status(202).send(confirmation)
 			} catch (e) {				
 				return res.status(500).send(e.message)
 			}
+		})
+
+		/**
+		 * @api {post} /web/users/logout Logout
+		 * @apiName Logout
+		 * @apiGroup Web
+		 * @apiDescription Revoke web login session
+		 *
+		 * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
+		 * @apiParam {String} phone User mobile phone number
+		 * @apiParam {String} appId Partner app ID
+		 * @apiParam {String} appSecret Partner app secret
+		 * 
+		 */
+		router.post('/users/logout', async (req, res, next) => {
+			let body = req.body
+			let error = this.validate({
+				countryCode: 'required', 
+				phone: 'required', 
+				appId: 'required', 
+				appSecret: 'required', 
+			}, body)
+			if (error) {
+				return res.status(400).send(error)
+			}
+				
+			let user = null
+			let app = null
+			try {
+				let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
+				user = await models.User.findOne({
+					where: { hash: hash }, 
+					include: [{
+						model: models.AppUser, 
+						include: {
+							model: models.App,
+							as: 'app',
+						} 
+					}]
+				})				
+				if (!user) throw new Error(`Account not found: (${body.countryCode}) ${body.phone}`)   
+				app = await this.validateAppCredentials(body.appId, body.appSecret)
+			} catch (e) {
+				// console.error(e)
+				return res.status(401).send(e.message)
+			}
+
+			// validate confirmation
+			let confirmation = null
+			try {
+				confirmation = await models.Confirmation.findOne({
+					where: {
+						type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+						appId: app.id,
+						userId: user.id,
+					}
+				})				
+
+				let code = 204 
+				let msg = null
+				if (!confirmation) {
+					code = 404
+					msg = 'Session not found'
+				} else if (req.cookies.sessionId !== confirmation.sessionId) {
+					code = 401
+					msg = 'Invalid session'
+				} else {
+					// valid. delete confirmation
+					await confirmation.destroy()
+				}
+				return res.status(code).send(msg)
+			} catch (e) {
+				return res.status(500).send(e.message)
+			}			
 		})
 
 		/**

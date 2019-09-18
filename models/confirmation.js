@@ -6,6 +6,7 @@ module.exports = (sequelize, DataTypes) => {
     type: DataTypes.STRING,
     confirmingAppId: DataTypes.STRING,
     messageId: DataTypes.STRING,
+    sessionId: DataTypes.STRING,
     status: DataTypes.STRING,
   }, {});
   
