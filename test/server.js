@@ -335,7 +335,7 @@ describe('Server', () => {
             res1.body.type.should.equals(models.Confirmation.TypeCode.WEB_LOGIN_REQUEST)
             res1.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
             res1.body.appId.should.equals(app1.id)
-            res1.body.should.not.have.any.keys(['userId'])
+            res1.body.should.not.have.any.keys(['userId'])            
             
             // once success, it should always 
             // return same success confirmation object
@@ -351,10 +351,21 @@ describe('Server', () => {
             res2.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
             res2.body.updatedAt.should.equals(res1.body.updatedAt) // must not be updated
 
+            // check login status
+            let sessionId = res2.body.sessionId
+            let resStatus = await req.get('/web/users/status')
+            .query({
+                sessionId: sessionId,
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            resStatus.should.have.status(200)
+            resStatus.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            resStatus.body.sessionId.should.equals(sessionId)
+
             // logout
             let res3 = await req.post('/web/users/logout').send({
-                countryCode: phones[0][0], 
-                phone: phones[0][1], 
+                sessionId: sessionId,
                 appId: app1.id, 
                 appSecret: app1.secret,
             })   
@@ -477,7 +488,27 @@ describe('Server', () => {
             })            
             res2.should.have.status(200)
             res2.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            res2.body.sessionId.should.equals(confirmation.sessionId)
             
+            // check login status
+            let res3 = await req.get('/web/users/status')
+            .query({
+                sessionId: confirmation.sessionId,
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })            
+            res3.should.have.status(200)
+            res3.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
+            res3.body.sessionId.should.equals(confirmation.sessionId)
+
+            // logout
+            let resLogout = await req.post('/web/users/logout').send({
+                sessionId: confirmation.sessionId,
+                appId: app1.id, 
+                appSecret: app1.secret,
+            })   
+            resLogout.should.have.status(204)
+
         } catch (e) {
             throw e
         } finally {

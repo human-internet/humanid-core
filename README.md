@@ -1,14 +1,16 @@
-# HumanID API
+# HumanID API Server + Web SDK
 
 [![Build Status](https://travis-ci.org/bluenumberfoundation/humanid-api.png?branch=master)](https://travis-ci.org/bluenumberfoundation/humanid-api)
 
 HumanID API server. API doc and demo https://humanid.herokuapp.com
 
+Details about HumanID Web SDK can be found [here](client/README.md)
+
 Demo data:
 
 **Admin**
 
-```
+```JSON
 {
     "email": "admin@local.host",
     "password": "admin123"
@@ -17,7 +19,7 @@ Demo data:
 
 **Apps**
 
-```
+```JSON
 [{
     "id": "DEMO_APP",
     "secret": "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0",
@@ -34,7 +36,7 @@ Demo data:
 
 **Users**
 
-```
+```JSON
 {
     "countryCode": "62",
     "phone": "81234567890",
@@ -71,7 +73,7 @@ For `DATABASE` configuration please refer to [Sequelize configuration](http://do
 
 > Sqlite3 file storage
 
-```
+```JSON
 {
     ...
     "DATABASE": {
@@ -87,7 +89,7 @@ For `DATABASE` configuration please refer to [Sequelize configuration](http://do
 
 > MySQL with connection pooling
 
-```
+```JSON
 {
     ...
     "DATABASE": {
@@ -106,11 +108,11 @@ For `DATABASE` configuration please refer to [Sequelize configuration](http://do
 }
 ```
 
-**SMS Verification**
+**SMS OTP/Verification**
 
 To enable phone number verification SMS using [Nexmo](https://www.nexmo.com/products/sms) please provide valid configuration like below (replace values with your own account details):
 
-```
+```JSON
 {
     "NEXMO_REST_URL": "https://rest.nexmo.com",
     "NEXMO_API_KEY": "abcd1234",
@@ -123,7 +125,7 @@ To enable phone number verification SMS using [Nexmo](https://www.nexmo.com/prod
 
 To enable push notification using [Firebase Cloud Messaging](https://firebase.google.com/docs/admin/setup?authuser=0#initialize_the_sdk), provide valid like below (replace values with your own account details):
 
-```
+```JSON
 {
     "FIREBASE_SERVER_KEY": "AAAAVo...BmFpE",
 }
@@ -140,19 +142,26 @@ The API server stores data in given structure:
 ![Class/Entity Relationship Diagram](erd.png)
 
 
-## Examples
+## Web Login Examples
 
 Web login implementation example can be found in `http://localhost:3000/examples/login.html` (publishing from `examples/` dir). 
 
-To simulate web login without mobile device, follow these steps:
+To simulate web login with push notification, follow these steps:
 
+0. Make sure Push Notification configuration above has been done
 1. Open in a tab `http://localhost:3000/examples/confirm.html` and **allow** notification. Leave it open
-2. Open in **another** tab `http://localhost:3000/examples/login.html` enter country code & phone number (demo data provided above) and click **Sign In**
+2. Open in **another** tab `http://localhost:3000/examples/login.html` enter country code & phone number (demo data provided above) and click **Login by App**
 3. Go to previous tab that points to `http://localhost:3000/examples/confirm.html`. A confirmation dialog should be shown. Click **Confirm**
-4. Go to the other tab `http://localhost:3000/examples/login.html` and you should see **success** alert
+4. Return to tab `http://localhost:3000/examples/login.html`. In less than 5 seconds, you should be redirected to `http://localhost:3000/examples/secured.html`
 
-> In the actual implementation, every actions in `confirm.html` can only be done from mobile device. Because it requires login hash which should be kept secret per user/app.
+> In the actual implementation, every actions in `confirm.html` **can only be done** from mobile device. Because it requires login hash which should be kept secret per user/app.
 
+To simulate web login with OTP SMS, follow these steps:
+
+0. Make sure SMS OTP/Verification above has been done, and you have register a valid phone number using [POST /mobile/users/register](https://humanid.herokuapp.com/#api-Mobile-RegisterUser)
+1. Open `http://localhost:3000/examples/login.html` enter country code & phone number (demo data provided above) and click **Login by SMS**
+2. Wait for SMS containing OTP, enter it to the form, then click **Verify & Login**
+3. You should be redirected to `http://localhost:3000/examples/secured.html`
 
 ## Mobile API Recipes
 
@@ -196,12 +205,12 @@ Update phone number from an logged-in app:
 Confirm login request from web client:
 
 1. [PUT /mobile/users](https://humanid.herokuapp.com/#api-Mobile-Update) Update notification ID (get it from Firebase Cloud Messaging SDK) 
-2. [POST /web/users/confirm](https://humanid.herokuapp.com/#api-Web-Confirm) Confirm (after receiving push notification)
-3. [POST /web/users/reject](https://humanid.herokuapp.com/#api-Web-Reject) Or reject 
+2. [POST /web/users/confirm](https://humanid.herokuapp.com/#api-Mobile-Confirm) Confirm (after receiving push notification)
+3. [POST /web/users/reject](https://humanid.herokuapp.com/#api-Mobile-Reject) Or reject 
 
 Push notification payload that need to be handled:
 
-```
+```JSON
 {
     "type": "WEB_LOGIN_REQUEST", 
     "requestingAppId": "APP_ID"

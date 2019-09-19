@@ -43,9 +43,11 @@ class WebController extends BaseController {
 		 * @apiParam {String} appSecret Partner app secret
 		 *
 		 * @apiSuccess (202) {String} appId Partner app ID
+		 * @apiSuccess (202) {String} sessionId session ID
 		 * @apiSuccess (202) {String} status <code>PENDING</code>
 		 * 
 		 * @apiSuccess (200) {String} appId Partner app ID
+		 * @apiSuccess (200) {String} sessionId session ID
 		 * @apiSuccess (200) {String} status <code>CONFIRMED</code>
 		 * 
 		 */
@@ -231,13 +233,72 @@ class WebController extends BaseController {
 		})
 
 		/**
+		 * @api {get} /web/users/status Status
+		 * @apiName Status
+		 * @apiGroup Web
+		 * @apiDescription Check login status by <code>sessionId</code> from server-side/backend
+		 *
+		 * @apiParam {String} sessionId Obtained from login response
+		 * @apiParam {String} appId Partner app ID
+		 * @apiParam {String} appSecret Partner app secret
+		 * 
+		 * @apiSuccess (200) {String} appId Partner app ID
+		 * @apiSuccess (200) {String} sessionId session ID
+		 * @apiSuccess (200) {String} status <code>CONFIRMED</code>
+		 * 
+		 * @apiSuccess (202) {String} appId Partner app ID
+		 * @apiSuccess (202) {String} sessionId session ID
+		 * @apiSuccess (202) {String} status <code>PENDING</code>
+		 * 
+		 */
+		router.get('/users/status', async (req, res, next) => {
+			let body = req.query
+			let error = this.validate({
+				sessionId: 'required', 
+				appId: 'required', 
+				appSecret: 'required', 
+			}, body)
+			
+			if (error) {
+				return res.status(400).send(error)
+			}
+			
+			// validate credentials
+			let app = null
+			try {
+				app = await this.validateAppCredentials(body.appId, body.appSecret)
+			} catch (err) {
+				return res.status(401).send(err.message)
+			}
+
+			// validate sessionId
+			let confirmation = null
+			try {        
+				confirmation = await models.Confirmation.findOne({
+					where: {
+						type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+						appId: app.id,
+						sessionId: body.sessionId
+					}
+				})
+
+				if (!confirmation) {
+					return res.status(401).send('Invalid sessionId')
+				} else {
+					return res.send(confirmation)
+				}
+			} catch (err) {
+				return res.status(500).send(err.message)
+			}			
+		})
+
+		/**
 		 * @api {post} /web/users/logout Logout
 		 * @apiName Logout
 		 * @apiGroup Web
 		 * @apiDescription Revoke web login session
 		 *
-		 * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
-		 * @apiParam {String} phone User mobile phone number
+		 * @apiParam {String} sessionId Obtained from login response
 		 * @apiParam {String} appId Partner app ID
 		 * @apiParam {String} appSecret Partner app secret
 		 * 
@@ -245,8 +306,7 @@ class WebController extends BaseController {
 		router.post('/users/logout', async (req, res, next) => {
 			let body = req.body
 			let error = this.validate({
-				countryCode: 'required', 
-				phone: 'required', 
+				sessionId: 'required', 
 				appId: 'required', 
 				appSecret: 'required', 
 			}, body)
@@ -254,21 +314,8 @@ class WebController extends BaseController {
 				return res.status(400).send(error)
 			}
 				
-			let user = null
 			let app = null
 			try {
-				let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
-				user = await models.User.findOne({
-					where: { hash: hash }, 
-					include: [{
-						model: models.AppUser, 
-						include: {
-							model: models.App,
-							as: 'app',
-						} 
-					}]
-				})				
-				if (!user) throw new Error(`Account not found: (${body.countryCode}) ${body.phone}`)   
 				app = await this.validateAppCredentials(body.appId, body.appSecret)
 			} catch (e) {
 				// console.error(e)
@@ -282,16 +329,13 @@ class WebController extends BaseController {
 					where: {
 						type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
 						appId: app.id,
-						userId: user.id,
+						sessionId: body.sessionId,
 					}
 				})				
 
 				let code = 204 
 				let msg = null
 				if (!confirmation) {
-					code = 404
-					msg = 'Session not found'
-				} else if (req.cookies.sessionId !== confirmation.sessionId) {
 					code = 401
 					msg = 'Invalid session'
 				} else {
@@ -307,7 +351,7 @@ class WebController extends BaseController {
 		/**
 		 * @api {post} /web/users/confirm Confirm
 		 * @apiName Confirm
-		 * @apiGroup Web
+		 * @apiGroup Mobile
 		 * @apiDescription Confirm web login
 		 *
 		 * @apiParam {String} hash User hash (unique authentication code) of confirming app
@@ -334,7 +378,7 @@ class WebController extends BaseController {
 		/**
 		 * @api {post} /web/users/reject Reject
 		 * @apiName Reject
-		 * @apiGroup Web
+		 * @apiGroup Mobile
 		 * @apiDescription Reject or revoke web login
 		 *
 		 * @apiParam {String} hash User hash (unique authentication code) of confirming app

@@ -13,74 +13,76 @@ class HumanID {
 	}
 
 	/**
-	 * Request OTP SMS
-	 * @param {*} countryCode 
-	 * @param {*} phone 
-	 */
-	async requestOTP(countryCode, phone) {
-		let res = await fetch(this.baseUrl + '/web/users/verifyPhone', {
-			method: 'POST',
-			headers: {'Content-Type': 'application/json'},
-			body: JSON.stringify({
-				countryCode: countryCode,
-				phone: phone,
-				appId: this.appId,
-				appSecret: this.appSecret,
-			})
-		})
-
-		if (!res.ok) {
-			let text = await res.text()
-			throw new Error(text)			
-		} else {
-			return res
-		}
-	}
-
-	/**
 	 * Login using push notification or OTP code
+	 * @param {*} type {app, otp}
 	 * @param {*} countryCode 
 	 * @param {*} phone 
 	 * @param {*} verificationCode Optional. If not provided, will try push notif
 	 */
-	async login(countryCode, phone, verificationCode) {
-		let confirmed = false
+	async login(type, countryCode, phone, verificationCode) {
+		type = type ? type.toLowerCase() : 'app'
+
+		let confirmation = null
 		let res = null
-		let data = null
+		let data = null		
 		let params = {
+			type: type,
 			countryCode: countryCode,
 			phone: phone,
 			appId: this.appId,
 			appSecret: this.appSecret,
 		}
+		
+		if (type === 'app') {
+			// loop until CONFIRMED or REJECTED
+			let body = JSON.stringify(params)
+			while (!confirmation) {
+				res = await fetch(this.baseUrl + '/web/users/login', {
+					credentials: 'include', // include cookies
+					method: 'POST',
+					headers: {'Content-Type': 'application/json'},
+					body: body,
+				})
+				
+				if (!res.ok) {
+					let text = await res.text()
+					throw new Error(text)
+				} else {
+					data = await res.json()
+					if (data.status === 'CONFIRMED') {
+						confirmation = data
+					} else if (data.status === 'REJECTED') {
+						throw new Error('Login request rejected')
+					} else if (data.status === 'PENDING') {
+						await HumanID.sleep(this.interval)
+					}
+				}
+			}
+		} else { // type === 'otp'
+			if (verificationCode) {
+				params.verificationCode = verificationCode
+			}
 
-		// use verificationCode if provided
-		if (verificationCode) {
-			params.verificationCode = verificationCode
-		}
-
-		let body = JSON.stringify(params)
-		while (!confirmed) {
+			let body = JSON.stringify(params)
 			res = await fetch(this.baseUrl + '/web/users/login', {
+				credentials: 'include', // include cookies
 				method: 'POST',
 				headers: {'Content-Type': 'application/json'},
 				body: body,
 			})
-			
+
 			if (!res.ok) {
 				let text = await res.text()
 				throw new Error(text)
 			} else {
 				data = await res.json()
-				if (data.status === 'CONFIRMED') {
-					confirmed = true
-				} else if (data.status === 'REJECTED') {
+				if (data.status === 'REJECTED') {
 					throw new Error('Login request rejected')
-				} else if (data.status === 'PENDING') {
-					await HumanID.sleep(this.interval)
+				} else {
+					confirmation = data
 				}
 			}
 		}
-		return confirmed
+		return confirmation
 	}
 }

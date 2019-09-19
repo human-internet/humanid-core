@@ -102,7 +102,7 @@ const modalPhoneStr = `<div class="modal fade" tabindex="-1" role="dialog" aria-
 
 // init humanid client
 const humanID = new HumanID({
-	// apiUrl: 'https://https://humanid.herokuapp.com', 
+	// apiUrl: 'https://humanid.herokuapp.com', 
 	appId: 'DEMO_APP', 
 	appSecret: '2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0',
 })
@@ -120,11 +120,12 @@ $('#login-phone-btn').on('click', function () {
 	// initiate humanid login after modal shown
 	modal.on('shown.bs.modal', function (e) {
 		// invoke humanid login with success callback
-		humanID.login(countryCode, phone)
-		.then(() => {
+		humanID.login('app', countryCode, phone)
+		.then((res) => {
 			// confirmed. proceed with login flow
 			// call web login api from server to validate
 			alert('Success')
+			window.location.replace(`secured.html?sessionId=${res.sessionId}`)
 		})		
 		.catch((e) => {
 			// failed. rejected or error
@@ -168,11 +169,19 @@ $('#login-otp-btn').on('click', function () {
 
 	// initiate humanid login after modal shown
 	modal.on('shown.bs.modal', function (e) {
-		humanID.requestOTP(countryCode, phone)
-			.then(() => {
-				// on success, enable verify button
-				alert('OTP requested. Please enter code from the SMS')
-				modal.find('#verify-btn').removeAttr('disabled')
+		humanID.login('otp', countryCode, phone)
+			.then((res) => {
+				// if pending, enable verify button
+				if (res.status === 'PENDING') {
+					alert('OTP requested. Please enter code from the SMS')
+					modal.find('#verify-btn').removeAttr('disabled')
+				} else if (res.status === 'CONFIRMED') {
+					// confirmed. proceed with login flow
+					// call status api from server to validate
+					alert('Success')
+					modal.modal('hide')
+					window.location.replace(`secured.html?sessionId=${res.sessionId}`)
+				}
 			})
 			.catch((e) => {
 				// failed. rejected or error
@@ -187,12 +196,13 @@ $('#login-otp-btn').on('click', function () {
 		let verificationCode = modal.find('input[name=verificationCode]').val()
 		if (verificationCode) {
 			// login with verification code
-			humanID.login(countryCode, phone, verificationCode)
-				.then(() => {
+			humanID.login('otp', countryCode, phone, verificationCode)
+				.then((res) => {
 					// confirmed. proceed with login flow
-					// call web login api from server to validate
+					// call status api from server to validate
 					alert('Success')
 					modal.modal('hide')
+					window.location.replace(`secured.html?sessionId=${res.sessionId}`)
 				})
 				.catch((e) => {
 					// failed. rejected or error
