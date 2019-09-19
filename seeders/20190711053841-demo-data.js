@@ -29,8 +29,8 @@ module.exports = {
 				updatedAt: now,
 			}
 			let user1 = {
-				// hash: 'a0e2676406bbea729dbb8c5ce7c4c92bf62980953abb4fab544147df65bb72a7', // 6281234567890
-				hash: '7336a7d89c136bbf6a542a4f0f92be043d82a3e3dc5e193c7bf1e19b0d4c6158', // 6281311525264
+				hash: 'a0e2676406bbea729dbb8c5ce7c4c92bf62980953abb4fab544147df65bb72a7', // 6281234567890
+				// hash: '7336a7d89c136bbf6a542a4f0f92be043d82a3e3dc5e193c7bf1e19b0d4c6158', // 6281311525264
 				createdAt: now,
 				updatedAt: now,
 			}
