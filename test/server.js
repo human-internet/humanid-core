@@ -336,6 +336,7 @@ describe('Server', () => {
             res1.body.status.should.equals(models.Confirmation.StatusCode.CONFIRMED)
             res1.body.appId.should.equals(app1.id)
             res1.body.should.not.have.any.keys(['userId'])            
+            res1.should.have.cookie('sessionId')
             
             // once success, it should always 
             // return same success confirmation object
@@ -380,6 +381,7 @@ describe('Server', () => {
                 appSecret: app1.secret,
             })
             res4.should.have.status(202)
+            res4.should.not.have.cookie('sessionId')
 
         } catch (e) {
             throw e
@@ -508,6 +510,7 @@ describe('Server', () => {
                 appSecret: app1.secret,
             })   
             resLogout.should.have.status(204)
+            resLogout.should.not.have.cookie('sessionId')
 
         } catch (e) {
             throw e

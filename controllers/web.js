@@ -341,6 +341,8 @@ class WebController extends BaseController {
 				} else {
 					// valid. delete confirmation
 					await confirmation.destroy()
+					// clear cookie
+					res.clearCookie('sessionId', { httpOnly: true })
 				}
 				return res.status(code).send(msg)
 			} catch (e) {
