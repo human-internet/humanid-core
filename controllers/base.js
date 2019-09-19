@@ -12,9 +12,23 @@ class BaseController {
      * @param {*} body 
      */
     validate(rules, body) {
-        for (let r in rules) {
-            if (rules[r] === 'required' && !body[r]) {
-                return {error: `${r} is required`}
+        for (let field in rules) {
+            for (let rule in rules[field].split('|')) {
+                let val = body[field]
+                rule = rule.toLowerCase()
+                if (rule === 'required') {
+                    if (!val || val.length <= 0) {
+                        return {error: `${field} is required`}
+                    }                    
+                } else if (rule.startsWith('in:')) {
+                    // ignore if empty
+                    if (val && val.length > 0) {
+                        let values = rule.split(':')[1].split(',')
+                        if (values.indexOf(val.toLowerCase()) < 0) {
+                            return {error: `${field} must be in: ${values}`}
+                        }
+                    }
+                }
             }
         }
         return null

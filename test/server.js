@@ -296,20 +296,22 @@ describe('Server', () => {
             // mock nexmo api response
             nock(common.config.NEXMO_REST_URL)
                 .post(/^\/sms/)
-                .times(1)
+                .times(2)
                 .reply(200, {messages: [{status: '0'}]})            
 
             // request OTP SMS
-            let res = await req.post('/web/users/verifyPhone').send({
+            let res = await req.post('/web/users/login').send({
+                type: 'otp',
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 appId: app1.id,
                 appSecret: app1.secret,
             })
-            res.should.have.status(200)
+            res.should.have.status(202)
 
             // reject invalid code
             res = await req.post('/web/users/login').send({
+                type: 'otp',
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 verificationCode: '99999', // INVALID CODE
@@ -321,6 +323,7 @@ describe('Server', () => {
             // valid code login
             let v = await models.Verification.findByPk(common.combinePhone(phones[0][0], phones[0][1]))
             let res1 = await req.post('/web/users/login').send({
+                type: 'otp',
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 verificationCode: v.requestId,
@@ -338,6 +341,7 @@ describe('Server', () => {
             // return same success confirmation object
             // and does not require any confirmation code again
             let res2 = await req.post('/web/users/login').send({
+                type: 'otp',
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 appId: app1.id, 
@@ -358,11 +362,12 @@ describe('Server', () => {
 
             // once logout, login should trigger confirmation again
             let res4 = await req.post('/web/users/login').send({
+                type: 'otp',
                 countryCode: phones[0][0], 
                 phone: phones[0][1], 
                 appId: app1.id, 
                 appSecret: app1.secret,
-            })            
+            })
             res4.should.have.status(202)
 
         } catch (e) {
@@ -420,9 +425,12 @@ describe('Server', () => {
                 appId: app1.id, 
                 appSecret: app1.secret,
             })
-            await confirmation.reload()            
-            confirmation.updatedAt.toISOString().should.not.equals(lastUpdatedAt.toISOString())            
-            
+            let count = await models.Confirmation.count({where: {
+                type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+                appId: app1.id,
+                userId: user.id,
+            }})
+            count.should.equals(1)
         } catch (e) {
             throw e
         } finally {

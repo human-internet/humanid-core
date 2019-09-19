@@ -31,11 +31,11 @@ class WebController extends BaseController {
 		 * @api {post} /web/users/login Login
 		 * @apiName Login
 		 * @apiGroup Web
-		 * @apiDescription <p>Send login push notification to one of mobile app.
-		 * The notification contains data: <code>{"type": "WEB_LOGIN_REQUEST", "requestingAppId": "APP_ID"}</code>
-		 * Where <code>type</code> always be <code>WEB_LOGIN_REQUEST</code>, 
-		 * and <code>requestingAppId</code> is the ID of the app that requests login. Since it can be called multiple time, it can also be used to validate login status (from partner web server)</p>
-		 *
+		 * @apiDescription Attempt to login by phone number. If not authorized, request confirmation based on <code>type</code>:
+		 * <p>1. <code>app</code>: Send login push notification to one of mobile app: <code>{"type": "WEB_LOGIN_REQUEST", "requestingAppId": "APP_ID"}</code> where <code>type</code> always be <code>WEB_LOGIN_REQUEST</code>, and <code>requestingAppId</code> is the ID of the app that requests login</p>
+		 * <p>2. <code>otp</code>: Send SMS containing OTP code to phone number (if already registered)</p>
+		 * 
+		 * @apiParam {String} [type] Auth type <code>{'app','otp'}</code>. Default: <code>'app'</code>
 		 * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
 		 * @apiParam {String} phone User mobile phone number
 		 * @apiParam {String} [verificationCode] User phone number verification code (OTP)
@@ -52,15 +52,18 @@ class WebController extends BaseController {
 		router.post('/users/login', async (req, res, next) => {
 			let body = req.body
 			let error = this.validate({
+				type: 'in:app,otp',
 				countryCode: 'required', 
 				phone: 'required', 
 				appId: 'required', 
 				appSecret: 'required', 
 			}, body)
+			
 			if (error) {
 				return res.status(400).send(error)
 			}
-				
+			
+			// validate credentials
 			let user = null
 			let app = null
 			try {
@@ -82,14 +85,14 @@ class WebController extends BaseController {
 				return res.status(401).send(e.message)
 			}
 
-			// push notif confirmation
+			// generate new sessionId					
 			let sessionId = req.cookies.sessionId
 			if (!sessionId) {
-				// generate new sessionId					
 				let phoneHash = common.combinePhone(body.countryCode, body.phone)
 				sessionId = common.hmac(`${app.id}_${phoneHash}_${Date.now()}`)
 			}
 
+			// handle existing confirmation (checking status)
 			let confirmationData = {
 				type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
 				appId: app.id,
@@ -98,10 +101,9 @@ class WebController extends BaseController {
 				updatedAt: new Date(),
 				messageId: null,
 				sessionId: sessionId,
-			}
+			}			
 			let confirmation = null
 			try {        
-				// check confirmation
 				confirmation = await models.Confirmation.findOne({
 					where: {
 						type: confirmationData.type,
@@ -117,97 +119,114 @@ class WebController extends BaseController {
 						|| confirmation.status === models.Confirmation.StatusCode.REJECTED) { 
 						// delete confirmation to allow requesting again
 						await confirmation.destroy()
-						return res.status(401).send(confirmation)
-					} else if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED
-						|| lastCheck < common.config.CONFIRMATION_EXPIRY_MS) {
-						// if Confirmed or not yet expired,
-						// send the confirmation object (containing status)
-						let code = confirmation.status === models.Confirmation.StatusCode.CONFIRMED ? 200 : 202
+						confirmation = null
+					} else if (confirmation.status === models.Confirmation.StatusCode.PENDING) {
+						if (lastCheck > common.config.CONFIRMATION_EXPIRY_MS) {
+							// if expired
+							// delete confirmation to allow requesting again
+							await confirmation.destroy()
+							confirmation = null
+						} else {
+							// not yet expired
+							res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
+							return res.status(202).send(confirmation)
+						}
+					} else if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED) {
 						// set sessionId cookie
 						res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
-						return res.status(code).send(confirmation)
-					} else {
-						// if Pending and expired update updatedAt
-						confirmation.changed('updatedAt', true)
-						await confirmation.save()
-						// sync data for push notif
-						confirmationData.updatedAt = confirmation.updatedAt 
+						return res.status(200).send(confirmation)
 					}
 				}        
 			} catch (e) {
 				return res.status(500).send(e.message)
 			}
-			
-			// try to verify OTP code
-			if (body.verificationCode) {
+
+			// handle new or expired authorization request
+
+			let authType = body.type ? body.type.toLowerCase() : 'app'			
+			if (authType === 'otp') {			
+				confirmationData.messageId = 'OTP'
+				// request OTP
+				if (!body.verificationCode) {										
+					try {						
+						await nexmo.sendVerificationSMS(body.countryCode, body.phone)
+						confirmationData.status = models.Confirmation.StatusCode.PENDING
+						confirmation = await models.Confirmation.create(confirmationData)
+						return res.status(202).send(confirmation)
+					} catch (error) {
+						return res.status(500).send(error.message)
+					}					
+				} 
+				// verify OTP
+				else { 
+					try {
+						await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)						
+						confirmationData.status = models.Confirmation.StatusCode.CONFIRMED
+						confirmation = await models.Confirmation.create(confirmationData)
+						res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
+						return res.send(confirmation)
+					} catch (error) {
+						let status = error.name === 'ValidationError' ? 400 : 500				
+						return res.status(status).send(error.message)
+					}
+				}
+
+			} else { // authType === 'app'
+
+				// try to send notif to an app
+				// iterate all available apps until successful
+				// or no more app
+				let i = 0
+				let results = []
+				while (!confirmationData.messageId && i < user.AppUsers.length) {
+					let appUser = user.AppUsers[i] 
+					try {
+						// get server key based on platform
+						let serverKey = common.config.FIREBASE_SERVER_KEY
+						if (appUser.app.platform === models.App.PlatformCode.ANDROID) {
+							serverKey = appUser.app.serverKey
+						} // else models.App.PlatformCode.IOS use common.config.FIREBASE_SERVER_KEY
+
+						// validate or send push notif
+						if (!serverKey) {
+							throw new Error('Missing server key')
+						} else if (!appUser.notifId) {
+							throw new Error('Missing notifId')
+						} else {
+							confirmationData.messageId = await common.pushNotif({
+								to: appUser.notifId,
+								data: {
+									title: 'Web Login Request',
+									body: 'Please confirm web login request',
+									type: confirmationData.type,
+									requestingAppId: confirmationData.appId,
+									updatedAt: confirmationData.updatedAt.toISOString(),
+								},
+							}, serverKey)
+							results.push({appId: appUser.appId, platform: appUser.app.platform, success: true, reason: null})						
+						}            
+					} catch (e) {
+						results.push({appId: appUser.appId, platform: appUser.app.platform, success: false, reason: `Push notif failed: ${e.message}`})
+					} finally {
+						i++
+					}        
+				}
+
+				// message not sent
+				if (!confirmationData.messageId) {
+					console.error(results)
+					return res.status(500).send({results: results})
+				}            
 				try {
-					await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
-					confirmationData.status = models.Confirmation.StatusCode.CONFIRMED
-					confirmationData.messageId = 'OTP'
+					// create confirmation object
 					confirmation = await models.Confirmation.create(confirmationData)
-					// immediately success
 					// set sessionId cookie
-					res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
-					return res.send(confirmation)
-				} catch (error) {
-					let status = error.name === 'ValidationError' ? 400 : 500				
-					return res.status(status).send(error.message)
+					res.cookie('sessionId', confirmation.sessionId, { httpOnly: true })
+					return res.status(202).send(confirmation)
+				} catch (e) {				
+					return res.status(500).send(e.message)
 				}
-			}
 
-			// try to send push notif to each apps                
-			let i = 0
-			let results = []
-			while (!confirmationData.messageId && i < user.AppUsers.length) {
-				let appUser = user.AppUsers[i] 
-				try {
-					// get server key based on platform
-					let serverKey = common.config.FIREBASE_SERVER_KEY
-					if (appUser.app.platform === models.App.PlatformCode.ANDROID) {
-						serverKey = appUser.app.serverKey
-					} // else models.App.PlatformCode.IOS use common.config.FIREBASE_SERVER_KEY
-
-					// validate or send push notif
-					if (!serverKey) {
-						throw new Error('Missing server key')
-					} else if (!appUser.notifId) {
-						throw new Error('Missing notifId')
-					} else {
-						confirmationData.messageId = await common.pushNotif({
-							to: appUser.notifId,
-							data: {
-								title: 'Web Login Request',
-								body: 'Please confirm web login request',
-								type: confirmationData.type,
-								requestingAppId: confirmationData.appId,
-								updatedAt: confirmationData.updatedAt.toISOString(),
-							},
-						}, serverKey)
-						results.push({appId: appUser.appId, platform: appUser.app.platform, success: true, reason: null})						
-					}            
-				} catch (e) {
-					results.push({appId: appUser.appId, platform: appUser.app.platform, success: false, reason: `Push notif failed: ${e.message}`})
-				} finally {
-					i++
-				}        
-			}
-
-			// message not sent
-			if (!confirmationData.messageId) {
-				console.error(results)
-				return res.status(500).send({results: results})
-			}            
-			try {
-				// create confirmation object
-				// to be updated by mobile app
-				if (!confirmation) {					
-					confirmation = await models.Confirmation.create(confirmationData)										
-				}
-				// set sessionId cookie
-				res.cookie('sessionId', confirmation.sessionId, { httpOnly: true })
-				return res.status(202).send(confirmation)
-			} catch (e) {				
-				return res.status(500).send(e.message)
 			}
 		})
 
@@ -339,55 +358,11 @@ class WebController extends BaseController {
 			}			
 		})
 
-        /**
-         * @api {post} /web/users/verifyPhone Verify phone
-         * @apiName VerifyPhone
-         * @apiGroup Web
-         * @apiDescription Trigger OTP SMS code
-         *
-         * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
-         * @apiParam {String} phone User mobile phone number
-         * @apiParam {String} appId Partner app ID
-         * @apiParam {String} appSecret Partner app secret
-         *
-         * @apiSuccess {String} message OK
-         */
-        router.post('/users/verifyPhone', async (req, res, next) => {
-            
-            let body = req.body
-            let error = this.validate({
-                appId: 'required', 
-                appSecret: 'required', 
-                countryCode: 'required', 
-                phone: 'required', 
-            }, body)
-
-            if (error) {
-                return res.status(400).send(error)
-            }
-
-            // validate credentials
-            try {
-                await this.validateAppCredentials(body.appId, body.appSecret)
-            } catch (e) {
-                return res.status(401).send(e.message)
-            }
-
-            try {
-                await nexmo.sendVerificationSMS(body.countryCode, body.phone)
-                return res.send({message: 'OK'})        
-            } catch (e) {
-                console.error(e)
-                next(e)
-            }
-            
-        })
-
 		this.router = router
 	}
 
 	// update login request confirmation
-	async updateLoginConfirmation(status, req, res) {
+	async updateLoginConfirmation (status, req, res) {
 		let body = req.body
 		let error = this.validate({
 			hash: 'required', 
@@ -432,6 +407,7 @@ class WebController extends BaseController {
 			return res.status(500).send(e.message)
 		}    
 	}
+
 }
 
 module.exports = WebController
