@@ -28,7 +28,8 @@
     "mysql2": "^1.6.5",
     "request": "^2.88.0",
     "sequelize": "^5.18.4",
-    "sqlite3": "^4.0.9"
+    "sqlite3": "^4.0.9",
+    "umzug": "^2.2.0"
   },
   "devDependencies": {
     "apidoc": "^0.17.7",
@@ -41,7 +42,6 @@
     "nock": "^10.0.6",
     "nodemon": "^1.19.1",
     "sequelize-cli": "^5.5.0",
-    "sinon": "^7.4.1",
-    "umzug": "^2.2.0"
+    "sinon": "^7.4.1"
   }
 }
