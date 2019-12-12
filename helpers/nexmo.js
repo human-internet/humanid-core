@@ -52,7 +52,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                             resolve(verification)
                         } else {
                             console.error(body)
-                            resolve(body)
+                            reject(body)
                         }  
                     }
                 })  
