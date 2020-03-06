@@ -1,4 +1,4 @@
-'use strict'
+:'use strict'
 
 const request = require('request'),
     models = require('../models/index'),
@@ -32,7 +32,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                 method: 'post',
                 url: `${config.NEXMO_REST_URL}/sms/json`,
                 form: {
-                    from: 'HumanID',
+                    from: config.NEXMO_FROM,
                     text: `Your HumanID verification code is ${verificationCode}`,
                     to: number,
                     api_key: config.NEXMO_API_KEY, 
