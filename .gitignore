@@ -1,6 +1,9 @@
 node_modules/
-.vscode/
 config.json
 *.log
 *.sqlite
 serviceAccountKey.json
+
+# Project Dirs
+.vscode/
+.idea/
