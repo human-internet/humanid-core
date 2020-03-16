@@ -128,7 +128,7 @@ class MobileController extends BaseController {
                 if (!newApp) {
                     return res.status(404).send(`App not found ${body.appId}`)
                 }
-                if (newApp.secret != body.appSecret) {
+                if (newApp.secret !== body.appSecret) {
                     return res.status(401).send(`Invalid secret`)
                 }    
                 
