@@ -8,7 +8,7 @@ const express = require('express'),
 
 class Server {
 	constructor(models, common, middlewares, nexmo) {
-		models = models
+		this.models = models
 
 		this.app = express()
 		this.app.use(bodyParser.json())
