@@ -45,7 +45,7 @@ Object.keys(db).forEach(modelName => {
 db.sequelize = sequelize
 db.Sequelize = Sequelize
 
-// automigrate
+// auto migrate
 db.migrate = async () => {
   return new Umzug({
     storage: 'sequelize',  

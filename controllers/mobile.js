@@ -56,7 +56,7 @@ class MobileController extends BaseController {
             // validate app
             let app = null
             try {
-                app = await this.validateAppCredentials(body.appId, body.appSecret)
+                app = await this.validateAppCredentials(body.appId, body.appSecret, null)
             } catch (e) {
                 return res.status(401).send(e.message)
             }
@@ -187,6 +187,7 @@ class MobileController extends BaseController {
             try {
                 // validate credentials
                 await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)
+                // TODO: Create access token
                 return res.send({message: 'OK'})        
             } catch (e) {
                 return res.status(401).send(e.message)
@@ -223,7 +224,7 @@ class MobileController extends BaseController {
 
             // validate credentials
             try {
-                await this.validateAppCredentials(body.appId, body.appSecret)
+                await this.validateAppCredentials(body.appId, body.appSecret, null)
             } catch (e) {
                 return res.status(401).send(e.message)
             }
