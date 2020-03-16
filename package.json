@@ -32,6 +32,7 @@
     "umzug": "^2.2.0"
   },
   "devDependencies": {
+    "@types/express": "^4.17.3",
     "apidoc": "^0.17.7",
     "chai": "^4.2.0",
     "chai-http": "^4.3.0",
