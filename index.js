@@ -6,7 +6,7 @@ const common = require('./helpers/common'),
     middlewares = require('./middlewares'),
     Server = require('./server')
 
-const port = common.config.APP_PORT
+const port = process.env.PORT || common.config.APP_PORT
 const app = new Server(models, common, middlewares, nexmo).app
 
 if (require.main === module) {
