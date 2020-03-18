@@ -1,7 +1,7 @@
 {
   "name": "humanid-api",
   "version": "1.0.0",
-  "description": "HumanID API server",
+  "description": "humanID API server",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",

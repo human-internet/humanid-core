@@ -26,7 +26,7 @@ config.AUTHY_API_KEY = process.env.AUTHY_API_KEY || config.AUTHY_API_KEY
 config.NEXMO_API_KEY = process.env.NEXMO_API_KEY || config.NEXMO_API_KEY
 config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || config.NEXMO_API_SECRET
 config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_SERVER_KEY
-config.NEXMO_FROM = process.env.NEXMO_FROM || 'HumanID'
+config.NEXMO_FROM = process.env.NEXMO_FROM || 'humanID'
 config.APP_PORT = process.env.APP_PORT || 3000
 
 const SECRET = config.APP_SECRET

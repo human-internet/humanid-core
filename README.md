@@ -1,10 +1,10 @@
-# HumanID API Server + Web SDK
+# humanID API Server + Web SDK
 
 [![Build Status](https://travis-ci.org/bluenumberfoundation/humanid-api.png?branch=master)](https://travis-ci.org/bluenumberfoundation/humanid-api)
 
-HumanID API server. API doc and demo https://humanid.herokuapp.com
+humanID API server. API doc and demo https://humanid.herokuapp.com
 
-Details about HumanID Web SDK can be found [here](client/README.md)
+Details about humanID Web SDK can be found [here](client/README.md)
 
 Demo data:
 

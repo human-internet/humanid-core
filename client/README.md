@@ -1,8 +1,8 @@
-# HumanID Web SDK
+# humanID Web SDK
 
-A [client-side js SDK](client/dist/humanid-min.js) is provided to simplify web application interacts with HumanID API server. 
+A [client-side js SDK](client/dist/humanid-min.js) is provided to simplify web application interacts with humanID API server. 
 
-An example of simple HumanID login implementation using jQuery & Bootstrap is available [here](examples/login.html).
+An example of simple humanID login implementation using jQuery & Bootstrap is available [here](examples/login.html).
 
 ## Implementation steps
 
@@ -69,7 +69,7 @@ humanID.login('otp', countryCode, phone, verificationCode)
 
 ## REST APIs
 
-This web SDK is actually wrapping below REST API. It is also possible to directly call this API to implement HumanID web authentication:
+This web SDK is actually wrapping below REST API. It is also possible to directly call this API to implement humanID web authentication:
 
 * [POST /web/users/login](https://humanid.herokuapp.com/#api-Web-Login) Login
 

@@ -33,10 +33,10 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                 url: `${config.NEXMO_REST_URL}/sms/json`,
                 form: {
                     from: config.NEXMO_FROM,
-                    text: `Your HumanID verification code is ${verificationCode}`,
+                    text: `Your humanID verification code is ${verificationCode}`,
                     to: number,
-                    api_key: config.NEXMO_API_KEY, 
-                    api_secret: config.NEXMO_API_SECRET, 
+                    api_key: config.NEXMO_API_KEY,
+                    api_secret: config.NEXMO_API_SECRET,
                 },
                 json: true,
             }
@@ -86,10 +86,10 @@ const requestPhoneVerification = async (countryCode, phone) => {
             method: 'get',
             url: `${config.NEXMO_API_URL}/verify/json`,
             qs: {
-                api_key: config.NEXMO_API_KEY, 
-                api_secret: config.NEXMO_API_SECRET, 
+                api_key: config.NEXMO_API_KEY,
+                api_secret: config.NEXMO_API_SECRET,
                 number: number,
-                brand: 'HumanID',
+                brand: 'humanID',
                 code_length: 4,
             },
             json: true,
