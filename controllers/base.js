@@ -2,14 +2,13 @@
 
 class BaseController {
     constructor(models) {
-        this.models = models        
+        this.models = models
     }
-
 
     /**
      * Validate body against rules
-     * @param {*} rules 
-     * @param {*} body 
+     * @param {*} rules
+     * @param {*} body
      */
     validate(rules, body) {
         for (let field in rules) {
@@ -19,7 +18,7 @@ class BaseController {
                 if (rule === 'required') {
                     if (!val || val.length <= 0) {
                         return {error: `${field} is required`}
-                    }                    
+                    }
                 } else if (rule.startsWith('in:')) {
                     // ignore if empty
                     if (val && val.length > 0) {
@@ -36,9 +35,9 @@ class BaseController {
 
     /**
      * Validate app credentials
-     * @param {*} appId 
-     * @param {*} appSecret 
-     * @param {*} app 
+     * @param {*} appId
+     * @param {*} appSecret
+     * @param {*} app
      */
     async validateAppCredentials(appId, appSecret, app) {
         if (!app) {
@@ -55,15 +54,15 @@ class BaseController {
 
     /**
      * Validate app user credentials and return user object
-     * @param {*} hash 
-     * @param {*} appId 
-     * @param {*} appSecret 
+     * @param {*} hash
+     * @param {*} appId
+     * @param {*} appSecret
      */
     async validateAppUserCredentials(hash, appId, appSecret) {
         // validate login hash
         let appUser = await this.models.AppUser.findOne({
-            where: { hash: hash },
-            include: [{ all: true }],
+            where: {hash: hash},
+            include: [{all: true}],
         })
         if (!appUser) {
             throw new Error(`Invalid login hash`)
