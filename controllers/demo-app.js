@@ -103,7 +103,7 @@ class DemoAppController extends BaseController {
             })
 
             const user = users[0]
-            const token = await this.newUserSession(user.id, user.extId, new Date().getTime())
+            const token = await this.newUserSession(user.id, user.extId, getUnixTime(new Date()))
 
             // Return response
             return res.json({
@@ -166,7 +166,7 @@ class DemoAppController extends BaseController {
             // Get user info
             const {user} = req.userAccess
             // Create new session
-            const newToken = await this.newUserSession(user.id, user.extId, new Date().getTime())
+            const newToken = await this.newUserSession(user.id, user.extId, getUnixTime(new Date()))
 
             return res.json({
                 message: "OK",
@@ -199,7 +199,7 @@ class DemoAppController extends BaseController {
                 data: {
                     id: u.extId,
                     fullName: u.fullName,
-                    updatedAt: Math.round(u.updatedAt.getTime() / 1000)
+                    updatedAt: getUnixTime(u.updatedAt)
                 }
             })
         })
@@ -312,7 +312,7 @@ class DemoAppController extends BaseController {
             if (!user.lastLogIn) {
                 lastLogIn = -1
             } else {
-                lastLogIn = user.lastLogIn.getTime()
+                lastLogIn = getUnixTime(user.lastLogIn)
             }
 
             // Generate session
@@ -362,8 +362,7 @@ class DemoAppController extends BaseController {
 }
 
 function generateExtId() {
-    let t = new Date()
-    let id = Math.round(t.getTime() / 1000)
+    let id = getUnixTime(new Date())
     return `${id}`
 }
 
@@ -376,6 +375,10 @@ function verifyJWT(token, secret) {
             resolve(decodedToken)
         })
     })
+}
+
+function getUnixTime(t) {
+    return Math.round(t.getTime() / 1000)
 }
 
 module.exports = DemoAppController
