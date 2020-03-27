@@ -1,18 +1,45 @@
 'use strict'
 
 const BaseController = require('./base'),
-    router = require('express').Router(),
+    express = require('express'),
     jwt = require('jsonwebtoken')
 
 class DemoAppController extends BaseController {
     constructor(models, common) {
         super(models)
-        this.router = router
+        this.router = express.Router()
         this.common = common
         this.appId = "DEMO_APP"
         // TODO: Make secrets configurable
         this.appJwtSecret = "6OI%ht9qSRJjq5x5BB3y"
         this.appClientSecret = "S7ZJkSm4Jt@hlTWnYS28"
+
+        // Create router that have user session middleware
+        const userSessionRouter = express.Router()
+        userSessionRouter.use(async (req, res, next) => {
+            // Validate session
+            const userAccessToken = req.header("userAccessToken")
+            const result = await this.validateUserSession(userAccessToken)
+            if (result.error) {
+                return res.status(result.error.httpStatus || 500).send({
+                    error: result.error
+                })
+            }
+
+            if (!result.valid) {
+                return res.status(401).send({
+                    error: {
+                        code: "DEMOAPP_ERR_3",
+                        message: "Invalid user session",
+                    }
+                })
+            }
+
+            // Set result in request
+            req.userAccess = result
+
+            next()
+        })
 
         /**
          * @api {post} /demo-app/api/users/log-in Log In
@@ -131,41 +158,13 @@ class DemoAppController extends BaseController {
          * @apiGroup DemoApp
          * @apiDescription Refresh user session
          *
-         * @apiHeader {String} clientSecret Client Secret
          * @apiHeader {String} userAccessToken User Access Token
          *
          * @apiSuccess {String} message Result status
          */
-        this.router.put('/users/refresh-session', async (req, res, next) => {
-            // Validate client secret
-            let clientSecret = req.header("clientSecret")
-            if (clientSecret !== this.appClientSecret) {
-                return res.status(401).send({
-                    error: {
-                        code: "401",
-                        message: "Unauthorized"
-                    }
-                })
-            }
-
-            // Validate session
-            const userAccessToken = req.header("userAccessToken")
-            const result = await this.validateUserSession(userAccessToken)
-            if (result.error) {
-                return res.status(result.error.httpStatus || 500).send({
-                    error: result.error
-                })
-            }
-
-            if (!result.valid) {
-                return res.status(401).send({
-                    error: {
-                        code: "DEMOAPP_ERR_3",
-                        message: "Invalid user session Id",
-                    }
-                })
-            }
-
+        userSessionRouter.put('/users/refresh-session', async (req, res, next) => {
+            // Get user info
+            const {user} = req.userAccess
             // Create new session
             const newToken = await this.newUserSession(user.id, user.extId, new Date().getTime())
 
@@ -288,6 +287,8 @@ class DemoAppController extends BaseController {
                     expiresIn: this.common.config.DEMO_APP_JWT_LIFETIME
                 })
         }
+
+        this.router.use('/', userSessionRouter)
     }
 }
 
