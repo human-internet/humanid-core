@@ -1,6 +1,137 @@
 [
   {
     "type": "post",
+    "url": "/demo-app/api/users/log-in",
+    "title": "Log In",
+    "name": "LogIn",
+    "group": "DemoApp",
+    "description": "<p>LogIn to 3rd party app using humanId Exchange Token</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "clientSecret",
+            "description": "<p>Client credentials to access Api</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "exchangeToken",
+            "description": "<p>An exchange token that states user has been verified by humanId</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "token",
+            "description": "<p>Access Token to App</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/demo-app.js",
+    "groupTitle": "DemoApp"
+  },
+  {
+    "type": "put",
+    "url": "/demo-app/api/users/log-out",
+    "title": "Log Out",
+    "name": "LogOut",
+    "group": "DemoApp",
+    "description": "<p>LogOut to 3rd party app using humanId Exchange Token</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "userAccessToken",
+            "description": "<p>User Access Token</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Result status</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/demo-app.js",
+    "groupTitle": "DemoApp"
+  },
+  {
+    "type": "put",
+    "url": "/demo-app/api/users/refresh-session",
+    "title": "Refresh Session",
+    "name": "RefreshSession",
+    "group": "DemoApp",
+    "description": "<p>Refresh user session</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "clientSecret",
+            "description": "<p>Client Secret</p>"
+          },
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "userAccessToken",
+            "description": "<p>User Access Token</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Result status</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/demo-app.js",
+    "groupTitle": "DemoApp"
+  },
+  {
+    "type": "post",
     "url": "/web/users/confirm",
     "title": "Confirm",
     "name": "Confirm",
