@@ -337,8 +337,8 @@ class DemoAppController extends BaseController {
          */
         this.newUserSession = async (userId, userExtId, timestamp) => {
             await this.models.DemoAppUser.update({
-                lastLogIn: timestamp,
-                updatedAt: timestamp
+                lastLogIn: timestamp * 1000,
+                updatedAt: timestamp * 1000
             }, {
                 where: {id: userId}
             })
