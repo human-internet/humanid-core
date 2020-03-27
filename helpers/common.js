@@ -29,6 +29,9 @@ config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_
 config.NEXMO_FROM = process.env.NEXMO_FROM || 'humanID'
 config.APP_PORT = process.env.APP_PORT || 3000
 
+// Demo App Config
+config.DEMO_APP_JWT_LIFETIME = process.env.DEMO_APP_JWT_LIFETIME || '15m';
+
 const SECRET = config.APP_SECRET
 
 // hash data using secret
