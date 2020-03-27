@@ -177,6 +177,75 @@ class DemoAppController extends BaseController {
         })
 
         /**
+         * @api {get} /demo-app/api/users/profile Retrieve user profile
+         * @apiName GetUserProfile
+         * @apiGroup DemoApp
+         * @apiDescription Get user profile by user access token
+         *
+         * @apiHeader {String} userAccessToken User Access Token
+         *
+         * @apiSuccess {Object} Users data
+         */
+        userSessionRouter.get('/users/profile', async (req, res) => {
+            // Get user info
+            const {user} = req.userAccess
+
+            const u = await this.models.DemoAppUser.findOne({
+                where: {id: user.id},
+            })
+
+            return res.json({
+                message: "OK",
+                data: {
+                    id: u.extId,
+                    fullName: u.fullName,
+                    updatedAt: Math.round(u.updatedAt.getTime() / 1000)
+                }
+            })
+        })
+
+        /**
+         * @api {put} /demo-app/api/users/profile Update user profile
+         * @apiName UpdateUserProfile
+         * @apiGroup DemoApp
+         * @apiDescription Update user profile by user access token
+         *
+         * @apiHeader {String} userAccessToken User Access Token
+         *
+         * @apiParam {String} fullName Update full name
+         *
+         * @apiSuccess {String} Update status
+         */
+        userSessionRouter.put('/users/profile', async (req, res) => {
+            // Get user info
+            const {user: userAccess} = req.userAccess
+
+            // Get request body
+            const body = req.body
+
+            // Get user
+            try {
+                await this.models.DemoAppUser.update({
+                    fullName: body.fullName
+                }, {
+                    where: {id: userAccess.id}
+                })
+            } catch (e) {
+                return res.status(500).send({
+                    error: {
+                        code: "500",
+                        message: "Internal Error",
+                        _debug: e
+                    }
+                })
+            }
+
+            return res.json({
+                message: "OK"
+            })
+        })
+
+        /**
          * Generate session identifier
          *
          * @param {string} userExtId User external id
