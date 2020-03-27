@@ -12,9 +12,10 @@ class BaseController {
      */
     validate(rules, body) {
         for (let field in rules) {
-            for (let rule in rules[field].split('|')) {
+            let fieldRules = rules[field].split('|')
+            for (let i in fieldRules) {
                 let val = body[field]
-                rule = rule.toLowerCase()
+                let rule = fieldRules[i].toLowerCase()
                 if (rule === 'required') {
                     if (!val || val.length <= 0) {
                         return {error: `${field} is required`}
