@@ -5,7 +5,7 @@ const BaseController = require('./base'),
     jwt = require('jsonwebtoken')
 
 class DemoAppController extends BaseController {
-    constructor(models, common, middlewares, nexmo) {
+    constructor(models, common) {
         super(models)
         this.router = router
         this.common = common

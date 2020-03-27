@@ -22,7 +22,7 @@ class Server {
 		this.app.use('/console', new WebConsoleController(models, common, middlewares).router)
 		this.app.use('/mobile',  new MobileController(models, common, middlewares, nexmo).router)
 		this.app.use('/web', new WebController(models, common, nexmo).router)
-		this.app.use('/demo-app/api', new DemoAppController(models, common, nexmo).router)
+		this.app.use('/demo-app/api', new DemoAppController(models, common).router)
 
 		// global error handler
 		this.app.use(function (err, req, res, next) {
