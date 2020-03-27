@@ -167,7 +167,7 @@ class DemoAppController extends BaseController {
             }
 
             // Create new session
-            const newToken = await this.newUserSession(result.user.id, result.user.extId, new Date())
+            const newToken = await this.newUserSession(user.id, user.extId, new Date().getTime())
 
             return res.json({
                 message: "OK",
