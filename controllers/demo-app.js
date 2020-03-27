@@ -102,16 +102,14 @@ class DemoAppController extends BaseController {
             const userAccessToken = req.header("userAccessToken")
             const result = await this.validateUserSession(userAccessToken)
             if (result.error) {
-                return res.status(result.error.httpStatus || 500).send({
-                    error: result.error
-                })
-            }
-            if (!result.valid) {
-                // TODO: Replace with winston logger
-                console.log("WARN: invalid access token")
+                console.log(`ERROR: failed to validate user session. Error=${result.error}`)
                 return res.json({
                     message: "OK"
                 })
+            }
+
+            if (!result.valid) {
+                console.log("WARN: invalid session id")
             }
 
             // Invalidate session
