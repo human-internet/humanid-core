@@ -1,5 +1,42 @@
 [
   {
+    "type": "get",
+    "url": "/demo-app/api/users/profile",
+    "title": "Get Profile",
+    "name": "GetUserProfile",
+    "group": "DemoApp",
+    "description": "<p>Get user profile by user access token</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "userAccessToken",
+            "description": "<p>User Access Token</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>User Profile</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/demo-app.js",
+    "groupTitle": "DemoApp"
+  },
+  {
     "type": "post",
     "url": "/demo-app/api/users/log-in",
     "title": "Log In",
@@ -100,13 +137,6 @@
             "group": "Header",
             "type": "String",
             "optional": false,
-            "field": "clientSecret",
-            "description": "<p>Client Secret</p>"
-          },
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
             "field": "userAccessToken",
             "description": "<p>User Access Token</p>"
           }
@@ -120,8 +150,58 @@
             "group": "Success 200",
             "type": "String",
             "optional": false,
+            "field": "token",
+            "description": "<p>Refreshed Access Token to App</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/demo-app.js",
+    "groupTitle": "DemoApp"
+  },
+  {
+    "type": "put",
+    "url": "/demo-app/api/users/profile",
+    "title": "Update Profile",
+    "name": "UpdateUserProfile",
+    "group": "DemoApp",
+    "description": "<p>Update user profile by user access token</p>",
+    "header": {
+      "fields": {
+        "Header": [
+          {
+            "group": "Header",
+            "type": "String",
+            "optional": false,
+            "field": "userAccessToken",
+            "description": "<p>User Access Token</p>"
+          }
+        ]
+      }
+    },
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "fullName",
+            "description": "<p>Update full name</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
             "field": "message",
-            "description": "<p>Result status</p>"
+            "description": "<p>Update result status</p>"
           }
         ]
       }

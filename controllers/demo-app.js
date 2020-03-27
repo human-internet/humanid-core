@@ -160,7 +160,7 @@ class DemoAppController extends BaseController {
          *
          * @apiHeader {String} userAccessToken User Access Token
          *
-         * @apiSuccess {String} message Result status
+         * @apiSuccess {String} token Refreshed Access Token to App
          */
         userSessionRouter.put('/users/refresh-session', async (req, res, next) => {
             // Get user info
@@ -177,14 +177,14 @@ class DemoAppController extends BaseController {
         })
 
         /**
-         * @api {get} /demo-app/api/users/profile Retrieve user profile
+         * @api {get} /demo-app/api/users/profile Get Profile
          * @apiName GetUserProfile
          * @apiGroup DemoApp
          * @apiDescription Get user profile by user access token
          *
          * @apiHeader {String} userAccessToken User Access Token
          *
-         * @apiSuccess {Object} Users data
+         * @apiSuccess {Object} data User Profile
          */
         userSessionRouter.get('/users/profile', async (req, res) => {
             // Get user info
@@ -205,7 +205,7 @@ class DemoAppController extends BaseController {
         })
 
         /**
-         * @api {put} /demo-app/api/users/profile Update user profile
+         * @api {put} /demo-app/api/users/profile Update Profile
          * @apiName UpdateUserProfile
          * @apiGroup DemoApp
          * @apiDescription Update user profile by user access token
@@ -214,7 +214,7 @@ class DemoAppController extends BaseController {
          *
          * @apiParam {String} fullName Update full name
          *
-         * @apiSuccess {String} Update status
+         * @apiSuccess {String} message Update result status
          */
         userSessionRouter.put('/users/profile', async (req, res) => {
             // Get user info
