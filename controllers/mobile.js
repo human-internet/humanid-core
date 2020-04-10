@@ -338,6 +338,33 @@ class MobileController extends BaseController {
             }
         })
 
+        this.router.put('/users/revokeAccess', this.handleAsync(handleRevokeAccess.bind(this)))
+
+        this.router.get('/users/checkAccess', this.handleAsync(handleCheckAccess.bind(this)))
+    }
+
+    async validateAppSecret(appId, appSecret) {
+        // Count app by app id and secret
+        const {App} = this.models
+        const count = await App.count({
+            where: {id: appId, secret: appSecret}
+        })
+
+        return count === 1;
+    }
+
+    async getAppsAccessStatus(appId, userHash) {
+        // Count user by id and hash
+        const {AppUser} = this.models
+        const count = await AppUser.count({
+            where: {appId: appId, hash: userHash}
+        })
+
+        if (count === 1) {
+            return "GRANTED"
+        }
+
+        return "DENIED"
     }
 }
 
