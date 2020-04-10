@@ -1,0 +1,23 @@
+// GET CheckAppsAccessStatus
+GET {{base-url}}/mobile/users/checkAccess
+Content-Type: application/json
+
+{
+  "appId": "{{app-id}}",
+  "appSecret": "{{app-secret}}",
+  "userHash": "{{app-hash}}"
+}
+
+###
+
+// GET RevokeAppsAccess
+PUT {{base-url}}/mobile/users/revokeAccess
+Content-Type: application/json
+
+{
+  "appId": "{{app-id}}",
+  "appSecret": "{{app-secret}}",
+  "userHash": "{{app-hash}}"
+}
+
+###
