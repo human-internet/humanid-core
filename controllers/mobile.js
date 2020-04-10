@@ -4,13 +4,13 @@ const BaseController = require('./base'),
     router = require('express').Router()
 
 /**
- * 
+ *
  * @apiDefine AppUser
  * @apiSuccess {String} appId Partner app ID
  * @apiSuccess {String} hash User hash (unique authentication code) for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  * @apiSuccess {String} notifId Push notif ID
- * 
+ *
  */
 
 class MobileController extends BaseController {
@@ -39,14 +39,14 @@ class MobileController extends BaseController {
          */
         this.router.post('/users/register', async (req, res, next) => {
             let body = req.body
-            
+
             let error = this.validate({
-                countryCode: 'required', 
-                phone: 'required', 
-                deviceId: 'required', 
-                verificationCode: 'required', 
-                appId: 'required', 
-                appSecret: 'required',        
+                countryCode: 'required',
+                phone: 'required',
+                deviceId: 'required',
+                verificationCode: 'required',
+                appId: 'required',
+                appSecret: 'required',
             }, body)
 
             if (error) {
@@ -65,7 +65,7 @@ class MobileController extends BaseController {
                 // verify code
                 await this.nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
 
-                // register user if not yet exists        
+                // register user if not yet exists
                 let hash = this.hmac(common.combinePhone(body.countryCode, body.phone))
                 let user = await this.models.User.findOrCreate({
                     where: {hash: hash},
@@ -75,14 +75,14 @@ class MobileController extends BaseController {
 
                 // register user to the app
                 // app user hash = app secret + user id
-                // Do not use user.hash so we can update the phone number        
+                // Do not use user.hash so we can update the phone number
                 let appUserHash = this.hmac(app.secret + user.id)
                 let appUser = await this.models.AppUser.findOrCreate({
                     where: {appId: app.id, userId: user.id},
                     defaults: {
-                        appId: app.id, 
-                        userId: user.id, 
-                        hash: appUserHash, 
+                        appId: app.id,
+                        userId: user.id,
+                        hash: appUserHash,
                         deviceId: body.deviceId,
                     }
                 })
@@ -108,15 +108,15 @@ class MobileController extends BaseController {
          * @apiParam {String} appSecret Partner app secret
          *
          * @apiUse AppUser
-         * 
+         *
          */
         this.router.post('/users/login', async (req, res, next) => {
-            
+
             let body = req.body
             let error = this.validate({
-                appId: 'required', 
-                appSecret: 'required', 
-                existingHash: 'required', 
+                appId: 'required',
+                appSecret: 'required',
+                existingHash: 'required',
             }, body)
             if (error) {
                 return res.status(400).send(error)
@@ -130,11 +130,11 @@ class MobileController extends BaseController {
                 }
                 if (newApp.secret !== body.appSecret) {
                     return res.status(401).send(`Invalid secret`)
-                }    
-                
+                }
+
                 // validate existing app user
                 let existingAppUser = await this.models.AppUser.findOne({
-                    where: { hash: body.existingHash },
+                    where: {hash: body.existingHash},
                 })
                 if (!existingAppUser) {
                     return res.status(401).send(`User is not yet registered on app: ${body.existingAppId}`)
@@ -145,8 +145,8 @@ class MobileController extends BaseController {
                 let newAppUser = await this.models.AppUser.findOrCreate({
                     where: {appId: newApp.id, hash: newAppUserHash},
                     defaults: {
-                        appId: newApp.id, 
-                        userId: existingAppUser.userId, 
+                        appId: newApp.id,
+                        userId: existingAppUser.userId,
                         hash: newAppUserHash,
                         deviceId: existingAppUser.deviceId,
                     }
@@ -171,13 +171,13 @@ class MobileController extends BaseController {
          *
          * @apiSuccess {String} message OK
          */
-        this.router.get('/users/login', async (req, res, next) => {
-            
+        this.router.get('/users/login', async (req, res) => {
+
             let body = req.query
             let error = this.validate({
-                appId: 'required', 
-                appSecret: 'required', 
-                hash: 'required', 
+                appId: 'required',
+                appSecret: 'required',
+                hash: 'required',
             }, body)
 
             if (error) {
@@ -188,11 +188,11 @@ class MobileController extends BaseController {
                 // validate credentials
                 await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)
                 // TODO: Create access token
-                return res.send({message: 'OK'})        
+                return res.send({message: 'OK'})
             } catch (e) {
                 return res.status(401).send(e.message)
             }
-            
+
         })
 
         /**
@@ -209,13 +209,13 @@ class MobileController extends BaseController {
          * @apiSuccess {String} message OK
          */
         this.router.post('/users/verifyPhone', async (req, res, next) => {
-            
+
             let body = req.body
             let error = this.validate({
-                appId: 'required', 
-                appSecret: 'required', 
-                countryCode: 'required', 
-                phone: 'required', 
+                appId: 'required',
+                appSecret: 'required',
+                countryCode: 'required',
+                phone: 'required',
             }, body)
 
             if (error) {
@@ -231,12 +231,12 @@ class MobileController extends BaseController {
 
             try {
                 await this.nexmo.sendVerificationSMS(body.countryCode, body.phone)
-                return res.send({message: 'OK'})        
+                return res.send({message: 'OK'})
             } catch (e) {
                 console.error(e)
                 next(e)
             }
-            
+
         })
 
         /**
@@ -256,20 +256,20 @@ class MobileController extends BaseController {
          */
         this.router.post('/users/updatePhone', async (req, res, next) => {
             let body = req.body
-            
+
             let error = this.validate({
-                countryCode: 'required', 
-                phone: 'required', 
-                verificationCode: 'required', 
-                existingHash: 'required', 
-                appId: 'required', 
-                appSecret: 'required',        
+                countryCode: 'required',
+                phone: 'required',
+                verificationCode: 'required',
+                existingHash: 'required',
+                appId: 'required',
+                appSecret: 'required',
             }, body)
 
             if (error) {
                 return res.status(400).send(error)
             }
-            
+
             // validate credentials
             let existingAppUser = null
             try {
@@ -286,7 +286,7 @@ class MobileController extends BaseController {
                 let newHash = this.hmac(common.combinePhone(body.countryCode, body.phone))
                 await existingAppUser.user.update({hash: newHash})
 
-                return res.send({message: 'OK'}) 
+                return res.send({message: 'OK'})
             } catch (e) {
                 next(e)
             }
@@ -308,12 +308,12 @@ class MobileController extends BaseController {
          */
         this.router.put('/users', async (req, res, next) => {
             let body = req.body
-            
+
             let error = this.validate({
-                notifId: 'required', 
-                hash: 'required', 
-                appId: 'required', 
-                appSecret: 'required',        
+                notifId: 'required',
+                hash: 'required',
+                appId: 'required',
+                appSecret: 'required',
             }, body)
 
             if (error) {
@@ -326,8 +326,8 @@ class MobileController extends BaseController {
                 existingAppUser = await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)
             } catch (e) {
                 return res.status(401).send(e.message)
-            }    
-            
+            }
+
             try {
                 // update notifId
                 existingAppUser.notifId = body.notifId
@@ -366,6 +366,82 @@ class MobileController extends BaseController {
 
         return "DENIED"
     }
+}
+
+async function handleRevokeAccess(req, res) {
+    let body = req.body
+
+    let error = this.validate({
+        userHash: 'required',
+        appId: 'required',
+        appSecret: 'required'
+    }, body)
+    if (error) {
+        res.status(400).json({
+            success: false,
+            code: '400',
+            message: error
+        })
+        return
+    }
+
+    // Delete row
+    const {AppUser} = this.models
+    const count = await AppUser.destroy({
+        where: {
+            appId: body.appId,
+            hash: body.userHash
+        }
+    })
+
+    console.log(`DEBUG: DeletedRowCount=${count}`)
+
+    res.json({
+        success: true,
+        code: 'OK',
+        message: 'app access to user data has been revoked'
+    })
+}
+
+async function handleCheckAccess(req, res) {
+    // Get request parameters
+    let body = req.body
+    let error = this.validate({
+        userHash: 'required',
+        appId: 'required',
+        appSecret: 'required'
+    }, body)
+    if (error) {
+        res.status(400).json({
+            success: false,
+            code: '400',
+            message: error
+        })
+        return
+    }
+
+    // Validate app
+    if (!await this.validateAppSecret(body.appId, body.appSecret)) {
+        res.status(401).json({
+            success: false,
+            code: '401',
+            message: 'Unauthorized'
+        })
+        return
+    }
+
+    // Get apps access status
+    const accessStatus = await this.getAppsAccessStatus(body.appId, body.userHash)
+
+    // Return response
+    res.json({
+        success: true,
+        code: 'OK',
+        message: 'Success',
+        data: {
+            accessStatus
+        }
+    })
 }
 
 module.exports = MobileController
