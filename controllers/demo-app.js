@@ -15,6 +15,22 @@ class DemoAppController extends BaseController {
         this.appJwtSecret = "6OI%ht9qSRJjq5x5BB3y"
         this.appClientSecret = "S7ZJkSm4Jt@hlTWnYS28"
 
+        const clientAuthMiddleware = async (req, res, next) => {
+            // Validate client secret
+            let clientSecret = req.header("clientSecret")
+            if (clientSecret !== this.appClientSecret) {
+                res.status(401).send({
+                    error: {
+                        code: "401",
+                        message: "Unauthorized"
+                    }
+                })
+                return
+            }
+
+            next()
+        }
+
         // Create router that have user session middleware
         const userSessionRouter = express.Router()
         userSessionRouter.use(async (req, res, next) => {
