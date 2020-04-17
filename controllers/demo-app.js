@@ -32,8 +32,7 @@ class DemoAppController extends BaseController {
         }
 
         // Create router that have user session middleware
-        const userSessionRouter = express.Router()
-        userSessionRouter.use(async (req, res, next) => {
+        const userAuthMiddleware = async (req, res, next) => {
             // Validate session
             const userAccessToken = req.header("userAccessToken")
             const result = await this.validateUserSession(userAccessToken)
@@ -56,7 +55,7 @@ class DemoAppController extends BaseController {
             req.userAccess = result
 
             next()
-        })
+        }
 
         /**
          * @api {post} /demo-app/api/users/log-in Log In
@@ -373,8 +372,6 @@ class DemoAppController extends BaseController {
                     expiresIn: this.common.config.DEMO_APP_JWT_LIFETIME
                 })
         }
-
-        this.router.use('/', userSessionRouter)
     }
 }
 
