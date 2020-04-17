@@ -2,13 +2,15 @@
 
 const BaseController = require('./base'),
     express = require('express'),
-    jwt = require('jsonwebtoken')
+    jwt = require('jsonwebtoken'),
+    fetch = require('node-fetch')
 
 class DemoAppController extends BaseController {
     constructor(models, common) {
         super(models)
         this.router = express.Router()
         this.common = common
+        this.humanIdApiBaseUrl = common.config.HUMANID_API_BASE_URL
         // TODO: Make secrets configurable
         this.appId = "DEMO_APP"
         this.appSecret = "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0"
@@ -83,27 +85,30 @@ class DemoAppController extends BaseController {
                 })
             }
 
-            // TODO: Validate against humanId API instead of accessing database directly
-            // TODO: Replace exchange token from user hash with a short-lived token
-            // Find user hash in AppUser
-            let appUser = await this.models.AppUser.findOne({
-                where: {appId: this.appId, hash: body.exchangeToken}
+            // Validate exchange token to humanId API
+            const result = await this.verifyExchangeToken({
+                appId: this.appId,
+                appSecret: this.appSecret,
+                exchangeToken: body.exchangeToken
             })
-            if (!appUser) {
-                return res.status(401).send({
+
+            if (!result.success) {
+                res.status(401).send({
                     error: {
                         code: "DEMOAPP_ERR_1",
-                        message: "Invalid exchange token provided"
+                        message: "Unauthorized",
+                        _debug: "Failed to verify exchange token"
                     }
                 })
             }
 
             // Get user, create if not exists
+            const {userHash} = result.data
             let users = await this.models.DemoAppUser.findOrCreate({
-                where: {userHash: appUser.hash},
+                where: {userHash: userHash},
                 defaults: {
                     extId: generateExtId(),
-                    userHash: appUser.hash
+                    userHash: userHash
                 }
             })
 
@@ -360,6 +365,21 @@ class DemoAppController extends BaseController {
                 {
                     expiresIn: this.common.config.DEMO_APP_JWT_LIFETIME
                 })
+        }
+
+        this.verifyExchangeToken = async ({appId, appSecret, exchangeToken}) => {
+            // TODO: Retrieve from config
+            const url = this.humanIdApiBaseUrl + '/mobile/users/verifyExchangeToken'
+            const resp = await fetch(url, {
+                method: 'post',
+                body: JSON.stringify({
+                    appId, appSecret, exchangeToken
+                }),
+                headers: {'Content-Type': 'application/json'},
+            })
+
+            // Parse resp body
+            return await resp.json()
         }
     }
 }
