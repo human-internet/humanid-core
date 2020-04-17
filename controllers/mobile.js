@@ -340,7 +340,7 @@ class MobileController extends BaseController {
 
         this.router.put('/users/revokeAccess', this.handleAsync(handleRevokeAccess.bind(this)))
 
-        this.router.get('/users/checkAccess', this.handleAsync(handleCheckAccess.bind(this)))
+        this.router.post('/users/verifyExchangeToken', this.handleAsync(handleVerifyExchangeToken.bind(this)))
     }
 
     async validateAppSecret(appId, appSecret) {
@@ -403,11 +403,11 @@ async function handleRevokeAccess(req, res) {
     })
 }
 
-async function handleCheckAccess(req, res) {
-    // Get request parameters
-    let body = req.body
+async function handleVerifyExchangeToken(req, res) {
+    // Validate request
+    const body = req.body
     let error = this.validate({
-        userHash: 'required',
+        exchangeToken: 'required',
         appId: 'required',
         appSecret: 'required'
     }, body)
@@ -420,7 +420,7 @@ async function handleCheckAccess(req, res) {
         return
     }
 
-    // Validate app
+    // Validate app secret
     if (!await this.validateAppSecret(body.appId, body.appSecret)) {
         res.status(401).json({
             success: false,
@@ -430,18 +430,31 @@ async function handleCheckAccess(req, res) {
         return
     }
 
-    // Get apps access status
-    const accessStatus = await this.getAppsAccessStatus(body.appId, body.userHash)
+    // TODO: Decrypt exchange token, validate expiry time
+    const userHash = body.exchangeToken
 
-    // Return response
+    // Validate user hash
+    const accessStatus = await this.getAppsAccessStatus(body.appId, userHash)
+
+    if (accessStatus !== "GRANTED") {
+        res.status(401).json({
+            success: false,
+            code: '401',
+            message: 'Unauthorized'
+        })
+        return
+    }
+
+    // Return user hash
     res.json({
         success: true,
         code: 'OK',
         message: 'Success',
         data: {
-            accessStatus
+            userHash
         }
     })
+
 }
 
 module.exports = MobileController
