@@ -28,6 +28,7 @@ config.NEXMO_API_SECRET = process.env.NEXMO_API_SECRET || config.NEXMO_API_SECRE
 config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_SERVER_KEY
 config.NEXMO_FROM = process.env.NEXMO_FROM || 'humanID'
 config.APP_PORT = process.env.APP_PORT || 3000
+config.HUMANID_API_BASE_URL = process.env.HUMANID_API_BASE_URL || config.HUMANID_API_BASE_URL
 
 // Demo App Config
 config.DEMO_APP_JWT_LIFETIME = process.env.DEMO_APP_JWT_LIFETIME || '15m';
