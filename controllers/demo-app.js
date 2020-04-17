@@ -9,8 +9,9 @@ class DemoAppController extends BaseController {
         super(models)
         this.router = express.Router()
         this.common = common
-        this.appId = "DEMO_APP"
         // TODO: Make secrets configurable
+        this.appId = "DEMO_APP"
+        this.appSecret = "2ee4300fd136ed6796a6a507de7c1f49aecd4a11663352fe54e54403c32bd6a0"
         this.appJwtSecret = "6OI%ht9qSRJjq5x5BB3y"
         this.appClientSecret = "S7ZJkSm4Jt@hlTWnYS28"
 
