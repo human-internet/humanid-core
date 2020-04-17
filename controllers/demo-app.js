@@ -69,18 +69,7 @@ class DemoAppController extends BaseController {
          *
          * @apiSuccess {String} token Access Token to App
          */
-        this.router.post('/users/log-in', async (req, res, next) => {
-            // Validate client secret
-            let clientSecret = req.header("clientSecret")
-            if (clientSecret !== this.appClientSecret) {
-                return res.status(401).send({
-                    error: {
-                        code: "401",
-                        message: "Unauthorized"
-                    }
-                })
-            }
-
+        this.router.post('/users/log-in', [clientAuthMiddleware], async (req, res) => {
             // Validate request body
             let body = req.body
             let err = this.validate({exchangeToken: 'required'}, body)
@@ -140,7 +129,7 @@ class DemoAppController extends BaseController {
          *
          * @apiSuccess {String} message Result status
          */
-        this.router.put('/users/log-out', async (req, res, next) => {
+        this.router.put('/users/log-out', [clientAuthMiddleware], async (req, res) => {
             // Validate session
             const userAccessToken = req.header("userAccessToken")
             const result = await this.validateUserSession(userAccessToken)
