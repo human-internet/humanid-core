@@ -1,0 +1,42 @@
+// GET LogIn
+POST {{base-url}}/demo-app/api/users/log-in
+clientSecret: {{client-secret}}
+Content-Type: application/json
+
+{
+  "exchangeToken": "{{exchange-token}}"
+}
+
+> {%
+if (response.body.hasOwnProperty("data")) {
+  client.global.set("user-access-token", response.body.data.token);
+}
+%}
+
+###
+
+// GET LogOut
+PUT {{base-url}}/demo-app/api/users/log-out
+clientSecret: {{client-secret}}
+userAccessToken: {{user-access-token}}
+Content-Type: application/json
+
+###
+
+// GET UserProfile
+GET {{base-url}}/demo-app/api/users/profile
+userAccessToken: {{user-access-token}}
+Content-Type: application/json
+
+###
+
+// PUT UpdateUserProfile
+PUT {{base-url}}/demo-app/api/users/profile
+userAccessToken: {{user-access-token}}
+Content-Type: application/json
+
+{
+  "fullName": "John Doe"
+}
+
+###
