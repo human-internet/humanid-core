@@ -178,7 +178,7 @@ class DemoAppController extends BaseController {
          *
          * @apiSuccess {String} token Refreshed Access Token to App
          */
-        userSessionRouter.put('/users/refresh-session', async (req, res, next) => {
+        this.router.put('/users/refresh-session', [userAuthMiddleware], async (req, res, next) => {
             // Get user info
             const {user} = req.userAccess
             // Create new session
@@ -202,7 +202,7 @@ class DemoAppController extends BaseController {
          *
          * @apiSuccess {Object} data User Profile
          */
-        userSessionRouter.get('/users/profile', async (req, res) => {
+        this.router.get('/users/profile', [userAuthMiddleware], async (req, res) => {
             // Get user info
             const {user} = req.userAccess
 
@@ -232,7 +232,7 @@ class DemoAppController extends BaseController {
          *
          * @apiSuccess {String} message Update result status
          */
-        userSessionRouter.put('/users/profile', async (req, res) => {
+        this.router.put('/users/profile', [userAuthMiddleware], async (req, res) => {
             // Get user info
             const {user: userAccess} = req.userAccess
 
