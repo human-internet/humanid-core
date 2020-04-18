@@ -113,6 +113,10 @@ const pushNotif = async (data, serverKey) => {
 	})
 }
 
+const getEpoch = t => {
+	return Math.round(t.getTime() / 1000)
+}
+
 module.exports = {
 	config: config,
 	sleep: sleep,
@@ -123,4 +127,5 @@ module.exports = {
 	randStr: randStr,
 	combinePhone: combinePhone,
 	pushNotif: pushNotif,
+	getEpoch
 }
