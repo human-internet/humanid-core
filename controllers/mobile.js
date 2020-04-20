@@ -132,7 +132,19 @@ class MobileController extends BaseController {
                     }
                 })
             } catch (e) {
-                console.error(`ERROR: ${e}`)
+                console.error(e)
+
+                // If a ValidationError, return bad request
+                if (e.name && e.name === 'ValidationError') {
+                    res.status(400).json({
+                        success: false,
+                        code: '400',
+                        message: e.message
+                    })
+                    return
+                }
+
+                // Else, return internal error
                 res.status(500).json({
                     success: false,
                     code: '500',
