@@ -495,9 +495,6 @@
         ]
       }
     },
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Mobile",
     "success": {
       "fields": {
         "Success 200": [
@@ -505,33 +502,98 @@
             "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "appId",
-            "description": "<p>Partner app ID</p>"
+            "field": "data.exchangeToken",
+            "description": "<p>Token that can be used by Partner app server to verify if a user has been authorized by humanId</p>"
           },
           {
             "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "hash",
-            "description": "<p>User hash (unique authentication code) for given app</p>"
+            "field": "data.userHash",
+            "description": "<p>Human ID user identifier for Partner App</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
           },
           {
             "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "deviceId",
-            "description": "<p>User unique authentication code for given app</p>"
+            "field": "code",
+            "description": "<p>Result code</p>"
           },
           {
             "group": "Success 200",
             "type": "String",
             "optional": false,
-            "field": "notifId",
-            "description": "<p>Push notif ID</p>"
+            "field": "message",
+            "description": "<p>Result message</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Result data</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "SuccessResponse:",
+          "content": "{\n  \"success\": true,\n  \"code\": \"OK\",\n  \"message\": \"Success\",\n  \"data\": {\n    \"exchangeToken\": \"<EXCHANGE_TOKEN>\",\n    \"userHash\": \"<USER_HASH>\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "ErrorResponse",
+          "content": "{\n  \"success\": false,\n  \"code\": \"400\",\n  \"message\": \"Bad Request\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Error code</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Additional error data</p>"
           }
         ]
       }
-    }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/mobile.js",
+    "groupTitle": "Mobile"
   },
   {
     "type": "post",
@@ -624,6 +686,133 @@
     },
     "version": "0.0.0",
     "filename": "controllers/web.js",
+    "groupTitle": "Mobile"
+  },
+  {
+    "type": "post",
+    "url": "/mobile/users/revokeAccess",
+    "title": "Revoke App Access",
+    "name": "RevokeAppAccess",
+    "group": "Mobile",
+    "description": "<p>Revoke Partner App access to User data</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "userHash",
+            "description": "<p>Human ID user identifier for Partner App</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "data.userHash",
+            "description": "<p>User Hash Identifier</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Result code</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Result message</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Result data</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "SuccessResponse:",
+          "content": "{\n  \"success\": true,\n  \"code\": \"OK\",\n  \"message\": \"Success\",\n  \"data\": {\n    \"userHash\": \"<USER_HASH>\"\n  }\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "ErrorResponse",
+          "content": "{\n  \"success\": false,\n  \"code\": \"400\",\n  \"message\": \"Bad Request\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Error code</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Additional error data</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/mobile.js",
     "groupTitle": "Mobile"
   },
   {
@@ -834,6 +1023,126 @@
     "version": "0.0.0",
     "filename": "controllers/mobile.js",
     "groupTitle": "Mobile"
+  },
+  {
+    "type": "post",
+    "url": "/mobile/users/verifyExchangeToken",
+    "title": "Verify Exchange Token",
+    "name": "VerifyExchangeToken",
+    "group": "Server",
+    "description": "<p>Host-to-host API for Partner App Server to retrieve user hash</p>",
+    "parameter": {
+      "fields": {
+        "Parameter": [
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appId",
+            "description": "<p>Partner app ID</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "exchangeToken",
+            "description": "<p>Token that can be used by Partner app server to verify if a user has been authorized by humanId</p>"
+          }
+        ]
+      }
+    },
+    "success": {
+      "examples": [
+        {
+          "title": "SuccessResponse:",
+          "content": "{\n  \"success\": true,\n  \"code\": \"OK\",\n  \"message\": \"app access to user data has been revoked\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "Success 200": [
+          {
+            "group": "Success 200",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Result code</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Result message</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Result data</p>"
+          }
+        ]
+      }
+    },
+    "error": {
+      "examples": [
+        {
+          "title": "ErrorResponse",
+          "content": "{\n  \"success\": false,\n  \"code\": \"400\",\n  \"message\": \"Bad Request\"\n}",
+          "type": "json"
+        }
+      ],
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Error code</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "Object",
+            "optional": false,
+            "field": "data",
+            "description": "<p>Additional error data</p>"
+          }
+        ]
+      }
+    },
+    "version": "0.0.0",
+    "filename": "controllers/mobile.js",
+    "groupTitle": "Server"
   },
   {
     "type": "post",
