@@ -1,7 +1,8 @@
 'use strict'
 
 const BaseController = require('./base'),
-    router = require('express').Router()
+    router = require('express').Router(),
+    crypto = require('crypto')
 
 /**
  *
@@ -20,6 +21,12 @@ class MobileController extends BaseController {
         this.nexmo = nexmo
         this.middlewares = middlewares
         this.hmac = common.hmac
+        this.common = common
+        this.exchangeToken = {
+            aesKey: common.config.EXCHANGE_TOKEN_AES_KEY,
+            aesIv: common.config.EXCHANGE_TOKEN_AES_IV,
+            lifetime: common.config.EXCHANGE_TOKEN_LIFETIME
+        }
 
         /**
          * @api {post} /mobile/users/register User registration
@@ -366,6 +373,88 @@ class MobileController extends BaseController {
 
         return "DENIED"
     }
+
+    createExchangeToken(appId, userHash, timestamp) {
+        // Create expired at
+        const epoch = this.common.getEpoch(timestamp)
+        const expiredAt = epoch + this.exchangeToken.lifetime
+
+        // Create payload
+        const payload = {
+            appId,
+            userHash,
+            expiredAt
+        }
+
+        // Encrypt
+        return this.encrypt(payload)
+    }
+
+    async validateExchangeToken(exchangeToken) {
+        // Decrypt token
+        let payload
+        try {
+            payload = this.decrypt(exchangeToken)
+        } catch (e) {
+            console.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
+            return {
+                success: false,
+                code: 'ERR_1',
+                message: 'Invalid exchange token'
+            }
+        }
+
+        // Validate expired at
+        const now = this.common.getEpoch(new Date())
+        if (now > payload.expiredAt) {
+            return {
+                success: false,
+                code: 'ERR_2',
+                message: 'Exchange token has been expired'
+            }
+        }
+
+        // Validate user hash
+        const accessStatus = await this.getAppsAccessStatus(payload.appId, payload.userHash)
+
+        if (accessStatus !== "GRANTED") {
+            return {
+                success: false,
+                code: '401',
+                message: 'Unauthorized'
+            }
+        }
+
+        return {
+            success: true,
+            code: 'OK',
+            message: 'Success',
+            data: {
+                userHash: payload.userHash
+            }
+        }
+    }
+
+    encrypt(payload) {
+        const key = Buffer.from(this.exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this.exchangeToken.aesIv, 'hex')
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
+        const payloadStr = JSON.stringify(payload)
+        let encrypted = cipher.update(payloadStr)
+        encrypted = Buffer.concat([encrypted, cipher.final()])
+        return encrypted.toString('base64')
+    }
+
+    decrypt(encrypted) {
+        const key = Buffer.from(this.exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this.exchangeToken.aesIv, 'hex')
+        let encryptedBuf = Buffer.from(encrypted, 'base64')
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
+        let decrypted = decipher.update(encryptedBuf)
+        decrypted = Buffer.concat([decrypted, decipher.final()])
+        const jsonStr = decrypted.toString()
+        return JSON.parse(jsonStr)
+    }
 }
 
 async function handleRevokeAccess(req, res) {
@@ -430,31 +519,14 @@ async function handleVerifyExchangeToken(req, res) {
         return
     }
 
-    // TODO: Decrypt exchange token, validate expiry time
-    const userHash = body.exchangeToken
-
-    // Validate user hash
-    const accessStatus = await this.getAppsAccessStatus(body.appId, userHash)
-
-    if (accessStatus !== "GRANTED") {
-        res.status(401).json({
-            success: false,
-            code: '401',
-            message: 'Unauthorized'
-        })
+    // Validate exchange token
+    const result = await this.validateExchangeToken(body.exchangeToken)
+    if (!result.success) {
+        res.status(401).json(result)
         return
     }
 
-    // Return user hash
-    res.json({
-        success: true,
-        code: 'OK',
-        message: 'Success',
-        data: {
-            userHash
-        }
-    })
-
+    res.json(result)
 }
 
 module.exports = MobileController
