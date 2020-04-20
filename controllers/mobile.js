@@ -127,7 +127,8 @@ class MobileController extends BaseController {
                     code: 'OK',
                     message: 'Success',
                     data: {
-                        exchangeToken
+                        exchangeToken,
+                        userHash: appUser.hash
                     }
                 })
             } catch (e) {
