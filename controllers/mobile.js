@@ -14,6 +14,22 @@ const BaseController = require('./base'),
  *
  */
 
+/**
+ * @apiDefine SuccessResponse
+ * @apiSuccess {Boolean} success Response status
+ * @apiSuccess {String} code Result code
+ * @apiSuccess {String} message Result message
+ * @apiSuccess {Object} data Result data
+ */
+
+/**
+ * @apiDefine ErrorResponse
+ * @apiError {Boolean} success Response status
+ * @apiError {String} code Error code
+ * @apiError {String} message Error message
+ * @apiError {Object} data Additional error data
+ */
+
 class MobileController extends BaseController {
     constructor(models, common, middlewares, nexmo) {
         super(models)
@@ -42,7 +58,27 @@ class MobileController extends BaseController {
          * @apiParam {String} appId Partner app ID
          * @apiParam {String} appSecret Partner app secret
          *
-         * @apiUse AppUser
+         * @apiUse SuccessResponse
+         * @apiSuccess {String} data.exchangeToken Token that can be used by Partner app server to verify if a user has been authorized by humanId
+         * @apiSuccess {String} data.userHash Human ID user identifier for Partner App
+         * @apiSuccessExample {json} SuccessResponse:
+         *   {
+         *     "success": true,
+         *     "code": "OK",
+         *     "message": "Success",
+         *     "data": {
+         *       "exchangeToken": "<EXCHANGE_TOKEN>",
+         *       "userHash": "<USER_HASH>"
+         *     }
+         *   }
+         *
+         * @apiUse ErrorResponse
+         * @apiErrorExample {json} ErrorResponse
+         *   {
+         *     "success": false,
+         *     "code": "400",
+         *     "message": "Bad Request"
+         *   }
          */
         this.router.post('/users/register', async (req, res, next) => {
             let body = req.body
@@ -395,8 +431,64 @@ class MobileController extends BaseController {
             }
         })
 
+        /**
+         * @api {post} /mobile/users/revokeAccess Revoke App Access
+         * @apiName RevokeAppAccess
+         * @apiGroup Mobile
+         * @apiDescription Revoke Partner App access to User data
+         *
+         * @apiParam {String} appId Partner app ID
+         * @apiParam {String} appSecret Partner app secret
+         * @apiParam {String} userHash Human ID user identifier for Partner App
+         *
+         * @apiUse SuccessResponse
+         * @apiSuccess {String} data.userHash User Hash Identifier
+         * @apiSuccessExample {json} SuccessResponse:
+         *   {
+         *     "success": true,
+         *     "code": "OK",
+         *     "message": "Success",
+         *     "data": {
+         *       "userHash": "<USER_HASH>"
+         *     }
+         *   }
+         *
+         * @apiUse ErrorResponse
+         * @apiErrorExample {json} ErrorResponse
+         *   {
+         *     "success": false,
+         *     "code": "400",
+         *     "message": "Bad Request"
+         *   }
+         */
         this.router.put('/users/revokeAccess', this.handleAsync(handleRevokeAccess.bind(this)))
 
+        /**
+         * @api {post} /mobile/users/verifyExchangeToken Verify Exchange Token
+         * @apiName VerifyExchangeToken
+         * @apiGroup Server
+         * @apiDescription Host-to-host API for Partner App Server to retrieve user hash
+         *
+         * @apiParam {String} appId Partner app ID
+         * @apiParam {String} appSecret Partner app secret
+         * @apiParam {String} exchangeToken Token that can be used by Partner app server to verify if a user has been authorized by humanId
+         *
+         * @apiUse SuccessResponse
+         * @apiSuccessExample {json} SuccessResponse:
+         *   {
+         *     "success": true,
+         *     "code": "OK",
+         *     "message": "app access to user data has been revoked"
+         *   }
+         *
+         * @apiUse ErrorResponse
+         * @apiErrorExample {json} ErrorResponse
+         *   {
+         *     "success": false,
+         *     "code": "400",
+         *     "message": "Bad Request"
+         *   }
+         */
         this.router.post('/users/verifyExchangeToken', this.handleAsync(handleVerifyExchangeToken.bind(this)))
     }
 
