@@ -57,7 +57,15 @@ class MobileController extends BaseController {
             }, body)
 
             if (error) {
-                return res.status(400).send(error)
+                res.status(400).json({
+                    success: false,
+                    code: '400',
+                    message: 'Bad Request',
+                    data: {
+                        error
+                    }
+                })
+                return
             }
 
             // validate app
@@ -65,7 +73,15 @@ class MobileController extends BaseController {
             try {
                 app = await this.validateAppCredentials(body.appId, body.appSecret, null)
             } catch (e) {
-                return res.status(401).send(e.message)
+                res.status(401).send({
+                    success: false,
+                    code: '401',
+                    message: 'Invalid App Credentials',
+                    data: {
+                        error: e.message
+                    }
+                })
+                return
             }
 
             try {
@@ -95,11 +111,32 @@ class MobileController extends BaseController {
                 })
                 appUser = appUser[0]
                 if (appUser.deviceId !== body.deviceId) {
-                    return res.status(403).send(`Existing login found on deviceId: ${appUser.deviceId}`)
+                    res.status(403).json({
+                        success: false,
+                        code: '403',
+                        message: `Existing login found on deviceId: ${appUser.deviceId}`
+                    })
+                    return
                 }
-                return res.send(appUser)
+
+                // Create exchange token
+                const exchangeToken = this.createExchangeToken(body.appId, appUser.hash, new Date())
+
+                res.send({
+                    success: true,
+                    code: 'OK',
+                    message: 'Success',
+                    data: {
+                        exchangeToken
+                    }
+                })
             } catch (e) {
-                next(e)
+                console.error(`ERROR: ${e}`)
+                res.status(500).json({
+                    success: false,
+                    code: '500',
+                    message: 'Internal Error'
+                })
             }
         })
 
