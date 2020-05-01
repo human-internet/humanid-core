@@ -61,16 +61,16 @@ class ResponseComponent {
      * Get Response by code
      * @param {string} code Response code
      * @param {Object} opt Options
-     * @param {boolean} success If true, return Standard Success. Else, return Internal Error
+     * @param {boolean} opt.success If true, return Standard Success. Else, return Internal Error
      * @returns {Response} Response object
      */
-    get(code, {success = false}) {
+    get = (code, opt= {success: false}) => {
         // Get response by code
         let resp = this._responseCodes[code]
 
         // If response code is not found, return default response
         if (!resp) {
-            if (success) {
+            if (opt.success) {
                 code = SUCCESS
                 resp = this._responseCodes[SUCCESS]
             } else {
@@ -85,11 +85,11 @@ class ResponseComponent {
         return resp
     }
 
-    getSuccess() {
+    getSuccess = () => {
         return this._responseCodes[SUCCESS]
     }
 
-    getInternalError() {
+    getInternalError = () => {
         return this._responseCodes[ERROR_INTERNAL]
     }
 }
@@ -128,7 +128,7 @@ class Response {
      * @param opt.message {string|undefined} Message to override
      * @returns {ResponseBody}
      */
-    compose(opt= {}) {
+    compose = (opt= {}) => {
         return {
             success: this.success,
             code: this.code,
