@@ -12,6 +12,10 @@ class BaseController {
      */
     validate(rules, body) {
         for (let field in rules) {
+            // If field is a custom or inherited property, continue
+            if (!rules.hasOwnProperty(field)) {
+                continue
+            }
             let fieldRules = rules[field].split('|')
             for (let i in fieldRules) {
                 let val = body[field]
