@@ -1,0 +1,47 @@
+{
+  "ERR_1": {
+    "success": false,
+    "status": 400,
+    "message": "Invalid exchange token"
+  },
+  "ERR_2": {
+    "success": false,
+    "status": 400,
+    "message": "Exchange token has been expired"
+  },
+  "ERR_3": {
+    "success": false,
+    "status": 403,
+    "message": "Existing login found"
+  },
+  "ERR_4": {
+    "success": false,
+    "status": 401,
+    "message": "Invalid App Secret"
+  },
+  "ERR_5": {
+    "success": false,
+    "status": 400,
+    "message": "Invalid verification code"
+  },
+  "ERR_6": {
+    "success": false,
+    "status": 401,
+    "message": "User is not granted to current app"
+  },
+  "ERR_7": {
+    "success": false,
+    "status": 403,
+    "message": "App has no permission to access user data"
+  },
+  "ERR_8": {
+    "success": false,
+    "status": 400,
+    "message": "Requested App is equals to existing User Hash"
+  },
+  "ERR_9": {
+    "success": false,
+    "status": 403,
+    "message": "deviceId is not authorized"
+  }
+}
