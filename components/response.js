@@ -5,7 +5,7 @@
  * @property {boolean} success Determine response is Success or Error
  * @property {string} code Response message code
  * @property {string} message Response message
- * @property {object|null} data Response data
+ * @property {*} data Response data
  */
 
 // Import Dependencies
@@ -133,7 +133,7 @@ class Response {
             success: this.success,
             code: this.code,
             message: opt.message || this.message,
-            data: opt.data || null
+            data: opt.data || undefined
         }
     }
 }
