@@ -19,8 +19,8 @@ class BaseController {
 
     /**
      * Validate body against rules
-     * @param {*} rules
-     * @param {*} body
+     * @param {Object.<string, string>} rules
+     * @param {*} body Request Body
      */
     validate(rules, body) {
         for (let field in rules) {
