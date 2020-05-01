@@ -4,8 +4,17 @@ const APIError = require('../server/api_error'),
     RespCodes = require('../components/response').STD_CODES
 
 class BaseController {
-    constructor(models) {
+    constructor(models, config, components, server) {
         this.models = models
+        this.config = config
+        this.components = components
+
+        // TODO: update child classes constructor calls and remove server unset check
+        if (server) {
+            this.handleRESTAsync = server.handleRESTAsync
+            this.handleAsync = server.handleAsync
+            this.sendResponse = server.sendResponse
+        }
     }
 
     /**
@@ -78,29 +87,6 @@ class BaseController {
         // validate app credentials
         this.validateAppCredentials(appId, appSecret, appUser.app)
         return appUser
-    }
-
-    /**
-     * returns an express handler which try-catch Promised-based handler function
-     * and make sure the handler is giving a response.
-     *
-     * @param handler
-     * @returns {function(...[*]=)}
-     */
-    handleAsync(handler) {
-        // Create function
-        return async (req, res) => {
-            try {
-                await handler(req, res)
-            } catch (err) {
-                console.error(`ERROR: unhandled error. Error=${err}`)
-                res.status(400).json({
-                    success: false,
-                    code: '500',
-                    message: 'Internal Error'
-                })
-            }
-        }
     }
 }
 
