@@ -6,13 +6,22 @@ const BaseController = require('./base'),
     APIError = require('../server/api_error')
 
 /**
- *
  * @apiDefine AppUser
  * @apiSuccess {String} appId Partner app ID
  * @apiSuccess {String} hash User hash (unique authentication code) for given app
  * @apiSuccess {String} deviceId User unique authentication code for given app
  * @apiSuccess {String} notifId Push notif ID
- *
+ */
+
+/**
+ * @apiDefine AppCredentialParam
+ * @apiParam {String} appId Partner app ID
+ * @apiParam {String} appSecret Partner app secret
+ */
+
+/**
+ * @apiDefine UserCredentialParam
+ * @apiParam {String} userHash User identifier for Partner app
  */
 
 /**
@@ -20,7 +29,16 @@ const BaseController = require('./base'),
  * @apiSuccess {Boolean} success Response status
  * @apiSuccess {String} code Result code
  * @apiSuccess {String} message Result message
- * @apiSuccess {Object} data Result data
+ */
+
+/**
+ * @apiDefine OkResponseExample
+ * @apiSuccessExample {json} SuccessResponse:
+ *   {
+ *     "success": true,
+ *     "code": "OK",
+ *     "message": "Success"
+ *   }
  */
 
 /**
@@ -28,7 +46,13 @@ const BaseController = require('./base'),
  * @apiError {Boolean} success Response status
  * @apiError {String} code Error code
  * @apiError {String} message Error message
- * @apiError {Object} data Additional error data
+ *
+ * @apiErrorExample {json} ErrorResponse:
+ *   {
+ *     "success": false,
+ *     "code": "<ERROR_CODE>",
+ *     "message": "<ERROR_MESSAGE>"
+ *   }
  */
 
 class MobileController extends BaseController {
