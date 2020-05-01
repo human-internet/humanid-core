@@ -5,10 +5,10 @@ class APIError extends Error {
      * Creates APIError
      *
      * @param code {string} Error code
-     * @param message {string} Error message
+     * @param message {string|null} Error message
      * @param source {Error|null} Error Cause
      */
-    constructor(code, message = 'APIError', source = null) {
+    constructor(code, message = null, source = null) {
         super(message);
         this.name = 'APIError'
         this.code = code
