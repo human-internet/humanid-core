@@ -59,17 +59,24 @@ class ResponseComponent {
 
     /**
      * Get Response by code
-     * @param code Response code
-     * @return {Response} Response object
+     * @param {string} code Response code
+     * @param {Object} opt Options
+     * @param {boolean} success If true, return Standard Success. Else, return Internal Error
+     * @returns {Response} Response object
      */
-    get(code) {
+    get(code, {success = false}) {
         // Get response by code
         let resp = this._responseCodes[code]
 
-        // If response is empty, return internal error response
+        // If response code is not found, return default response
         if (!resp) {
-            code = ERROR_INTERNAL
-            resp = this._responseCodes[ERROR_INTERNAL]
+            if (success) {
+                code = SUCCESS
+                resp = this._responseCodes[SUCCESS]
+            } else {
+                code = ERROR_INTERNAL
+                resp = this._responseCodes[ERROR_INTERNAL]
+            }
         }
 
         // Set code
