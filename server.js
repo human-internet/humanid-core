@@ -1,5 +1,20 @@
 'use strict'
 
+/**
+ * @typedef {Object} RESTHandlerResult
+ * @property {*} data Result data
+ * @property {string} code Message code
+ * @property {string} message Message
+ */
+
+/**
+ * Async REST Handler function
+ * @async
+ * @callback RESTHandlerAsyncFn
+ * @param {*} req Express request
+ * @returns {RESTHandlerResult}
+ */
+
 const express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
