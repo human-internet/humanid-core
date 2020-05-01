@@ -535,32 +535,20 @@ class MobileController extends BaseController {
             payload = this.decrypt(exchangeToken)
         } catch (e) {
             console.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
-            return {
-                success: false,
-                code: 'ERR_1',
-                message: 'Invalid exchange token'
-            }
+            throw new APIError("ERR_1")
         }
 
         // Validate expired at
         const now = this.components.common.getEpoch(new Date())
         if (now > payload.expiredAt) {
-            return {
-                success: false,
-                code: 'ERR_2',
-                message: 'Exchange token has been expired'
-            }
+            throw new APIError("ERR_2")
         }
 
         // Validate user hash
         const accessStatus = await this.getAppsAccessStatus(payload.appId, payload.userHash)
 
         if (accessStatus !== "GRANTED") {
-            return {
-                success: false,
-                code: '401',
-                message: 'Unauthorized'
-            }
+            throw new APIError('ERR_7')
         }
 
         return {
