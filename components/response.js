@@ -77,6 +77,14 @@ class ResponseComponent {
 
         return resp
     }
+
+    getSuccess() {
+        return this._responseCodes[SUCCESS]
+    }
+
+    getInternalError() {
+        return this._responseCodes[ERROR_INTERNAL]
+    }
 }
 
 /**
