@@ -568,12 +568,7 @@ class MobileController extends BaseController {
         }
 
         return {
-            success: true,
-            code: 'OK',
-            message: 'Success',
-            data: {
-                userHash: payload.userHash
-            }
+            userHash: payload.userHash
         }
     }
 
