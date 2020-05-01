@@ -1,20 +1,36 @@
 'use strict'
 
 const express = require('express'),
-	bodyParser = require('body-parser'),	
+	bodyParser = require('body-parser'),
+	path = require('path'),
 	WebConsoleController = require('./controllers/webconsole'),
 	MobileController = require('./controllers/mobile'),
 	WebController = require('./controllers/web'),
-	DemoAppController = require('./controllers/demo-app')
+	DemoAppController = require('./controllers/demo-app'),
+	ResponseComponent = require('./components/response')
 
 class Server {
 	constructor(models, common, middlewares, nexmo) {
+		// Init config
+		this.config = common.config
+
+		// Init work dir
+		this.workDir = path.resolve('./')
+
+		// Init components
+		this.components = {
+			common,
+			nexmo,
+			response: new ResponseComponent({filePath: this.workDir + '/response-codes.json'})
+		}
+
+		// Init models
 		this.models = models
 
 		this.app = express()
 		this.app.use(bodyParser.json())
 		this.app.use(bodyParser.urlencoded({ extended: true }))
-		
+
 		// routes
 		this.app.use('/', express.static('doc'))
 		this.app.use('/lib', express.static('client/dist'))
@@ -31,14 +47,14 @@ class Server {
 				return res.status(400).send(err.message)
 			} else {
 				return res.status(500).send(err.message)
-			}    
+			}
 		})
-		
+
 		// 404 handler
 		this.app.use(function(req, res){
 			res.status(404).send({ error: 'Unknown method' })
 		})
-		
+
 	}
 }
 
