@@ -31,17 +31,13 @@ const BaseController = require('./base'),
  */
 
 class MobileController extends BaseController {
-    constructor(models, common, middlewares, nexmo) {
-        super(models)
-        this.router = router
-        this.nexmo = nexmo
-        this.middlewares = middlewares
-        this.hmac = common.hmac
-        this.common = common
-        this.exchangeToken = {
-            aesKey: common.config.EXCHANGE_TOKEN_AES_KEY,
-            aesIv: common.config.EXCHANGE_TOKEN_AES_IV,
-            lifetime: common.config.EXCHANGE_TOKEN_LIFETIME
+    constructor({config, components, models, server}) {
+        super(models, config, components, server)
+
+        this._exchangeToken = {
+            aesKey: config.EXCHANGE_TOKEN_AES_KEY,
+            aesIv: config.EXCHANGE_TOKEN_AES_IV,
+            lifetime: config.EXCHANGE_TOKEN_LIFETIME
         }
 
         /**
@@ -518,8 +514,8 @@ class MobileController extends BaseController {
 
     createExchangeToken(appId, userHash, timestamp) {
         // Create expired at
-        const epoch = this.common.getEpoch(timestamp)
-        const expiredAt = epoch + this.exchangeToken.lifetime
+        const epoch = this.components.common.getEpoch(timestamp)
+        const expiredAt = epoch + this._exchangeToken.lifetime
 
         // Create payload
         const payload = {
@@ -547,7 +543,7 @@ class MobileController extends BaseController {
         }
 
         // Validate expired at
-        const now = this.common.getEpoch(new Date())
+        const now = this.components.common.getEpoch(new Date())
         if (now > payload.expiredAt) {
             return {
                 success: false,
@@ -573,8 +569,8 @@ class MobileController extends BaseController {
     }
 
     encrypt(payload) {
-        const key = Buffer.from(this.exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this.exchangeToken.aesIv, 'hex')
+        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
         const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
         const payloadStr = JSON.stringify(payload)
         let encrypted = cipher.update(payloadStr)
@@ -583,8 +579,8 @@ class MobileController extends BaseController {
     }
 
     decrypt(encrypted) {
-        const key = Buffer.from(this.exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this.exchangeToken.aesIv, 'hex')
+        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
         let encryptedBuf = Buffer.from(encrypted, 'base64')
         const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
         let decrypted = decipher.update(encryptedBuf)
