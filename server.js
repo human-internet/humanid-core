@@ -29,7 +29,10 @@ const express = require('express'),
 const {STD_CODES} = ResponseComponent
 
 class Server {
-    constructor(models, common, middlewares, nexmo) {
+    constructor(models, common, middlewares, nexmo, { logger }) {
+        // Set logger
+        this.logger = logger
+
         // Init config
         this.config = common.config
 
@@ -53,6 +56,7 @@ class Server {
     initRouter(middlewares) {
         // Init router params
         const routerParams = {
+            logger: this.logger,
             components: this.components,
             config: this.config,
             models: this.models,
