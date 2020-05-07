@@ -1,6 +1,8 @@
 'use strict'
 
-const request = require('request'),
+const
+    logger = require('../logger').child({scope: 'Core.Components.Vonage'}),
+    request = require('request'),
     models = require('../models/index'),
     helpers = require('./common'),
     config = helpers.config
@@ -45,13 +47,13 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
             return new Promise((resolve, reject) => {
                 request(options, (error, res, body) => {
                     if (error) {
-                        console.error(error)
+                        logger.error(error)
                         reject(error)
                     } else {
                         if (body.messages && body.messages.length == 1 && body.messages[0].status === '0') {
                             resolve(verification)
                         } else {
-                            console.error(body)
+                            logger.error(body)
                             reject(body)
                         }  
                     }

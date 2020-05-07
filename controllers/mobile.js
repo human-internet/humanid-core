@@ -273,7 +273,7 @@ class MobileController extends BaseController {
         try {
             payload = this.decrypt(exchangeToken)
         } catch (e) {
-            console.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
+            this.logger.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
             throw new APIError("ERR_1")
         }
 
@@ -471,7 +471,7 @@ class MobileController extends BaseController {
             }
         })
 
-        console.log(`DEBUG: DeletedRowCount=${count}`)
+        this.logger.log(`DEBUG: DeletedRowCount=${count}`)
 
         return {}
     })

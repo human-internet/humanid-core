@@ -1,6 +1,8 @@
 'use strict'
 
-const fs = require('fs'),
+const
+	logger = require('../logger').child({ scope: 'Core.Components.Common' }),
+	fs = require('fs'),
 	path = require('path'),
 	crypto = require('crypto'),
 	jwt = require('jsonwebtoken'),
@@ -12,7 +14,7 @@ let config = {DATABASE: {}}
 if (fs.existsSync(path.join('.', configPath))) {
 	config = require('../' + configPath)
 } else {
-	console.warn(`${configPath} not found`)
+	logger.warn(`${configPath} not found`)
 }
 
 // override config

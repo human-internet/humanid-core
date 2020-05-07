@@ -21,11 +21,11 @@ if (require.main === module) {
             .then(models.migrate)
             .then(models.seed)
             .then(() => {
-                app.listen(port, () => console.log(`Listening on port ${port}..`))            
+                app.listen(port, () => logger.info(`Listening on port ${port}..`))
             })    
     } else {
         app.listen(port, () =>
-            console.log(`Listening on port ${port}..`),
+            logger.info(`Listening on port ${port}..`),
         )
     }
 } else {
