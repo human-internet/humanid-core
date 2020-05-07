@@ -99,7 +99,6 @@ const requestPhoneVerification = async (countryCode, phone) => {
         }
         return new Promise((resolve, reject) => {
             request(options, (error, res, body) => {
-                // console.log(body)
                 if (error) {
                     reject(error)
                 } else {

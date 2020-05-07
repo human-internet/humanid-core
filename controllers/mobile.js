@@ -505,7 +505,6 @@ class MobileController extends BaseController {
     })
 
     handleValidateAppCred = this.handleAsync(async (req, res, next) => {
-        console.log('DEBUG: handleValidateAppCred')
         // Get method
         const {method} = req
 
@@ -537,7 +536,6 @@ class MobileController extends BaseController {
     })
 
     handleValidateAppUserCred = this.handleAsync(async (req, res, next) => {
-        console.log('DEBUG: handleValidateAppUserCred')
         // Get method
         const {method} = req
 
