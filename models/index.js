@@ -1,6 +1,8 @@
 'use strict'
 
-const fs = require('fs'),
+const
+  logger = require('../logger').child({ scope: 'Core.Sequelize' }),
+  fs = require('fs'),
   path = require('path'),
   Sequelize = require('sequelize'),
   Umzug = require('umzug'),  
@@ -9,6 +11,11 @@ const fs = require('fs'),
   env = process.env.NODE_ENV || 'development',
   config = helpers.config.DATABASE,
   db = {}
+
+// Configure logging function
+const logSequelize = msg => {
+    logger.debug(msg)
+}
 
 let sequelize
 if (env === 'test') {
@@ -20,10 +27,14 @@ if (env === 'test') {
     {dialect: 'sqlite', logging: false}
   )
 } else if (process.env.JAWSDB_URL) {
-  // for heroku
-  sequelize = new Sequelize(process.env.JAWSDB_URL)  
+    // for heroku
+    sequelize = new Sequelize(process.env['JAWSDB_URL'], { logging: logSequelize })
 } else {
-  sequelize = new Sequelize(config.database, config.username, config.password, config)
+    // Set logger
+    config.logging = logSequelize
+
+    // Init sequelize
+    sequelize = new Sequelize(config.database, config.username, config.password, config)
 }
 
 fs
