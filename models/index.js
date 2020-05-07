@@ -70,7 +70,7 @@ db.migrate = async () => {
       ],
       path: path.join(__dirname, '../migrations')
     }
-  }).up()  
+  }).up([])
 }
 
 db.seed = async () => {
@@ -86,7 +86,7 @@ db.seed = async () => {
       ],
       path: path.join(__dirname, '../seeders')
     }
-  }).up()  
+  }).up([])
 }
 
 

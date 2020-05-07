@@ -53,6 +53,11 @@ const sleep = require('util').promisify(setTimeout)
 // validate body
 const validate = (rules, body) => {
 	for (let r in rules) {
+		// If field is a custom or inherited property, continue
+		if (!rules.hasOwnProperty(r)) {
+			continue
+		}
+		// Validate
 		if (rules[r] === 'required' && !body[r]) {
 			return {error: `${r} is required`}
 		}

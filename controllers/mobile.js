@@ -391,7 +391,7 @@ class MobileController extends BaseController {
 
     handleRegister = this.handleRESTAsync(async (req) => {
         // Get functions
-        const {common, nexmo} = this.components
+        const {common} = this.components
 
         // Validate body
         const {body} = req

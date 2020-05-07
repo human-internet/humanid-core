@@ -5,13 +5,14 @@ const
     request = require('request'),
     models = require('../models/index'),
     helpers = require('./common'),
-    config = helpers.config
+    config = helpers.config,
+    {Verification: VerificationModel} = models
 
 // create random verification code and send SMS
 const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {    
     if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {        
         let number = helpers.combinePhone(countryCode, phone)
-        let verification = await models.Verification.findOne({where: {number: number}})
+        let verification = await VerificationModel.findOne({where: {number: number}})
         let resend = true
         if (verification && verification.requestId) {
             let lastUpdate = new Date() - verification.updatedAt	
@@ -24,7 +25,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
             let verificationCode = testVerificationCode || helpers.randStr(4, 1)
             if (!verification) {
                 // create new
-                verification = await models.Verification.create({number: number, requestId: verificationCode})
+                verification = await VerificationModel.create({number: number, requestId: verificationCode})
             } else {
                 // update code
                 verification.requestId = verificationCode
@@ -50,7 +51,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                         logger.error(error)
                         reject(error)
                     } else {
-                        if (body.messages && body.messages.length == 1 && body.messages[0].status === '0') {
+                        if (body.messages && body.messages.length === 1 && body.messages[0].status === '0') {
                             resolve(verification)
                         } else {
                             logger.error(body)
@@ -69,7 +70,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
 const checkVerificationSMS = async (countryCode, phone, verificationCode) => {
     if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {
         let number = helpers.combinePhone(countryCode, phone)
-        let count = await models.Verification.destroy({where: {number: number, requestId: verificationCode}})
+        let count = await VerificationModel.destroy({where: {number: number, requestId: verificationCode}})
         if (count === 1) {
             return Promise.resolve(1)
         } else {
@@ -105,18 +106,18 @@ const requestPhoneVerification = async (countryCode, phone) => {
                     if (body.status === '0' && body.request_id) {
                         resolve(body.request_id)
                     } else {
-                        console.error(body)
-                        resolve(body.error_text)
-                    }  
+                        logger.error(body)
+                        resolve(body['error_text'])
+                    }
                 }
             })  
         })
-        .then((requestId) => {
-            return models.Verification.create({
-                number: number,
-                requestId: requestId,
+            .then((requestId) => {
+                return VerificationModel.create({
+                    number: number,
+                    requestId: requestId,
+                })
             })
-        })
     } else {
         // mock up for demo
         return Promise.resolve('TEST_REQUEST_ID')
@@ -127,7 +128,7 @@ const requestPhoneVerification = async (countryCode, phone) => {
 const checkVerificationCode = async (countryCode, phone, verificationCode) => {
     if (config.NEXMO_API_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {
         let number = helpers.combinePhone(countryCode, phone)
-        let verification = await models.Verification.findByPk(number)
+        let verification = await VerificationModel.findByPk(number)
         if (!verification) {
             return Promise.reject({name: 'SequelizeValidationError', message: `No pending verification for (${countryCode}) ${phone}`})
         }
@@ -150,16 +151,16 @@ const checkVerificationCode = async (countryCode, phone, verificationCode) => {
                     if (body.status === '0' && body.request_id) {
                         resolve(body.request_id)
                     } else {
-                        console.error(body)
-                        resolve(body.error_text)
-                    }  
+                        logger.error(body)
+                        resolve(body['error_text'])
+                    }
                 }
             })  
         })
-        .then(() => {
-            // delete verification record
-            return models.Verification.destroy({where: {number: number}})
-        })
+            .then(() => {
+                // delete verification record
+                return VerificationModel.destroy({where: {number: number}})
+            })
     } else {
         // mock up for demo
         return Promise.resolve(1)        

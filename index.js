@@ -12,11 +12,11 @@ const port = process.env.PORT || common.config.APP_PORT
 const app = new Server(models, common, middlewares, nexmo, { logger }).app
 
 if (require.main === module) {
-    if (process.env.DROP_CREATE === '1') {
+    if (process.env['DROP_CREATE'] === '1') {
         // heroku drop-create
         models.sequelize.drop()
             .then(() => {
-                return models.sequelize.query('DROP TABLE IF EXISTS `SequelizeMeta`')
+                return models.sequelize.query('DROP TABLE IF EXISTS `SequelizeMeta`', null)
             })
             .then(models.migrate)
             .then(models.seed)
