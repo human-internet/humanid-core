@@ -9,14 +9,14 @@ const
     {Verification: VerificationModel} = models
 
 // create random verification code and send SMS
-const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {    
-    if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {        
+const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {
+    if (config.NEXMO_REST_URL && config.NEXMO_API_KEY && config.NEXMO_API_SECRET) {
         let number = helpers.combinePhone(countryCode, phone)
         let verification = await VerificationModel.findOne({where: {number: number}})
         let resend = true
         if (verification && verification.requestId) {
-            let lastUpdate = new Date() - verification.updatedAt	
-            resend = lastUpdate >= config.OTP_EXPIRY_MS            
+            let lastUpdate = new Date() - verification.updatedAt
+            resend = lastUpdate >= config.OTP_EXPIRY_MS
         }
         if (!resend) {
             // just return object
@@ -43,7 +43,7 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                 },
                 json: true,
             }
-    
+
             // send OTP
             return new Promise((resolve, reject) => {
                 request(options, (error, res, body) => {
@@ -56,9 +56,9 @@ const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => 
                         } else {
                             logger.error(body)
                             reject(body)
-                        }  
+                        }
                     }
-                })  
+                })
             })
         }
     } else {
@@ -109,7 +109,7 @@ const requestPhoneVerification = async (countryCode, phone) => {
                         resolve(body['error_text'])
                     }
                 }
-            })  
+            })
         })
             .then((requestId) => {
                 return VerificationModel.create({
@@ -129,15 +129,18 @@ const checkVerificationCode = async (countryCode, phone, verificationCode) => {
         let number = helpers.combinePhone(countryCode, phone)
         let verification = await VerificationModel.findByPk(number)
         if (!verification) {
-            return Promise.reject({name: 'SequelizeValidationError', message: `No pending verification for (${countryCode}) ${phone}`})
+            return Promise.reject({
+                name: 'SequelizeValidationError',
+                message: `No pending verification for (${countryCode}) ${phone}`
+            })
         }
         let options = {
             method: 'get',
             url: `${config.NEXMO_API_URL}/verify/check/json`,
             qs: {
-                api_key: config.NEXMO_API_KEY, 
-                api_secret: config.NEXMO_API_SECRET, 
-                request_id: verification.requestId, 
+                api_key: config.NEXMO_API_KEY,
+                api_secret: config.NEXMO_API_SECRET,
+                request_id: verification.requestId,
                 code: verificationCode,
             },
             json: true,
@@ -154,7 +157,7 @@ const checkVerificationCode = async (countryCode, phone, verificationCode) => {
                         resolve(body['error_text'])
                     }
                 }
-            })  
+            })
         })
             .then(() => {
                 // delete verification record
@@ -162,7 +165,7 @@ const checkVerificationCode = async (countryCode, phone, verificationCode) => {
             })
     } else {
         // mock up for demo
-        return Promise.resolve(1)        
+        return Promise.resolve(1)
     }
 }
 

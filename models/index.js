@@ -1,16 +1,16 @@
 'use strict'
 
 const
-  logger = require('../logger').child({ scope: 'Core.Sequelize' }),
-  fs = require('fs'),
-  path = require('path'),
-  Sequelize = require('sequelize'),
-  Umzug = require('umzug'),  
-  helpers = require('../helpers/common'),
-  basename = path.basename(__filename),
-  env = process.env.NODE_ENV || 'development',
-  config = helpers.config.DATABASE,
-  db = {}
+    logger = require('../logger').child({scope: 'Core.Sequelize'}),
+    fs = require('fs'),
+    path = require('path'),
+    Sequelize = require('sequelize'),
+    Umzug = require('umzug'),
+    helpers = require('../helpers/common'),
+    basename = path.basename(__filename),
+    env = process.env.NODE_ENV || 'development',
+    config = helpers.config.DATABASE,
+    db = {}
 
 // Configure logging function
 const logSequelize = msg => {
@@ -19,16 +19,16 @@ const logSequelize = msg => {
 
 let sequelize
 if (env === 'test') {
-  // override config for testing  
-  sequelize = new Sequelize(
-    config.database || 'humanid',
-    config.username || 'root',
-    config.password,
-    {dialect: 'sqlite', logging: false}
-  )
+    // override config for testing
+    sequelize = new Sequelize(
+        config.database || 'humanid',
+        config.username || 'root',
+        config.password,
+        {dialect: 'sqlite', logging: false}
+    )
 } else if (process.env.JAWSDB_URL) {
     // for heroku
-    sequelize = new Sequelize(process.env['JAWSDB_URL'], { logging: logSequelize })
+    sequelize = new Sequelize(process.env['JAWSDB_URL'], {logging: logSequelize})
 } else {
     // Set logger
     config.logging = logSequelize
@@ -38,19 +38,19 @@ if (env === 'test') {
 }
 
 fs
-  .readdirSync(__dirname)
-  .filter(file => {
-    return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js')
-  })
-  .forEach(file => {
-    const model = sequelize['import'](path.join(__dirname, file))
-    db[model.name] = model
-  })
+    .readdirSync(__dirname)
+    .filter(file => {
+        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js')
+    })
+    .forEach(file => {
+        const model = sequelize['import'](path.join(__dirname, file))
+        db[model.name] = model
+    })
 
 Object.keys(db).forEach(modelName => {
-  if (db[modelName].associate) {
-    db[modelName].associate(db)
-  }
+    if (db[modelName].associate) {
+        db[modelName].associate(db)
+    }
 })
 
 db.sequelize = sequelize
@@ -58,35 +58,35 @@ db.Sequelize = Sequelize
 
 // auto migrate
 db.migrate = async () => {
-  return new Umzug({
-    storage: 'sequelize',  
-    storageOptions: {
-      sequelize: sequelize
-    },
-    migrations: {
-      params: [
-        sequelize.getQueryInterface(),
-        Sequelize
-      ],
-      path: path.join(__dirname, '../migrations')
-    }
-  }).up([])
+    return new Umzug({
+        storage: 'sequelize',
+        storageOptions: {
+            sequelize: sequelize
+        },
+        migrations: {
+            params: [
+                sequelize.getQueryInterface(),
+                Sequelize
+            ],
+            path: path.join(__dirname, '../migrations')
+        }
+    }).up([])
 }
 
 db.seed = async () => {
-  return new Umzug({
-    storage: 'sequelize',  
-    storageOptions: {
-      sequelize: sequelize
-    },
-    migrations: {
-      params: [
-        sequelize.getQueryInterface(),
-        Sequelize
-      ],
-      path: path.join(__dirname, '../seeders')
-    }
-  }).up([])
+    return new Umzug({
+        storage: 'sequelize',
+        storageOptions: {
+            sequelize: sequelize
+        },
+        migrations: {
+            params: [
+                sequelize.getQueryInterface(),
+                Sequelize
+            ],
+            path: path.join(__dirname, '../seeders')
+        }
+    }).up([])
 }
 
 

@@ -60,7 +60,7 @@ class MobileController extends BaseController {
         super(models, config, components, server)
 
         // Create child logger
-        this.logger = logger.child({ scope: 'Core.MobileAPI' })
+        this.logger = logger.child({scope: 'Core.MobileAPI'})
 
         this._exchangeToken = {
             aesKey: config.EXCHANGE_TOKEN_AES_KEY,

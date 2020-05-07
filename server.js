@@ -29,7 +29,7 @@ const express = require('express'),
 const {STD_CODES} = ResponseComponent
 
 class Server {
-    constructor(models, common, middlewares, nexmo, { logger }) {
+    constructor(models, common, middlewares, nexmo, {logger}) {
         // Set logger
         this.logger = logger
 
