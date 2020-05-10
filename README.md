@@ -1,4 +1,4 @@
-# humanID API Server + Web SDK
+# humanID Core API
 
 [![Build Status](https://travis-ci.org/bluenumberfoundation/humanid-api.png?branch=master)](https://travis-ci.org/bluenumberfoundation/humanid-api)
 
