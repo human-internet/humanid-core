@@ -3,8 +3,8 @@
 const chai = require('chai'),
     nock = require('nock'),
     models = require('../models/index'),
-    common = require('../helpers/common'),
-    nexmo = require('../helpers/nexmo'),
+    common = require('../components/common'),
+    nexmo = require('../components/nexmo'),
     config = common.config
 
 // setup chai

@@ -2,8 +2,8 @@
 
 const
     logger = require('./logger'),
-    common = require('./helpers/common'),
-    nexmo = require('./helpers/nexmo'),
+    common = require('./components/common'),
+    nexmo = require('./components/nexmo'),
     models = require('./models/index'),
     middlewares = require('./middlewares'),
     Server = require('./server')

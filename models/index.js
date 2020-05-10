@@ -6,7 +6,7 @@ const
     path = require('path'),
     Sequelize = require('sequelize'),
     Umzug = require('umzug'),
-    helpers = require('../helpers/common'),
+    helpers = require('../components/common'),
     basename = path.basename(__filename),
     env = process.env.NODE_ENV || 'development',
     config = helpers.config.DATABASE,

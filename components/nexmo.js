@@ -3,7 +3,7 @@
 const
     logger = require('../logger').child({scope: 'Core.Components.Vonage'}),
     request = require('request'),
-    models = require('../models/index'),
+    models = require('../models'),
     helpers = require('./common'),
     config = helpers.config,
     {Verification: VerificationModel} = models

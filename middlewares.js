@@ -1,6 +1,6 @@
 'use strict'
 
-const helpers = require('./helpers/common')
+const helpers = require('./components/common')
 
 const verifyJWT = (req, res, next) => {
   let authHeader = req.header('Authorization')

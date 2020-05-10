@@ -1,7 +1,7 @@
 'use strict'
 
 const chai = require('chai'),
-    helpers = require('../helpers/common')
+    helpers = require('../components/common')
 
 // setup chai
 chai.should()
