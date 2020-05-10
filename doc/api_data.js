@@ -4,7 +4,7 @@ define({ "api": [
     "url": "/mobile/users/login",
     "title": "Login by Existing Access",
     "name": "LoginByExistingAccess",
-    "group": "Core_MobileAPI",
+    "group": "Core.MobileAPI",
     "description": "<p>Login to new partner app using existing access</p>",
     "parameter": {
       "fields": {
@@ -104,7 +104,7 @@ define({ "api": [
     },
     "version": "0.0.0",
     "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
+    "groupTitle": "Core.MobileAPI",
     "error": {
       "fields": {
         "Error 4xx": [
@@ -140,22 +140,22 @@ define({ "api": [
       ]
     }
   },
-  {
-    "type": "post",
-    "url": "/mobile/users/register",
-    "title": "Login by OTP",
-    "name": "LoginByOtp",
-    "group": "Core_MobileAPI",
-    "description": "<p>User Login by verify given OTP code. If user has not yet granted access to app, a new AppUser will be created</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "countryCode",
-            "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
+    {
+      "type": "post",
+      "url": "/mobile/users/register",
+      "title": "Login by OTP",
+      "name": "LoginByOtp",
+      "group": "Core.MobileAPI",
+      "description": "<p>User Login by verify given OTP code. If user has not yet granted access to app, a new AppUser will be created</p>",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "countryCode",
+              "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
           },
           {
             "group": "Parameter",
@@ -257,19 +257,19 @@ define({ "api": [
         }
       ]
     },
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "Boolean",
-            "optional": false,
-            "field": "success",
-            "description": "<p>Response status</p>"
-          },
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.MobileAPI",
+      "error": {
+        "fields": {
+          "Error 4xx": [
+            {
+              "group": "Error 4xx",
+              "type": "Boolean",
+              "optional": false,
+              "field": "success",
+              "description": "<p>Response status</p>"
+            },
           {
             "group": "Error 4xx",
             "type": "String",
@@ -295,22 +295,22 @@ define({ "api": [
       ]
     }
   },
-  {
-    "type": "post",
-    "url": "/mobile/users/verifyPhone",
-    "title": "Request OTP via SMS",
-    "name": "RequestSmsOtp",
-    "group": "Core_MobileAPI",
-    "description": "<p>Trigger send OTP code via SMS</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "countryCode",
-            "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
+    {
+      "type": "post",
+      "url": "/mobile/users/verifyPhone",
+      "title": "Request OTP via SMS",
+      "name": "RequestSmsOtp",
+      "group": "Core.MobileAPI",
+      "description": "<p>Trigger send OTP code via SMS</p>",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "countryCode",
+              "description": "<p>User mobile phone country code (eg. 62 for Indonesia)</p>"
           },
           {
             "group": "Parameter",
@@ -333,22 +333,22 @@ define({ "api": [
             "field": "appSecret",
             "description": "<p>Partner app secret</p>"
           }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "success",
-            "description": "<p>Response status</p>"
-          },
+          ]
+        }
+      },
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.MobileAPI",
+      "success": {
+        "fields": {
+          "Success 200": [
+            {
+              "group": "Success 200",
+              "type": "Boolean",
+              "optional": false,
+              "field": "success",
+              "description": "<p>Response status</p>"
+            },
           {
             "group": "Success 200",
             "type": "String",
@@ -408,26 +408,26 @@ define({ "api": [
       ]
     }
   },
-  {
-    "type": "post",
-    "url": "/mobile/users/revokeAccess",
-    "title": "Revoke App Access",
-    "name": "RevokeAppAccess",
-    "group": "Core_MobileAPI",
-    "description": "<p>Revoke Partner App access to User data</p>",
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "appId",
-            "description": "<p>Partner app ID</p>"
-          },
+    {
+      "type": "post",
+      "url": "/mobile/users/revokeAccess",
+      "title": "Revoke App Access",
+      "name": "RevokeAppAccess",
+      "group": "Core.MobileAPI",
+      "description": "<p>Revoke Partner App access to User data</p>",
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.MobileAPI",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "appId",
+              "description": "<p>Partner app ID</p>"
+            },
           {
             "group": "Parameter",
             "type": "String",
@@ -514,22 +514,22 @@ define({ "api": [
       ]
     }
   },
-  {
-    "type": "put",
-    "url": "/mobile/users",
-    "title": "Update FCM Notification Id",
-    "name": "UpdateNotificationId",
-    "group": "Core_MobileAPI",
-    "description": "<p>Update notif ID</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "notifId",
-            "description": "<p>Push notif ID</p>"
+    {
+      "type": "put",
+      "url": "/mobile/users",
+      "title": "Update FCM Notification Id",
+      "name": "UpdateNotificationId",
+      "group": "Core.MobileAPI",
+      "description": "<p>Update notif ID</p>",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "notifId",
+              "description": "<p>Push notif ID</p>"
           },
           {
             "group": "Parameter",
@@ -552,12 +552,118 @@ define({ "api": [
             "field": "userHash",
             "description": "<p>User identifier for Partner app</p>"
           }
+          ]
+        }
+      },
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.MobileAPI",
+      "success": {
+        "fields": {
+          "Success 200": [
+            {
+              "group": "Success 200",
+              "type": "Boolean",
+              "optional": false,
+              "field": "success",
+              "description": "<p>Response status</p>"
+            },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Result code</p>"
+          },
+          {
+            "group": "Success 200",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Result message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "SuccessResponse:",
+          "content": "{\n  \"success\": true,\n  \"code\": \"OK\",\n  \"message\": \"Success\"\n}",
+          "type": "json"
+        }
+      ]
+    },
+    "error": {
+      "fields": {
+        "Error 4xx": [
+          {
+            "group": "Error 4xx",
+            "type": "Boolean",
+            "optional": false,
+            "field": "success",
+            "description": "<p>Response status</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "code",
+            "description": "<p>Error code</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "type": "String",
+            "optional": false,
+            "field": "message",
+            "description": "<p>Error message</p>"
+          }
+        ]
+      },
+      "examples": [
+        {
+          "title": "ErrorResponse:",
+          "content": "{\n  \"success\": false,\n  \"code\": \"<ERROR_CODE>\",\n  \"message\": \"<ERROR_MESSAGE>\"\n}",
+          "type": "json"
+        }
+      ]
+    }
+  },
+    {
+      "type": "get",
+      "url": "/mobile/users/login",
+      "title": "Validate App User Access",
+      "name": "ValidateAppUserAccess",
+      "group": "Core.MobileAPI",
+      "description": "<p>Check if partner app is granted access to user data</p>",
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.MobileAPI",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "appId",
+              "description": "<p>Partner app ID</p>"
+            },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "appSecret",
+            "description": "<p>Partner app secret</p>"
+          },
+          {
+            "group": "Parameter",
+            "type": "String",
+            "optional": false,
+            "field": "userHash",
+            "description": "<p>User identifier for Partner app</p>"
+          }
         ]
       }
     },
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
     "success": {
       "fields": {
         "Success 200": [
@@ -627,128 +733,22 @@ define({ "api": [
       ]
     }
   },
-  {
-    "type": "get",
-    "url": "/mobile/users/login",
-    "title": "Validate App User Access",
-    "name": "ValidateAppUserAccess",
-    "group": "Core_MobileAPI",
-    "description": "<p>Check if partner app is granted access to user data</p>",
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_MobileAPI",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "appId",
-            "description": "<p>Partner app ID</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "appSecret",
-            "description": "<p>Partner app secret</p>"
-          },
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "userHash",
-            "description": "<p>User identifier for Partner app</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Boolean",
-            "optional": false,
-            "field": "success",
-            "description": "<p>Response status</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "code",
-            "description": "<p>Result code</p>"
-          },
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Result message</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "SuccessResponse:",
-          "content": "{\n  \"success\": true,\n  \"code\": \"OK\",\n  \"message\": \"Success\"\n}",
-          "type": "json"
-        }
-      ]
-    },
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "Boolean",
-            "optional": false,
-            "field": "success",
-            "description": "<p>Response status</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "code",
-            "description": "<p>Error code</p>"
-          },
-          {
-            "group": "Error 4xx",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Error message</p>"
-          }
-        ]
-      },
-      "examples": [
-        {
-          "title": "ErrorResponse:",
-          "content": "{\n  \"success\": false,\n  \"code\": \"<ERROR_CODE>\",\n  \"message\": \"<ERROR_MESSAGE>\"\n}",
-          "type": "json"
-        }
-      ]
-    }
-  },
-  {
-    "type": "post",
-    "url": "/mobile/users/verifyExchangeToken",
-    "title": "Verify Exchange Token",
-    "name": "VerifyExchangeToken",
-    "group": "Core_ServerAPI",
-    "description": "<p>Host-to-host API for Partner App Server to retrieve user hash</p>",
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "exchangeToken",
-            "description": "<p>Token that can be used by Partner app server to verify if a user has been authorized by humanId</p>"
+    {
+      "type": "post",
+      "url": "/mobile/users/verifyExchangeToken",
+      "title": "Verify Exchange Token",
+      "name": "VerifyExchangeToken",
+      "group": "Core.ServerAPI",
+      "description": "<p>Host-to-host API for Partner App Server to retrieve user hash</p>",
+      "parameter": {
+        "fields": {
+          "Parameter": [
+            {
+              "group": "Parameter",
+              "type": "String",
+              "optional": false,
+              "field": "exchangeToken",
+              "description": "<p>Token that can be used by Partner app server to verify if a user has been authorized by humanId</p>"
           },
           {
             "group": "Parameter",
@@ -815,19 +815,19 @@ define({ "api": [
         }
       ]
     },
-    "version": "0.0.0",
-    "filename": "controllers/mobile.js",
-    "groupTitle": "Core_ServerAPI",
-    "error": {
-      "fields": {
-        "Error 4xx": [
-          {
-            "group": "Error 4xx",
-            "type": "Boolean",
-            "optional": false,
-            "field": "success",
-            "description": "<p>Response status</p>"
-          },
+      "version": "0.0.0",
+      "filename": "controllers/mobile.js",
+      "groupTitle": "Core.ServerAPI",
+      "error": {
+        "fields": {
+          "Error 4xx": [
+            {
+              "group": "Error 4xx",
+              "type": "Boolean",
+              "optional": false,
+              "field": "success",
+              "description": "<p>Response status</p>"
+            },
           {
             "group": "Error 4xx",
             "type": "String",
@@ -852,217 +852,6 @@ define({ "api": [
         }
       ]
     }
-  },
-  {
-    "type": "get",
-    "url": "/demo-app/api/users/profile",
-    "title": "Get Profile",
-    "name": "GetUserProfile",
-    "group": "DemoApp",
-    "description": "<p>Get user profile by user access token</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "userAccessToken",
-            "description": "<p>User Access Token</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "Object",
-            "optional": false,
-            "field": "data",
-            "description": "<p>User Profile</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/demo-app.js",
-    "groupTitle": "DemoApp"
-  },
-  {
-    "type": "post",
-    "url": "/demo-app/api/users/log-in",
-    "title": "Log In",
-    "name": "LogIn",
-    "group": "DemoApp",
-    "description": "<p>LogIn to 3rd party app using humanId Exchange Token</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "clientSecret",
-            "description": "<p>Client credentials to access Api</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "exchangeToken",
-            "description": "<p>An exchange token that states user has been verified by humanId</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "token",
-            "description": "<p>Access Token to App</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/demo-app.js",
-    "groupTitle": "DemoApp"
-  },
-  {
-    "type": "put",
-    "url": "/demo-app/api/users/log-out",
-    "title": "Log Out",
-    "name": "LogOut",
-    "group": "DemoApp",
-    "description": "<p>LogOut to 3rd party app using humanId Exchange Token</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "userAccessToken",
-            "description": "<p>User Access Token</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Result status</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/demo-app.js",
-    "groupTitle": "DemoApp"
-  },
-  {
-    "type": "put",
-    "url": "/demo-app/api/users/refresh-session",
-    "title": "Refresh Session",
-    "name": "RefreshSession",
-    "group": "DemoApp",
-    "description": "<p>Refresh user session</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "userAccessToken",
-            "description": "<p>User Access Token</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "token",
-            "description": "<p>Refreshed Access Token to App</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/demo-app.js",
-    "groupTitle": "DemoApp"
-  },
-  {
-    "type": "put",
-    "url": "/demo-app/api/users/profile",
-    "title": "Update Profile",
-    "name": "UpdateUserProfile",
-    "group": "DemoApp",
-    "description": "<p>Update user profile by user access token</p>",
-    "header": {
-      "fields": {
-        "Header": [
-          {
-            "group": "Header",
-            "type": "String",
-            "optional": false,
-            "field": "userAccessToken",
-            "description": "<p>User Access Token</p>"
-          }
-        ]
-      }
-    },
-    "parameter": {
-      "fields": {
-        "Parameter": [
-          {
-            "group": "Parameter",
-            "type": "String",
-            "optional": false,
-            "field": "fullName",
-            "description": "<p>Update full name</p>"
-          }
-        ]
-      }
-    },
-    "success": {
-      "fields": {
-        "Success 200": [
-          {
-            "group": "Success 200",
-            "type": "String",
-            "optional": false,
-            "field": "message",
-            "description": "<p>Update result status</p>"
-          }
-        ]
-      }
-    },
-    "version": "0.0.0",
-    "filename": "controllers/demo-app.js",
-    "groupTitle": "DemoApp"
   },
   {
     "type": "post",
