@@ -20,6 +20,7 @@ const
     express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
+    ResponseMapper = require('./components/response-mapper'),
     WebConsoleController = require('./controllers/webconsole'),
     MobileController = require('./controllers/mobile'),
     WebController = require('./controllers/web'),
@@ -42,10 +43,11 @@ class Server {
         this.models = models
 
         // Init components
+        ResponseMapper.init({filePath: this.workDir + '/response-codes.json'})
         this.components = {
             common,
             nexmo,
-            response: new ResponseComponent({filePath: this.workDir + '/response-codes.json'})
+            response: ResponseMapper
         }
 
         // Init router
@@ -108,7 +110,7 @@ class Server {
      */
     sendResponse = (res, opt = {}) => {
         // Get response component
-        const {response: responseComponent} = this.components
+        const {response: responseMapper} = this.components
 
         // Deconstruct options
         const {code, message, data} = opt
@@ -118,10 +120,10 @@ class Server {
 
         if (code) {
             // If code is set, get response code
-            resp = responseComponent.get(code, {success: true})
+            resp = responseMapper.get(code, {success: true})
         } else {
             // Else, get a generic success
-            resp = responseComponent.getSuccess()
+            resp = responseMapper.getSuccess()
         }
 
         // Compose response
@@ -139,7 +141,7 @@ class Server {
      */
     sendErrorResponse = (res, err) => {
         // Get response component
-        const {response: responseComponent} = this.components
+        const {response: responseMapper} = this.components
 
         /** @type Response */
         let resp
@@ -148,7 +150,7 @@ class Server {
 
         // If error is not APIError, convert to Internal Error
         if (err.constructor.name !== "APIError") {
-            resp = responseComponent.getInternalError()
+            resp = responseMapper.getInternalError()
 
             // If debug mode, add source error stack
             if (this.config.APP_DEBUG) {
@@ -163,7 +165,7 @@ class Server {
 
             // TODO: Log error cause
         } else {
-            resp = responseComponent.get(err.code)
+            resp = responseMapper.get(err.code)
         }
 
         // Compose body
