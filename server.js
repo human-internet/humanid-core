@@ -24,8 +24,6 @@ const
     WebConsoleController = require('./controllers/webconsole'),
     MobileController = require('./controllers/mobile'),
     WebController = require('./controllers/web'),
-    DemoAppController = require('./controllers/demo-app'),
-    ResponseComponent = require('./components/response'),
     APIError = require('./server/api_error')
 
 class Server {
@@ -86,7 +84,6 @@ class Server {
         this.app.use('/console', new WebConsoleController(models, common, middlewares).router)
         this.app.use('/mobile', new MobileController(routerParams).router)
         this.app.use('/web', new WebController(models, common, nexmo).router)
-        this.app.use('/demo-app/api', new DemoAppController(models, common).router)
 
         // Handle Errors
         this.app.use((req, res) => {
