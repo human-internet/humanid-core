@@ -49,7 +49,7 @@ Demo data:
 
 ## Prerequisites
 
-1. Node.js >= 10 LTS
+1. Node.js >= 12 LTS
 2. RDBMS (MySQL >= 14.14 or SQLite3 >= 3.22)
 
 ## Setup
