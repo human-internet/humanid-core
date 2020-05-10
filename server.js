@@ -15,7 +15,9 @@
  * @returns {RESTHandlerResult}
  */
 
-const express = require('express'),
+const
+    Constants = require('./constants'),
+    express = require('express'),
     bodyParser = require('body-parser'),
     path = require('path'),
     WebConsoleController = require('./controllers/webconsole'),
@@ -24,9 +26,6 @@ const express = require('express'),
     DemoAppController = require('./controllers/demo-app'),
     ResponseComponent = require('./components/response'),
     APIError = require('./server/api_error')
-
-// Get Standard Codes
-const {STD_CODES} = ResponseComponent
 
 class Server {
     constructor(models, common, middlewares, nexmo, {logger}) {
@@ -89,7 +88,7 @@ class Server {
 
         // Handle Errors
         this.app.use((req, res) => {
-            this.sendErrorResponse(res, new APIError(STD_CODES.ERROR_NOT_FOUND))
+            this.sendErrorResponse(res, new APIError(Constants.RESPONSE_ERROR_NOT_FOUND))
         })
 
         // Handle Resource Not Found

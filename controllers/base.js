@@ -1,7 +1,7 @@
 'use strict'
 
 const APIError = require('../server/api_error'),
-    RespCodes = require('../components/response').STD_CODES
+    Constants = require('../constants')
 
 class BaseController {
     constructor(models, config, components, server) {
@@ -34,14 +34,14 @@ class BaseController {
                 let rule = fieldRules[i].toLowerCase()
                 if (rule === 'required') {
                     if (!val || val.length <= 0) {
-                        throw new APIError(RespCodes.ERROR_BAD_REQUEST, `${field} is required`)
+                        throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, `${field} is required`)
                     }
                 } else if (rule.startsWith('in:')) {
                     // ignore if empty
                     if (val && val.length > 0) {
                         let values = rule.split(':')[1].split(',')
                         if (values.indexOf(val.toLowerCase()) < 0) {
-                            throw new APIError(RespCodes.ERROR_BAD_REQUEST,  `${field} must be in: ${values}`)
+                            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, `${field} must be in: ${values}`)
                         }
                     }
                 }
