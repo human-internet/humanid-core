@@ -160,7 +160,7 @@ class Server {
                 }
             }
 
-            // TODO: Log error cause
+            this.logger.error(err.stack, {scope: 'Server'})
         } else {
             resp = responseMapper.get(err.code)
         }
