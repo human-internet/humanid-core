@@ -19,7 +19,7 @@
     "id"
   ],
   "author": "yohanes.gultom@gmail.com",
-  "license": "ISC",
+  "license": "GPL-3.0",
   "dependencies": {
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
