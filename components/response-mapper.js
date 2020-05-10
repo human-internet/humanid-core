@@ -21,22 +21,11 @@ const ERROR_FORBIDDEN = '403'
 const ERROR_NOT_FOUND = '404'
 const ERROR_INTERNAL = '500'
 
-/**
- * ResponseComponent class
- */
-class ResponseComponent {
+class ResponseMapper {
     /** @member {Object.<string, Response>} */
     _responseCodes = {}
 
-    /**
-     * @member {Object.<string, string>}
-     * @static
-     */
-    static STD_CODES = {
-        SUCCESS, ERROR_BAD_REQUEST, ERROR_UNAUTHORIZED, ERROR_FORBIDDEN, ERROR_NOT_FOUND, ERROR_INTERNAL
-    }
-
-    constructor({filePath}) {
+    init({filePath}) {
         // Init standard codes
         const stdCodes = initStandardCodes()
 
@@ -46,8 +35,7 @@ class ResponseComponent {
         // If file exist, load response codes
         if (fileExist) {
             // Load response codes from file
-            const userCodesJson = require(filePath)
-            const userCodes = convertCodes(userCodesJson)
+            const userCodes = loadResponseMap(filePath)
 
             // Merge with standard response and set to private member
             this._responseCodes = _.merge(userCodes, stdCodes)
@@ -64,7 +52,7 @@ class ResponseComponent {
      * @param {boolean} opt.success If true, return Standard Success. Else, return Internal Error
      * @returns {Response} Response object
      */
-    get = (code, opt= {success: false}) => {
+    get = (code, opt = {success: false}) => {
         // Get response by code
         let resp = this._responseCodes[code]
 
@@ -128,7 +116,7 @@ class Response {
      * @param opt.message {string|undefined} Message to override
      * @returns {ResponseBody}
      */
-    compose = (opt= {}) => {
+    compose = (opt = {}) => {
         return {
             success: this.success,
             code: this.code,
@@ -158,13 +146,25 @@ function initStandardCodes() {
  * Convert user defined codes into Response mapping
  * If status is not set, then response is set to success
  *
- * @param codes {Object.<string, {status: boolean, success: true, message: string}>}
+ * @param {string} filePath File Path
  * @returns {Object.<string, Response>}
  */
-function convertCodes(codes) {
+function loadResponseMap(filePath) {
+    // Read file sync
+    const content = fs.readFileSync(filePath, 'utf8')
+
+    // Parse json
+    const codes = JSON.parse(content)
+
     // Convert user codes to response
-    return _.reduce(codes, (o, v, k) => {
-        let {status, success, message} = v
+    const responses = {}
+    for (let k in codes) {
+        if (!codes.hasOwnProperty(k)) {
+            continue
+        }
+
+        // Get Value
+        let {status, success, message} = codes[k]
 
         // If status not set, then set to success
         if (!status) {
@@ -178,10 +178,10 @@ function convertCodes(codes) {
         }
 
         // Create new response
-        o[k] = new Response(k, status, success, message)
-        return o
-    })
+        responses[k] = new Response(k, status, success, message)
+    }
+
+    return responses
 }
 
-module.exports = ResponseComponent
-
+module.exports = new ResponseMapper()
