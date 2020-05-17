@@ -2,7 +2,7 @@
 
 const
     TABLE_NAME = 'LegacyConfirmations',
-    MODEL_NAME = 'Confirmation'
+    MODEL_NAME = 'LegacyConfirmation'
 
 module.exports = (sequelize, DataTypes) => {
     const Confirmation = sequelize.define(MODEL_NAME, {

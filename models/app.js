@@ -2,7 +2,7 @@
 
 const
     TABLE_NAME = 'LegacyApps',
-    MODEL_NAME = 'App'
+    MODEL_NAME = 'LegacyApp'
 
 module.exports = (sequelize, DataTypes) => {
 
@@ -36,12 +36,12 @@ module.exports = (sequelize, DataTypes) => {
     })
 
     App.associate = function (models) {
-        App.hasMany(models.AppUser, {
+        App.hasMany(models.LegacyAppUser, {
             foreignKey: 'appId',
             as: 'appUsers',
         })
-        App.belongsToMany(models.User, {
-            through: models.AppUser,
+        App.belongsToMany(models.LegacyUser, {
+            through: models.LegacyAppUser,
             as: 'users',
             foreignKey: 'appId',
             otherKey: 'userHash',

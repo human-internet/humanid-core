@@ -2,7 +2,7 @@
 
 const
     TABLE_NAME = 'LegacyAppUsers',
-    MODEL_NAME = 'AppUser'
+    MODEL_NAME = 'LegacyAppUser'
 
 module.exports = (sequelize, DataTypes) => {
     const AppUser = sequelize.define(MODEL_NAME, {
@@ -18,17 +18,17 @@ module.exports = (sequelize, DataTypes) => {
             type: DataTypes.STRING,
             allowNull: false,
             unique: true,
-        },
+        }
     }, {
         tableName: TABLE_NAME
     })
 
     AppUser.associate = function (models) {
-        AppUser.belongsTo(models.App, {
+        AppUser.belongsTo(models.LegacyApp, {
             foreignKey: 'appId',
             as: 'app',
         })
-        AppUser.belongsTo(models.User, {
+        AppUser.belongsTo(models.LegacyUser, {
             foreignKey: 'userId',
             as: 'user',
         })

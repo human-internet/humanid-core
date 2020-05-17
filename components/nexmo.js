@@ -6,7 +6,7 @@ const
     models = require('../models'),
     helpers = require('./common'),
     config = helpers.config,
-    {Verification: VerificationModel} = models
+    {LegacyVerification: VerificationModel} = models
 
 // create random verification code and send SMS
 const sendVerificationSMS = async (countryCode, phone, testVerificationCode) => {

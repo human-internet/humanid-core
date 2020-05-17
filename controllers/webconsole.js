@@ -32,8 +32,8 @@ class WebConsoleController extends BaseController {
             const email = req.body.email
             const password = req.body.password
             try {
-                let admin = await this.models.Admin.findOne({
-                    where: { email: email },
+                let admin = await this.models.LegacyAdmin.findOne({
+                    where: {email: email},
                 })
                 if (!admin) {
                     return res.status(400).send('Invalid credential')
@@ -77,7 +77,7 @@ class WebConsoleController extends BaseController {
             }
             try {
                 let hash = this.hmac(body.appId)
-                let app = await this.models.App.findOrCreate({
+                let app = await this.models.LegacyApp.findOrCreate({
                     where: {id: body.appId},
                     defaults: {id: body.appId, secret: hash, platform: body.platform, serverKey: body.serverKey}
                 })
@@ -105,7 +105,7 @@ class WebConsoleController extends BaseController {
             let skip = req.skip || 0
             try {
                 // TODO: standardized paginated result
-                let results = await this.models.App.findAndCountAll({limit: limit, offset: skip})
+                let results = await this.models.LegacyApp.findAndCountAll({limit: limit, offset: skip})
                 res.send({
                     data: results.rows,
                     total: results.count,
@@ -134,7 +134,7 @@ class WebConsoleController extends BaseController {
             let skip = req.skip || 0
             try {
                 // TODO: standardized paginated result
-                let results = await this.models.User.findAndCountAll({limit: limit, offset: skip})
+                let results = await this.models.LegacyUser.findAndCountAll({limit: limit, offset: skip})
                 res.send({
                     data: results.rows,
                     total: results.count,

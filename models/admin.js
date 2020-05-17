@@ -2,7 +2,7 @@
 
 const
     TABLE_NAME = 'LegacyAdmins',
-    MODEL_NAME = 'Admin'
+    MODEL_NAME = 'LegacyAdmin'
 
 module.exports = (sequelize, DataTypes) => {
     const Admin = sequelize.define(MODEL_NAME, {

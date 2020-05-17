@@ -13,10 +13,10 @@ class WebController extends BaseController {
 		router.use(cors((req, callback) => {			
 			if (req.body.appId) {
 				console.log('Request origin: ', req.header('Origin'))
-				models.App.findByPk(req.body.appId).then((app) => {
+				models.LegacyApp.findByPk(req.body.appId).then((app) => {
 					let urls = app.urls ? app.urls.split(',') : null
 					let whitelisted = !urls || urls.indexOf(req.header('Origin')) !== -1
-					callback(null, {origin: whitelisted})					
+					callback(null, {origin: whitelisted})
 				})
 			} else {
 				// allow to pass, let invalid appId be validated in request handler
@@ -70,17 +70,17 @@ class WebController extends BaseController {
 			let app = null
 			try {
 				let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
-				user = await models.User.findOne({
-					where: { hash: hash }, 
+				user = await models.LegacyUser.findOne({
+					where: {hash: hash},
 					include: [{
-						model: models.AppUser, 
+						model: models.LegacyAppUser,
 						include: {
-							model: models.App,
+							model: models.LegacyApp,
 							as: 'app',
-						} 
+						}
 					}]
-				})				
-				if (!user) throw new Error(`Account not found: (${body.countryCode}) ${body.phone}`)   
+				})
+				if (!user) throw new Error(`Account not found: (${body.countryCode}) ${body.phone}`)
 				app = await this.validateAppCredentials(body.appId, body.appSecret)
 			} catch (e) {
 				// console.error(e)
@@ -96,33 +96,33 @@ class WebController extends BaseController {
 
 			// handle existing confirmation (checking status)
 			let confirmationData = {
-				type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+				type: models.LegacyConfirmation.TypeCode.WEB_LOGIN_REQUEST,
 				appId: app.id,
 				userId: user.id,
-				status: models.Confirmation.StatusCode.PENDING,
+				status: models.LegacyConfirmation.StatusCode.PENDING,
 				updatedAt: new Date(),
 				messageId: null,
 				sessionId: sessionId,
-			}			
+			}
 			let confirmation = null
-			try {        
-				confirmation = await models.Confirmation.findOne({
+			try {
+				confirmation = await models.LegacyConfirmation.findOne({
 					where: {
 						type: confirmationData.type,
 						appId: app.id,
 						userId: user.id,
 					}
 				})
-							
-				if (confirmation) {  
-					let lastCheck = new Date() - confirmation.updatedAt	
+
+				if (confirmation) {
+					let lastCheck = new Date() - confirmation.updatedAt
 					// if different sessionID or rejected
-					if (confirmation.sessionId !== confirmationData.sessionId 
-						|| confirmation.status === models.Confirmation.StatusCode.REJECTED) { 
+					if (confirmation.sessionId !== confirmationData.sessionId
+						|| confirmation.status === models.LegacyConfirmation.StatusCode.REJECTED) {
 						// delete confirmation to allow requesting again
 						await confirmation.destroy()
 						confirmation = null
-					} else if (confirmation.status === models.Confirmation.StatusCode.PENDING) {
+					} else if (confirmation.status === models.LegacyConfirmation.StatusCode.PENDING) {
 						if (lastCheck > common.config.CONFIRMATION_EXPIRY_MS) {
 							// if expired
 							// delete confirmation to allow requesting again
@@ -130,45 +130,45 @@ class WebController extends BaseController {
 							confirmation = null
 						} else {
 							// not yet expired
-							res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
+							res.cookie('sessionId', confirmationData.sessionId, {httpOnly: true})
 							return res.status(202).send(confirmation)
 						}
-					} else if (confirmation.status === models.Confirmation.StatusCode.CONFIRMED) {
+					} else if (confirmation.status === models.LegacyConfirmation.StatusCode.CONFIRMED) {
 						// set sessionId cookie
-						res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
+						res.cookie('sessionId', confirmationData.sessionId, {httpOnly: true})
 						return res.status(200).send(confirmation)
 					}
-				}        
+				}
 			} catch (e) {
 				return res.status(500).send(e.message)
 			}
 
 			// handle new or expired authorization request
 
-			let authType = body.type ? body.type.toLowerCase() : 'app'			
-			if (authType === 'otp') {			
+			let authType = body.type ? body.type.toLowerCase() : 'app'
+			if (authType === 'otp') {
 				confirmationData.messageId = 'OTP'
 				// request OTP
-				if (!body.verificationCode) {										
-					try {						
+				if (!body.verificationCode) {
+					try {
 						await nexmo.sendVerificationSMS(body.countryCode, body.phone)
-						confirmationData.status = models.Confirmation.StatusCode.PENDING
-						confirmation = await models.Confirmation.create(confirmationData)
+						confirmationData.status = models.LegacyConfirmation.StatusCode.PENDING
+						confirmation = await models.LegacyConfirmation.create(confirmationData)
 						return res.status(202).send(confirmation)
 					} catch (error) {
 						return res.status(500).send(error.message)
-					}					
+					}
 				} 
 				// verify OTP
-				else { 
+				else {
 					try {
-						await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)						
-						confirmationData.status = models.Confirmation.StatusCode.CONFIRMED
-						confirmation = await models.Confirmation.create(confirmationData)
-						res.cookie('sessionId', confirmationData.sessionId, { httpOnly: true })
+						await nexmo.checkVerificationSMS(body.countryCode, body.phone, body.verificationCode)
+						confirmationData.status = models.LegacyConfirmation.StatusCode.CONFIRMED
+						confirmation = await models.LegacyConfirmation.create(confirmationData)
+						res.cookie('sessionId', confirmationData.sessionId, {httpOnly: true})
 						return res.send(confirmation)
 					} catch (error) {
-						let status = error.name === 'ValidationError' ? 400 : 500				
+						let status = error.name === 'ValidationError' ? 400 : 500
 						return res.status(status).send(error.message)
 					}
 				}
@@ -185,9 +185,9 @@ class WebController extends BaseController {
 					try {
 						// get server key based on platform
 						let serverKey = common.config.FIREBASE_SERVER_KEY
-						if (appUser.app.platform === models.App.PlatformCode.ANDROID) {
+						if (appUser.app.platform === models.LegacyApp.PlatformCode.ANDROID) {
 							serverKey = appUser.app.serverKey
-						} // else models.App.PlatformCode.IOS use common.config.FIREBASE_SERVER_KEY
+						} // else models.LegacyApp.PlatformCode.IOS use common.config.FIREBASE_SERVER_KEY
 
 						// validate or send push notif
 						if (!serverKey) {
@@ -205,8 +205,13 @@ class WebController extends BaseController {
 									updatedAt: confirmationData.updatedAt.toISOString(),
 								},
 							}, serverKey)
-							results.push({appId: appUser.appId, platform: appUser.app.platform, success: true, reason: null})						
-						}            
+							results.push({
+								appId: appUser.appId,
+								platform: appUser.app.platform,
+								success: true,
+								reason: null
+							})
+						}
 					} catch (e) {
 						results.push({appId: appUser.appId, platform: appUser.app.platform, success: false, reason: `Push notif failed: ${e.message}`})
 					} finally {
@@ -218,14 +223,14 @@ class WebController extends BaseController {
 				if (!confirmationData.messageId) {
 					console.error(results)
 					return res.status(500).send({results: results})
-				}            
+				}
 				try {
 					// create confirmation object
-					confirmation = await models.Confirmation.create(confirmationData)
+					confirmation = await models.LegacyConfirmation.create(confirmationData)
 					// set sessionId cookie
-					res.cookie('sessionId', confirmation.sessionId, { httpOnly: true })
+					res.cookie('sessionId', confirmation.sessionId, {httpOnly: true})
 					return res.status(202).send(confirmation)
-				} catch (e) {				
+				} catch (e) {
 					return res.status(500).send(e.message)
 				}
 
@@ -262,7 +267,7 @@ class WebController extends BaseController {
 			if (error) {
 				return res.status(400).send(error)
 			}
-			
+
 			// validate credentials
 			let app = null
 			try {
@@ -273,10 +278,10 @@ class WebController extends BaseController {
 
 			// validate sessionId
 			let confirmation = null
-			try {        
-				confirmation = await models.Confirmation.findOne({
+			try {
+				confirmation = await models.LegacyConfirmation.findOne({
 					where: {
-						type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+						type: models.LegacyConfirmation.TypeCode.WEB_LOGIN_REQUEST,
 						appId: app.id,
 						sessionId: body.sessionId
 					}
@@ -289,7 +294,7 @@ class WebController extends BaseController {
 				}
 			} catch (err) {
 				return res.status(500).send(err.message)
-			}			
+			}
 		})
 
 		/**
@@ -325,15 +330,15 @@ class WebController extends BaseController {
 			// validate confirmation
 			let confirmation = null
 			try {
-				confirmation = await models.Confirmation.findOne({
+				confirmation = await models.LegacyConfirmation.findOne({
 					where: {
-						type: models.Confirmation.TypeCode.WEB_LOGIN_REQUEST,
+						type: models.LegacyConfirmation.TypeCode.WEB_LOGIN_REQUEST,
 						appId: app.id,
 						sessionId: body.sessionId,
 					}
-				})				
+				})
 
-				let code = 204 
+				let code = 204
 				let msg = null
 				if (!confirmation) {
 					code = 401
@@ -342,7 +347,7 @@ class WebController extends BaseController {
 					// valid. delete confirmation
 					await confirmation.destroy()
 					// clear cookie
-					res.clearCookie('sessionId', { httpOnly: true })
+					res.clearCookie('sessionId', {httpOnly: true})
 				}
 				return res.status(code).send(msg)
 			} catch (e) {
@@ -371,7 +376,7 @@ class WebController extends BaseController {
 		 */
 		router.post('/users/confirm', async (req, res, next) => {
 			try {
-				return this.updateLoginConfirmation(models.Confirmation.StatusCode.CONFIRMED, req, res)	
+				return this.updateLoginConfirmation(models.LegacyConfirmation.StatusCode.CONFIRMED, req, res)
 			} catch (e) {
 				return res.status(500).send(e.message)
 			}
@@ -398,7 +403,7 @@ class WebController extends BaseController {
 		 */
 		router.post('/users/reject', async (req, res, next) => {
 			try {
-				return this.updateLoginConfirmation(models.Confirmation.StatusCode.REJECTED, req, res)	
+				return this.updateLoginConfirmation(models.LegacyConfirmation.StatusCode.REJECTED, req, res)
 			} catch (e) {
 				return res.status(500).send(e.message)
 			}			
@@ -411,21 +416,21 @@ class WebController extends BaseController {
 	async updateLoginConfirmation (status, req, res) {
 		let body = req.body
 		let error = this.validate({
-			hash: 'required', 
-			requestingAppId: 'required', 
-			appId: 'required', 
-			appSecret: 'required', 
+			hash: 'required',
+			requestingAppId: 'required',
+			appId: 'required',
+			appSecret: 'required',
 		}, body)
 		if (error) {
 			return res.status(400).send(error)
-		}    
+		}
 
-		// default to models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
-		body.type = body.type || this.models.Confirmation.TypeCode.WEB_LOGIN_REQUEST
+		// default to models.LegacyConfirmation.TypeCode.WEB_LOGIN_REQUEST
+		body.type = body.type || this.models.LegacyConfirmation.TypeCode.WEB_LOGIN_REQUEST
 
 		let appUser = null
 		try {
-			appUser = await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)        
+			appUser = await this.validateAppUserCredentials(body.hash, body.appId, body.appSecret)
 		} catch (e) {
 			return res.status(401).send(e.message)
 		}
@@ -433,11 +438,13 @@ class WebController extends BaseController {
 		// find Confirmation
 		let confirmation = null
 		try {
-			confirmation = await this.models.Confirmation.findOne({where: {
-				type: body.type,
-				appId: body.requestingAppId,
-				userId: appUser.userId,
-			}})
+			confirmation = await this.models.LegacyConfirmation.findOne({
+				where: {
+					type: body.type,
+					appId: body.requestingAppId,
+					userId: appUser.userId,
+				}
+			})
 			if (!confirmation) {
 				return res.status(404).send('Confirmation not found')
 			}
@@ -447,7 +454,7 @@ class WebController extends BaseController {
 				// update Confirmation status
 				confirmation.status = status
 				await confirmation.save()
-			}        
+			}
 			return res.send(confirmation)
 		} catch (e) {
 			return res.status(500).send(e.message)

@@ -2,7 +2,7 @@
 
 const
     TABLE_NAME = 'LegacyVerifications',
-    MODEL_NAME = 'Verification'
+    MODEL_NAME = 'LegacyVerification'
 
 module.exports = (sequelize, DataTypes) => {
     const Verification = sequelize.define(MODEL_NAME, {

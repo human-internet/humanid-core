@@ -237,19 +237,59 @@ class MobileController extends BaseController {
         this.router = router
     }
 
-    async getAppsAccessStatus(appId, userHash) {
-        // Count user by id and hash
-        const {AppUser} = this.models
-        const count = await AppUser.count({
-            where: {appId: appId, hash: userHash}
+    handleLogin = this.handleRESTAsync(async (req) => {
+        // Validate body
+        let body = req.body
+        this.validate({
+            existingUserHash: 'required',
+            existingAppId: 'required',
+            deviceId: 'required'
+        }, body)
+
+        // Get new appId and appSecret
+        const {appId, appSecret, deviceId} = body
+
+        // Get existing app user
+        let existingAppUser = await this.models.LegacyAppUser.findOne({
+            where: {hash: body.existingUserHash, appId: body.existingAppId},
         })
 
-        if (count === 1) {
-            return "GRANTED"
+        // If not found, throw error
+        if (!existingAppUser) {
+            throw new APIError("ERR_7")
         }
 
-        return "DENIED"
-    }
+        // Validate new appId with existing
+        if (appId === existingAppUser.appId) {
+            throw new APIError("ERR_8")
+        }
+
+        // Validate device id
+        if (deviceId !== existingAppUser.deviceId) {
+            throw new APIError("ERR_9")
+        }
+
+        // Register to new app
+        let newAppUserHash = this.components.common.hmac(appSecret + existingAppUser.userId)
+        let newAppUser = await this.models.LegacyAppUser.findOrCreate({
+            where: {appId: appId, hash: newAppUserHash},
+            defaults: {
+                appId: appId,
+                userId: existingAppUser.userId,
+                hash: newAppUserHash,
+                deviceId: existingAppUser.deviceId,
+            }
+        })
+        newAppUser = newAppUser[0]
+
+        // TODO: Returns exchangeToken
+        return {
+            data: {
+                exchangeToken: '',
+                userHash: newAppUser.hash
+            }
+        }
+    })
 
     createExchangeToken(appId, userHash, timestamp) {
         // Create expired at
@@ -334,61 +374,6 @@ class MobileController extends BaseController {
     handleCheckAppUserAccess = this.handleRESTAsync(async () => {
         return {}
     })
-
-    handleLogin = this.handleRESTAsync(async (req) => {
-        // Validate body
-        let body = req.body
-        this.validate({
-            existingUserHash: 'required',
-            existingAppId: 'required',
-            deviceId: 'required'
-        }, body)
-
-        // Get new appId and appSecret
-        const {appId, appSecret, deviceId} = body
-
-        // Get existing app user
-        let existingAppUser = await this.models.AppUser.findOne({
-            where: {hash: body.existingUserHash, appId: body.existingAppId},
-        })
-
-        // If not found, throw error
-        if (!existingAppUser) {
-            throw new APIError("ERR_7")
-        }
-
-        // Validate new appId with existing
-        if (appId === existingAppUser.appId) {
-            throw new APIError("ERR_8")
-        }
-
-        // Validate device id
-        if (deviceId !== existingAppUser.deviceId) {
-            throw new APIError("ERR_9")
-        }
-
-        // Register to new app
-        let newAppUserHash = this.components.common.hmac(appSecret + existingAppUser.userId)
-        let newAppUser = await this.models.AppUser.findOrCreate({
-            where: {appId: appId, hash: newAppUserHash},
-            defaults: {
-                appId: appId,
-                userId: existingAppUser.userId,
-                hash: newAppUserHash,
-                deviceId: existingAppUser.deviceId,
-            }
-        })
-        newAppUser = newAppUser[0]
-
-        // TODO: Returns exchangeToken
-        return {
-            data: {
-                exchangeToken: '',
-                userHash: newAppUser.hash
-            }
-        }
-    })
-
     handleRegister = this.handleRESTAsync(async (req) => {
         // Get functions
         const {common} = this.components
@@ -407,7 +392,7 @@ class MobileController extends BaseController {
 
         // Get user, if user not found create a new one
         let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
-        let user = await this.models.User.findOrCreate({
+        let user = await this.models.LegacyUser.findOrCreate({
             where: {hash: hash},
             defaults: {hash: hash}
         })
@@ -417,7 +402,7 @@ class MobileController extends BaseController {
         // app user hash = app secret + user id
         // Do not use user.hash so we can update the phone number
         let appUserHash = common.hmac(body.appSecret + user.id)
-        let appUser = await this.models.AppUser.findOrCreate({
+        let appUser = await this.models.LegacyAppUser.findOrCreate({
             where: {appId: body.appId, userId: user.id},
             defaults: {
                 appId: body.appId,
@@ -443,6 +428,23 @@ class MobileController extends BaseController {
             }
         }
     })
+    handleRevokeAccess = this.handleRESTAsync(async (req) => {
+        // Get body
+        let body = req.body
+
+        // Delete row
+        const {LegacyAppUser: AppUser} = this.models
+        const count = await AppUser.destroy({
+            where: {
+                appId: body.appId,
+                hash: body.userHash
+            }
+        })
+
+        this.logger.debug(`DeletedRowCount=${count}`)
+
+        return {}
+    })
 
     handleRequestSmsOtp = this.handleRESTAsync(async (req) => {
         // Validate request body
@@ -457,32 +459,13 @@ class MobileController extends BaseController {
 
         return {}
     })
-
-    handleRevokeAccess = this.handleRESTAsync(async (req) => {
-        // Get body
-        let body = req.body
-
-        // Delete row
-        const {AppUser} = this.models
-        const count = await AppUser.destroy({
-            where: {
-                appId: body.appId,
-                hash: body.userHash
-            }
-        })
-
-        this.logger.debug(`DeletedRowCount=${count}`)
-
-        return {}
-    })
-
     handleUpdate = this.handleRESTAsync(async (req) => {
         // Validate body
         let body = req.body
         this.validate({notifId: 'required'}, body)
 
         // Update user
-        await this.models.AppUser.update({
+        await this.models.LegacyAppUser.update({
             notifId: body.notifId
         }, {
             where: {hash: body.userHash}
@@ -490,20 +473,6 @@ class MobileController extends BaseController {
 
         return {}
     })
-
-    handleVerifyExchangeToken = this.handleRESTAsync(async (req) => {
-        // Validate request
-        const body = req.body
-        this.validate({exchangeToken: 'required'}, body)
-
-        // Validate exchange token
-        const result = await this.validateExchangeToken(body.exchangeToken)
-
-        return {
-            data: result
-        }
-    })
-
     handleValidateAppCred = this.handleAsync(async (req, res, next) => {
         // Get method
         const {method} = req
@@ -523,7 +492,7 @@ class MobileController extends BaseController {
 
         // Count app by app id and secret
         const {appId, appSecret} = payload
-        const {App} = this.models
+        const {LegacyApp: App} = this.models
         const count = await App.count({
             where: {id: appId, secret: appSecret}
         })
@@ -534,6 +503,33 @@ class MobileController extends BaseController {
 
         next()
     })
+
+    handleVerifyExchangeToken = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body
+        this.validate({exchangeToken: 'required'}, body)
+
+        // Validate exchange token
+        const result = await this.validateExchangeToken(body.exchangeToken)
+
+        return {
+            data: result
+        }
+    })
+
+    async getAppsAccessStatus(appId, userHash) {
+        // Count user by id and hash
+        const {LegacyAppUser: AppUser} = this.models
+        const count = await AppUser.count({
+            where: {appId: appId, hash: userHash}
+        })
+
+        if (count === 1) {
+            return "GRANTED"
+        }
+
+        return "DENIED"
+    }
 
     handleValidateAppUserCred = this.handleAsync(async (req, res, next) => {
         // Get method

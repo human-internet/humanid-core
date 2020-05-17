@@ -58,7 +58,7 @@ class BaseController {
      */
     async validateAppCredentials(appId, appSecret, app) {
         if (!app) {
-            app = await this.models.App.findByPk(appId)
+            app = await this.models.LegacyApp.findByPk(appId)
         }
         if (!app || app.id !== appId) {
             throw new Error(`Invalid app ID: ${appId}`)
@@ -77,7 +77,7 @@ class BaseController {
      */
     async validateAppUserCredentials(hash, appId, appSecret) {
         // validate login hash
-        let appUser = await this.models.AppUser.findOne({
+        let appUser = await this.models.LegacyAppUser.findOne({
             where: {hash: hash},
             include: [{all: true}],
         })
