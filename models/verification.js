@@ -1,18 +1,27 @@
-'use strict';
+'use strict'
+
+const
+    TABLE_NAME = 'LegacyVerifications',
+    MODEL_NAME = 'Verification'
+
 module.exports = (sequelize, DataTypes) => {
-  const Verification = sequelize.define('Verification', {
-    number: {
-      type: DataTypes.STRING,
-      primaryKey: true,
-      allowNull: false,
-    },
-    requestId: {
-      type: DataTypes.STRING,
-      allowNull: false,
+    const Verification = sequelize.define(MODEL_NAME, {
+        number: {
+            type: DataTypes.STRING,
+            primaryKey: true,
+            allowNull: false,
+        },
+        requestId: {
+            type: DataTypes.STRING,
+            allowNull: false,
+        }
+    }, {
+        tableName: TABLE_NAME
+    })
+
+    Verification.associate = function (models) {
+        // associations can be defined here
     }
-  }, {});
-  Verification.associate = function(models) {
-    // associations can be defined here
-  };
-  return Verification;
-};
+
+    return Verification
+}
