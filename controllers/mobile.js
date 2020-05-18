@@ -393,19 +393,6 @@ class MobileController extends BaseController {
         return {}
     })
 
-    handleRequestSmsOtp = this.handleRESTAsync(async (req) => {
-        // Validate request body
-        let {body} = req
-        this.validate({
-            countryCode: 'required',
-            phone: 'required',
-        }, body)
-
-        // Send Verification via SMS
-        await this.components.nexmo.sendVerificationSMS(body.countryCode, body.phone)
-
-        return {}
-    })
     handleUpdate = this.handleRESTAsync(async (req) => {
         // Validate body
         let body = req.body
