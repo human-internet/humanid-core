@@ -18,6 +18,8 @@ class BaseController {
     }
 
     /**
+     * TODO: Replace with components.common.validateReq
+     *
      * Validate body against rules
      * @param {Object.<string, string>} rules
      * @param {*} body Request Body
