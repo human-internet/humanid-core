@@ -4,7 +4,6 @@ const
     logger = require('./logger'),
     common = require('./components/common'),
     models = require('./models/index'),
-    middlewares = require('./middlewares'),
     Server = require('./server'),
     services = require('./services/index'),
     components = require('./components/index')
@@ -12,7 +11,7 @@ const
 const port = process.env.PORT || common.config.APP_PORT
 const app = new Server({
     config: common.config,
-    components, models, services, middlewares, logger
+    components, models, services, logger
 }).app
 
 if (require.main === module) {

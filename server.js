@@ -20,7 +20,8 @@ const
     Constants = require('./constants'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    path = require('path')
+    path = require('path'),
+    legacyMiddlewares = require('./legacy-middlewares')
 
 const
     WebConsoleController = require('./controllers/webconsole'),
@@ -31,7 +32,7 @@ const
     AuthService = require('./services/auth')
 
 class Server {
-    constructor({config, components, models, services, legacyMiddlewares, logger}) {
+    constructor({config, components, models, services, logger}) {
         // Set logger
         this.logger = logger
 
@@ -56,10 +57,10 @@ class Server {
         ], this)
 
         // Init router
-        this.initRouter(legacyMiddlewares)
+        this.initRouter()
     }
 
-    initRouter(legacyMiddlewares) {
+    initRouter() {
         // Init router params
         const routerParams = {
             logger: this.logger,
