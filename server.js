@@ -30,9 +30,6 @@ const
     WebController = require('./controllers/web')
 
 const
-    AuthService = require('./services/auth')
-
-const
     Middlewares = require('./server/middlewares')
 
 class Server {
@@ -56,9 +53,7 @@ class Server {
         })
 
         // Init services
-        this.services = services.init([
-            AuthService
-        ], this)
+        this.services = services.init(this)
 
         // Init router
         this.initRouter()

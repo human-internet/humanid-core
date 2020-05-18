@@ -1,12 +1,19 @@
 'use strict'
 
-function init(services, args) {
+const
+    AuthService = require('./auth')
+
+const SERVICES = [
+    AuthService
+]
+
+function init(args) {
     // Get logger
     const {logger} = args
 
     // Load services
     const serviceMap = {}
-    services.forEach(Service => {
+    SERVICES.forEach(Service => {
         const svc = new Service(serviceMap, args)
         const svcName = svc.getServiceName()
         serviceMap[svc.getServiceName()] = svc
