@@ -23,7 +23,7 @@ class AuthService extends BaseService {
 
         // Find by client id
         const {AppCredential} = this.models
-        const appCred = await AppCredential.count({
+        const appCred = await AppCredential.findOne({
             where: {clientId}
         })
 
