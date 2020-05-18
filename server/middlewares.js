@@ -14,7 +14,7 @@ class Middlewares {
             const cred = this.getClientCredential(req)
 
             // Call validation service
-            await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_SERVER)
+            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_SERVER)
 
             next()
         })
@@ -24,7 +24,7 @@ class Middlewares {
             const cred = this.getClientCredential(req)
 
             // Call validation service
-            await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_MOBILE)
+            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_MOBILE)
 
             next()
         })

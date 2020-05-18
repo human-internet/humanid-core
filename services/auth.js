@@ -42,6 +42,12 @@ class AuthService extends BaseService {
         if (!valid) {
             throw new APIError(Constants.RESPONSE_ERROR_FORBIDDEN)
         }
+
+        // TODO: Remove legacyAppsId
+        return {
+            appId: appCred.id,
+            legacyAppsId: appCred.name
+        }
     }
 
     validateCredType(scope, credentialTypeId) {
