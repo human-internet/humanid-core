@@ -69,55 +69,39 @@ class MobileController extends BaseController {
         // Init router
         const router = express.Router()
 
-        /**
-         * @api {post} /mobile/users/verifyPhone Request OTP via SMS
-         * @apiName RequestSmsOtp
-         * @apiGroup Core.MobileAPI
-         * @apiDescription Trigger send OTP code via SMS
-         *
-         * @apiUse AppCredentialParam
-         * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
-         * @apiParam {String} phone User mobile phone number
-         *
-         * @apiUse SuccessResponse
-         * @apiUse OkResponseExample
-         *
-         * @apiUse ErrorResponse
-         */
-        router.post('/users/verifyPhone', this.handleValidateAppCred, this.handleRequestSmsOtp)
+        router.post('/users/login/request-otp', this.middlewares.authClientMobile, this.handleRESTAsync(
+            async (req) => {
+                // Validate request body
+                let {body} = req
+                this.validate({
+                    countryCode: 'required',
+                    phone: 'required',
+                }, body)
 
-        /**
-         * @api {post} /mobile/users/register Login by OTP
-         * @apiName LoginByOtp
-         * @apiGroup Core.MobileAPI
-         * @apiDescription User Login by verify given OTP code.
-         * If user has not yet granted access to app, a new AppUser will be created
-         *
-         * @apiUse AppCredentialParam
-         * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
-         * @apiParam {String} phone User mobile phone number
-         * @apiParam {String} deviceId User device ID
-         * @apiParam {String} verificationCode User phone number verification code (OTP)
-         * @apiParam {String} notifId Push notif ID
-         *
-         * @apiUse SuccessResponse
-         * @apiSuccess {Object} data Response data
-         * @apiSuccess {String} data.exchangeToken Token that can be used by Partner app server to verify if a user has been authorized by humanId
-         * @apiSuccess {String} data.userHash User identifier for Partner app
-         * @apiSuccessExample {json} SuccessResponse:
-         *   {
-         *     "success": true,
-         *     "code": "OK",
-         *     "message": "Success",
-         *     "data": {
-         *       "exchangeToken": "<EXCHANGE_TOKEN>",
-         *       "userHash": "<USER_HASH>"
-         *     }
-         *   }
-         *
-         * @apiUse ErrorResponse
-         */
-        router.post('/users/register', this.handleValidateAppCred, this.handleRegister)
+                // Send Verification via SMS
+                await this.components.nexmo.sendVerificationSMS(body.countryCode, body.phone)
+
+                return {}
+            }))
+
+        router.post('/users/login', this.middlewares.authClientMobile, this.handleRESTAsync(
+            async (req) => {
+                // Validate body
+                const {body} = req
+                this.validate({
+                    countryCode: 'required',
+                    phone: 'required',
+                    deviceId: 'required',
+                    verificationCode: 'required'
+                }, body)
+
+                // Set legacyAppId
+                // TODO: Remove legacy apps id implementation
+                body.legacyAppsId = req.client.legacyAppsId
+
+                // Call login service
+                return await this.services.User.login(body)
+            }))
 
         /**
          * @api {post} /mobile/users/revokeAccess Revoke App Access
@@ -321,6 +305,7 @@ class MobileController extends BaseController {
 
         return {}
     })
+
     handleValidateAppCred = this.handleAsync(async (req, res, next) => {
         // Get method
         const {method} = req
@@ -350,19 +335,6 @@ class MobileController extends BaseController {
         }
 
         next()
-    })
-
-    handleVerifyExchangeToken = this.handleRESTAsync(async (req) => {
-        // Validate request
-        const body = req.body
-        this.validate({exchangeToken: 'required'}, body)
-
-        // Validate exchange token
-        const result = await this.validateExchangeToken(body.exchangeToken)
-
-        return {
-            data: result
-        }
     })
 
     async getAppsAccessStatus(appId, userHash) {
