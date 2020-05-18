@@ -56,8 +56,8 @@ const BaseController = require('./base'),
  */
 
 class MobileController extends BaseController {
-    constructor({config, components, models, server, logger}) {
-        super(models, config, components, server)
+    constructor({config, components, models, server, middlewares, logger}) {
+        super(models, config, components, server, middlewares)
 
         // Create child logger
         this.logger = logger.child({scope: 'Core.MobileAPI'})

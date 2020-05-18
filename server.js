@@ -31,6 +31,9 @@ const
 const
     AuthService = require('./services/auth')
 
+const
+    Middlewares = require('./server/middlewares')
+
 class Server {
     constructor({config, components, models, services, logger}) {
         // Set logger
@@ -71,8 +74,12 @@ class Server {
                 handleAsync: this.handleAsync,
                 handleRESTAsync: this.handleRESTAsync,
                 sendResponse: this.sendResponse
-            }
+            },
+            services: this.services
         }
+
+        // Middlewares
+        routerParams.middlewares = new Middlewares(routerParams)
 
         // Get params
         const models = this.models
