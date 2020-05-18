@@ -77,14 +77,14 @@ function init($, _, locale, Handlebars, apiProject, apiData, prettyPrint, sample
     var templateArticle = Handlebars.compile($('#template-article').html());
     var templateCompareArticle = Handlebars.compile($('#template-compare-article').html());
     var templateGenerator = Handlebars.compile($('#template-generator').html());
-    var templateProject        = Handlebars.compile( $('#template-project').html() );
-    var templateSections       = Handlebars.compile( $('#template-sections').html() );
-    var templateSidenav        = Handlebars.compile( $('#template-sidenav').html() );
+    var templateProject = Handlebars.compile($('#template-project').html());
+    var templateSections = Handlebars.compile($('#template-sections').html());
+    var templateSidenav = Handlebars.compile($('#template-sidenav').html());
 
     //
     // apiProject defaults
     //
-    if ( ! apiProject.template)
+    if (!apiProject.template)
         apiProject.template = {};
 
     if (apiProject.template.withCompare == null)
@@ -234,13 +234,13 @@ function init($, _, locale, Handlebars, apiProject, apiData, prettyPrint, sample
         }
         var topics = content.match(/<h(1|2).*?>(.+?)<\/h(1|2)>/gi);
         if ( topics ) {
-            topics.forEach(function(entry) {
-                var level = entry.substring(2,3);
+            topics.forEach(function (entry) {
+                var level = entry.substring(2, 3);
                 var title = entry.replace(/<.+?>/g, '');    // Remove all HTML tags for the title
                 var entry_tags = entry.match(/id="api-([^\-]+)(?:-(.+))?"/);    // Find the group and name in the id property
                 var group = (entry_tags ? entry_tags[1] : null);
                 var name = (entry_tags ? entry_tags[2] : null);
-                if (level==1 && title && group)  {
+                if (level == 1 && title && group) {
                     nav.splice(index, 0, {
                         group: group,
                         isHeader: true,
@@ -250,7 +250,7 @@ function init($, _, locale, Handlebars, apiProject, apiData, prettyPrint, sample
                     index++;
                     found_level1 = true;
                 }
-                if (level==2 && title && group && name)    {
+                if (level == 2 && title && group && name) {
                     nav.splice(index, 0, {
                         group: group,
                         name: name,
@@ -524,7 +524,6 @@ function init($, _, locale, Handlebars, apiProject, apiData, prettyPrint, sample
         // init modules
         sampleRequest.initDynamic();
     }
-
     initDynamic();
 
     if (apiProject.template.aloneDisplay) {
@@ -583,7 +582,6 @@ function init($, _, locale, Handlebars, apiProject, apiData, prettyPrint, sample
         initDynamic();
 
     }
-
     setMainVersion();
 
     $('#versions li.version a').on('click', function (e) {

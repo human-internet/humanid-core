@@ -347,17 +347,17 @@ define([
         var data = diffs[x][1];  // Text of change.
         var text = data.replace(pattern_amp, '&amp;').replace(pattern_lt, '&lt;')
             .replace(pattern_gt, '&gt;').replace(pattern_para, '&para;<br>');
-        switch (op) {
-          case DIFF_INSERT:
-            html[x] = '<ins>' + text + '</ins>';
-            break;
-          case DIFF_DELETE:
-              html[x] = '<del>' + text + '</del>';
-              break;
-            case DIFF_EQUAL:
-                html[x] = '<span>' + text + '</span>';
-                break;
-        }
+          switch (op) {
+              case DIFF_INSERT:
+                  html[x] = '<ins>' + text + '</ins>';
+                  break;
+              case DIFF_DELETE:
+                  html[x] = '<del>' + text + '</del>';
+                  break;
+              case DIFF_EQUAL:
+                  html[x] = '<span>' + text + '</span>';
+                  break;
+          }
       }
         return html.join('');
     };
