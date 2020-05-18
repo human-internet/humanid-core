@@ -3,13 +3,17 @@
 const
     logger = require('./logger'),
     common = require('./components/common'),
-    nexmo = require('./components/nexmo'),
     models = require('./models/index'),
     middlewares = require('./middlewares'),
-    Server = require('./server')
+    Server = require('./server'),
+    services = require('./services/index'),
+    components = require('./components/index')
 
 const port = process.env.PORT || common.config.APP_PORT
-const app = new Server(models, common, middlewares, nexmo, {logger}).app
+const app = new Server({
+    config: common.config,
+    components, models, services, middlewares, logger
+}).app
 
 if (require.main === module) {
     if (process.env['DROP_CREATE'] === '1') {

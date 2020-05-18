@@ -16,37 +16,44 @@
  */
 
 const
+    APIError = require('./server/api_error'),
     Constants = require('./constants'),
     express = require('express'),
     bodyParser = require('body-parser'),
-    path = require('path'),
-    ResponseMapper = require('./components/response-mapper'),
+    path = require('path')
+
+const
     WebConsoleController = require('./controllers/webconsole'),
     MobileController = require('./controllers/mobile'),
-    WebController = require('./controllers/web'),
-    APIError = require('./server/api_error')
+    WebController = require('./controllers/web')
+
+const
+    AuthService = require('./services/auth')
 
 class Server {
-    constructor(models, common, middlewares, nexmo, {logger}) {
+    constructor({config, components, models, services, middlewares, logger}) {
         // Set logger
         this.logger = logger
 
         // Init config
-        this.config = common.config
-
-        // Init work dir
-        this.workDir = path.resolve('./')
+        // TODO: refactor config structure
+        this.config = config
+        this.config.server = {
+            workDir: path.resolve('./')
+        }
 
         // Init models
         this.models = models
 
         // Init components
-        ResponseMapper.init({filePath: this.workDir + '/response-codes.json'})
-        this.components = {
-            common,
-            nexmo,
-            response: ResponseMapper
-        }
+        this.components = components.init({
+            config: this.config
+        })
+
+        // Init services
+        this.services = services.init([
+            AuthService
+        ], this)
 
         // Init router
         this.initRouter(middlewares)
