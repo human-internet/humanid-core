@@ -1,10 +1,12 @@
 'use strict'
 
 const
-    AuthService = require('./auth')
+    AuthService = require('./auth'),
+    UserService = require('./user')
 
 const SERVICES = [
-    AuthService
+    AuthService,
+    UserService
 ]
 
 function init(args) {
