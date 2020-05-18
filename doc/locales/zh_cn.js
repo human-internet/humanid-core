@@ -1,8 +1,8 @@
 define({
     'zh_cn': {
-        'Allowed values:'             : '允许值:',
+        'Allowed values:': '允许值:',
         'Compare all with predecessor': '与所有较早的比较',
-        'compare changes to:'         : '将当前版本与指定版本比较:',
+        'compare changes to:': '将当前版本与指定版本比较:',
         'compared to': '相比于',
         'Default value:': '默认值:',
         'Description': '描述',
