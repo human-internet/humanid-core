@@ -4,17 +4,20 @@ const APIError = require('../server/api_error'),
     Constants = require('../constants')
 
 class BaseController {
-    constructor(models, config, components, server, middlewares) {
+    constructor(models, args) {
         this.models = models
-        this.config = config
-        this.components = components
-        this.middlewares = middlewares
 
-        // TODO: update child classes constructor calls and remove server unset check
-        if (server) {
-            this.handleRESTAsync = server.handleRESTAsync
-            this.handleAsync = server.handleAsync
-            this.sendResponse = server.sendResponse
+        // TODO: update child classes constructor calls and remove args unset check
+        if (args) {
+            this.config = args.config
+            this.components = args.components
+            this.services = args.services
+            this.middlewares = args.middlewares
+
+            // Set server functions
+            this.handleRESTAsync = args.server.handleRESTAsync
+            this.handleAsync = args.server.handleAsync
+            this.sendResponse = args.server.sendResponse
         }
     }
 

@@ -56,11 +56,11 @@ const BaseController = require('./base'),
  */
 
 class MobileController extends BaseController {
-    constructor({config, components, models, server, middlewares, logger}) {
-        super(models, config, components, server, middlewares)
+    constructor(args) {
+        super(args.models, args)
 
         // Create child logger
-        this.logger = logger.child({scope: 'Core.MobileAPI'})
+        this.logger = args.logger.child({scope: 'Core.MobileAPI'})
 
         this._exchangeToken = {
             aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
