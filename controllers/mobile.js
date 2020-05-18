@@ -4,56 +4,6 @@ const BaseController = require('./base'),
     express = require('express'),
     APIError = require('../server/api_error')
 
-/**
- * @apiDefine AppUser
- * @apiSuccess {String} appId Partner app ID
- * @apiSuccess {String} hash User hash (unique authentication code) for given app
- * @apiSuccess {String} deviceId User unique authentication code for given app
- * @apiSuccess {String} notifId Push notif ID
- */
-
-/**
- * @apiDefine AppCredentialParam
- * @apiParam {String} appId Partner app ID
- * @apiParam {String} appSecret Partner app secret
- */
-
-/**
- * @apiDefine UserCredentialParam
- * @apiParam {String} userHash User identifier for Partner app
- */
-
-/**
- * @apiDefine SuccessResponse
- * @apiSuccess {Boolean} success Response status
- * @apiSuccess {String} code Result code
- * @apiSuccess {String} message Result message
- */
-
-/**
- * @apiDefine OkResponseExample
- * @apiSuccessExample {json} SuccessResponse:
- *   {
- *     "success": true,
- *     "code": "OK",
- *     "message": "Success"
- *   }
- */
-
-/**
- * @apiDefine ErrorResponse
- * @apiError {Boolean} success Response status
- * @apiError {String} code Error code
- * @apiError {String} message Error message
- *
- * @apiErrorExample {json} ErrorResponse:
- *   {
- *     "success": false,
- *     "code": "<ERROR_CODE>",
- *     "message": "<ERROR_MESSAGE>"
- *   }
- */
-
 class MobileController extends BaseController {
     constructor(args) {
         super(args.models, args)
@@ -119,32 +69,6 @@ class MobileController extends BaseController {
          */
         router.put('/users/revokeAccess',
             [this.handleValidateAppCred, this.handleValidateAppUserCred], this.handleRevokeAccess)
-
-        /**
-         * @api {post} /mobile/users/verifyExchangeToken Verify Exchange Token
-         * @apiName VerifyExchangeToken
-         * @apiGroup Core.ServerAPI
-         * @apiDescription Host-to-host API for Partner App Server to retrieve user hash
-         *
-         * @apiUse AppCredentialParam
-         * @apiParam {String} exchangeToken Token that can be used by Partner app server to verify if a user has been authorized by humanId
-         *
-         * @apiUse SuccessResponse
-         * @apiSuccess {Object} data Response data
-         * @apiSuccess {String} data.userHash User identifier for Partner app
-         * @apiSuccessExample {json} SuccessResponse:
-         *   {
-         *     "success": true,
-         *     "code": "OK",
-         *     "message": "Success",
-         *     "data": {
-         *       "userHash": "<USER_HASH>"
-         *     }
-         *   }
-         *
-         * @apiUse ErrorResponse
-         */
-        router.post('/users/verifyExchangeToken', this.handleValidateAppCred, this.handleVerifyExchangeToken)
 
         /**
          * @api {get} /mobile/users/login Validate App User Access
