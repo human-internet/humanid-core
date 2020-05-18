@@ -31,7 +31,7 @@ const
     AuthService = require('./services/auth')
 
 class Server {
-    constructor({config, components, models, services, middlewares, logger}) {
+    constructor({config, components, models, services, legacyMiddlewares, logger}) {
         // Set logger
         this.logger = logger
 
@@ -56,10 +56,10 @@ class Server {
         ], this)
 
         // Init router
-        this.initRouter(middlewares)
+        this.initRouter(legacyMiddlewares)
     }
 
-    initRouter(middlewares) {
+    initRouter(legacyMiddlewares) {
         // Init router params
         const routerParams = {
             logger: this.logger,
