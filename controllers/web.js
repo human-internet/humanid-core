@@ -28,13 +28,14 @@ class WebController extends BaseController {
 		router.use(cookieParser())
 
 		/**
+		 * @apiIgnore WIP
 		 * @api {post} /web/users/login Login
 		 * @apiName Login
 		 * @apiGroup Web
 		 * @apiDescription Attempt to login by phone number. If not authorized, request confirmation based on <code>type</code>:
 		 * <p>1. <code>app</code>: Send login push notification to one of mobile app: <code>{"type": "WEB_LOGIN_REQUEST", "requestingAppId": "APP_ID"}</code> where <code>type</code> always be <code>WEB_LOGIN_REQUEST</code>, and <code>requestingAppId</code> is the ID of the app that requests login</p>
 		 * <p>2. <code>otp</code>: Send SMS containing OTP code to phone number (if already registered)</p>
-		 * 
+		 *
 		 * @apiParam {String} [type] Auth type <code>{'app','otp'}</code>. Default: <code>'app'</code>
 		 * @apiParam {String} countryCode User mobile phone country code (eg. 62 for Indonesia)
 		 * @apiParam {String} phone User mobile phone number
@@ -238,6 +239,7 @@ class WebController extends BaseController {
 		})
 
 		/**
+		 * @apiIgnore WIP
 		 * @api {get} /web/users/status Status
 		 * @apiName Status
 		 * @apiGroup Web
@@ -246,15 +248,15 @@ class WebController extends BaseController {
 		 * @apiParam {String} sessionId Obtained from login response
 		 * @apiParam {String} appId Partner app ID
 		 * @apiParam {String} appSecret Partner app secret
-		 * 
+		 *
 		 * @apiSuccess (200) {String} appId Partner app ID
 		 * @apiSuccess (200) {String} sessionId session ID
 		 * @apiSuccess (200) {String} status <code>CONFIRMED</code>
-		 * 
+		 *
 		 * @apiSuccess (202) {String} appId Partner app ID
 		 * @apiSuccess (202) {String} sessionId session ID
 		 * @apiSuccess (202) {String} status <code>PENDING</code>
-		 * 
+		 *
 		 */
 		router.get('/users/status', async (req, res, next) => {
 			let body = req.query
@@ -298,6 +300,7 @@ class WebController extends BaseController {
 		})
 
 		/**
+		 * @apiIgnore WIP
 		 * @api {post} /web/users/logout Logout
 		 * @apiName Logout
 		 * @apiGroup Web
@@ -306,7 +309,7 @@ class WebController extends BaseController {
 		 * @apiParam {String} sessionId Obtained from login response
 		 * @apiParam {String} appId Partner app ID
 		 * @apiParam {String} appSecret Partner app secret
-		 * 
+		 *
 		 */
 		router.post('/users/logout', async (req, res, next) => {
 			let body = req.body
@@ -356,6 +359,7 @@ class WebController extends BaseController {
 		})
 
 		/**
+		 * @apiIgnore WIP
 		 * @api {post} /web/users/confirm Confirm
 		 * @apiName Confirm
 		 * @apiGroup Mobile
@@ -383,6 +387,7 @@ class WebController extends BaseController {
 		})
 
 		/**
+		 * @apiIgnore WIP
 		 * @api {post} /web/users/reject Reject
 		 * @apiName Reject
 		 * @apiGroup Mobile

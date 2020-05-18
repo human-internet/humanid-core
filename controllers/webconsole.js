@@ -13,10 +13,11 @@ class WebConsoleController extends BaseController {
         this.hmac = common.hmac
 
         /**
+         * @apiIgnore WIP
          * @api {post} /console/login Login
          * @apiName login
          * @apiGroup WebConsole
-         * 
+         *
          * @apiParam {String} email
          * @apiParam {String} password
          *
@@ -51,13 +52,14 @@ class WebConsoleController extends BaseController {
         })
 
         /**
+         * @apiIgnore WIP
          * @api {post} /console/apps App registration
          * @apiName CreateApp
          * @apiGroup WebConsole
          * @apiDescription New (partner) app registration
-         * 
+         *
          * @apiHeader {String} Authorization <code>Bearer accessToken</code>
-         * 
+         *
          * @apiParam {String} appId Application ID
          *
          * @apiSuccess {String} id Application ID (must be unique 5-20 characters alphanumeric)
@@ -88,13 +90,14 @@ class WebConsoleController extends BaseController {
         })
 
         /**
+         * @apiIgnore WIP
          * @api {get} /console/apps App list
          * @apiName ListApps
          * @apiGroup WebConsole
          * @apiDescription Get list of registered (partner) apps
-         * 
+         *
          * @apiHeader {String} Authorization <code>Bearer accessToken</code>
-         * 
+         *
          * @apiSuccess {Array} data
          * @apiSuccess {Integer} total
          * @apiSuccess {Integer} pages
@@ -117,13 +120,14 @@ class WebConsoleController extends BaseController {
         })
 
         /**
+         * @apiIgnore WIP
          * @api {get} /console/users User list
          * @apiName ListUser
          * @apiGroup WebConsole
          * @apiDescription Get list of registered users
-         * 
+         *
          * @apiHeader {String} Authorization <code>Bearer accessToken</code>
-         * 
+         *
          * @apiSuccess {Array} data
          * @apiSuccess {Integer} total
          * @apiSuccess {Integer} pages

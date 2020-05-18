@@ -54,6 +54,7 @@ class MobileController extends BaseController {
             }))
 
         /**
+         * @apiIgnore WIP
          * @api {post} /mobile/users/revokeAccess Revoke App Access
          * @apiName RevokeAppAccess
          * @apiGroup Core.MobileAPI
@@ -71,6 +72,7 @@ class MobileController extends BaseController {
             [this.handleValidateAppCred, this.handleValidateAppUserCred], this.handleRevokeAccess)
 
         /**
+         * @apiIgnore WIP
          * @api {get} /mobile/users/login Validate App User Access
          * @apiName ValidateAppUserAccess
          * @apiGroup Core.MobileAPI
@@ -88,6 +90,7 @@ class MobileController extends BaseController {
             [this.handleValidateAppCred, this.handleValidateAppUserCred], this.handleCheckAppUserAccess)
 
         /**
+         * @apiIgnore WIP
          * @api {post} /mobile/users/login Login by Existing Access
          * @apiName LoginByExistingAccess
          * @apiGroup Core.MobileAPI
@@ -118,6 +121,7 @@ class MobileController extends BaseController {
         router.post('/users/login', this.handleValidateAppCred, this.handleLogin)
 
         /**
+         * @apiIgnore WIP
          * @api {put} /mobile/users Update FCM Notification Id
          * @apiName UpdateNotificationId
          * @apiGroup Core.MobileAPI
