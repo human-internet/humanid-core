@@ -374,60 +374,7 @@ class MobileController extends BaseController {
     handleCheckAppUserAccess = this.handleRESTAsync(async () => {
         return {}
     })
-    handleRegister = this.handleRESTAsync(async (req) => {
-        // Get functions
-        const {common} = this.components
 
-        // Validate body
-        const {body} = req
-        this.validate({
-            countryCode: 'required',
-            phone: 'required',
-            deviceId: 'required',
-            verificationCode: 'required'
-        }, body)
-
-        // Verify code
-        await this.verifyOtpCode(body.countryCode, body.phone, body.verificationCode)
-
-        // Get user, if user not found create a new one
-        let hash = common.hmac(common.combinePhone(body.countryCode, body.phone))
-        let user = await this.models.LegacyUser.findOrCreate({
-            where: {hash: hash},
-            defaults: {hash: hash}
-        })
-        user = user[0]
-
-        // register user to the app
-        // app user hash = app secret + user id
-        // Do not use user.hash so we can update the phone number
-        let appUserHash = common.hmac(body.appSecret + user.id)
-        let appUser = await this.models.LegacyAppUser.findOrCreate({
-            where: {appId: body.appId, userId: user.id},
-            defaults: {
-                appId: body.appId,
-                userId: user.id,
-                hash: appUserHash,
-                deviceId: body.deviceId,
-            }
-        })
-        appUser = appUser[0]
-
-        // If user device id is different with request, throw error
-        if (appUser.deviceId !== body.deviceId) {
-            throw new APIError("ERR_3", `Existing login found on deviceId: ${appUser.deviceId}`)
-        }
-
-        // Create exchange token
-        const exchangeToken = this.createExchangeToken(body.appId, appUser.hash, new Date())
-
-        return {
-            data: {
-                exchangeToken,
-                userHash: appUser.hash
-            }
-        }
-    })
     handleRevokeAccess = this.handleRESTAsync(async (req) => {
         // Get body
         let body = req.body
