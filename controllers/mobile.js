@@ -63,9 +63,9 @@ class MobileController extends BaseController {
         this.logger = logger.child({scope: 'Core.MobileAPI'})
 
         this._exchangeToken = {
-            aesKey: config.EXCHANGE_TOKEN_AES_KEY,
-            aesIv: config.EXCHANGE_TOKEN_AES_IV,
-            lifetime: config.EXCHANGE_TOKEN_LIFETIME
+            aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
+            aesIv: this.config.EXCHANGE_TOKEN_AES_IV,
+            lifetime: this.config.EXCHANGE_TOKEN_LIFETIME
         }
 
         this.route()
