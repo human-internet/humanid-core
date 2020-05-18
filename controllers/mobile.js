@@ -2,7 +2,6 @@
 
 const BaseController = require('./base'),
     express = require('express'),
-    crypto = require('crypto'),
     APIError = require('../server/api_error')
 
 /**
@@ -62,12 +61,7 @@ class MobileController extends BaseController {
         // Create child logger
         this.logger = args.logger.child({scope: 'Core.MobileAPI'})
 
-        this._exchangeToken = {
-            aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
-            aesIv: this.config.EXCHANGE_TOKEN_AES_IV,
-            lifetime: this.config.EXCHANGE_TOKEN_LIFETIME
-        }
-
+        // Init routing
         this.route()
     }
 
@@ -290,86 +284,6 @@ class MobileController extends BaseController {
             }
         }
     })
-
-    createExchangeToken(appId, userHash, timestamp) {
-        // Create expired at
-        const epoch = this.components.common.getEpoch(timestamp)
-        const expiredAt = epoch + this._exchangeToken.lifetime
-
-        // Create payload
-        const payload = {
-            appId,
-            userHash,
-            expiredAt
-        }
-
-        // Encrypt
-        return this.encrypt(payload)
-    }
-
-    async validateExchangeToken(exchangeToken) {
-        // Decrypt token
-        let payload
-        try {
-            payload = this.decrypt(exchangeToken)
-        } catch (e) {
-            this.logger.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
-            throw new APIError("ERR_1")
-        }
-
-        // Validate expired at
-        const now = this.components.common.getEpoch(new Date())
-        if (now > payload.expiredAt) {
-            throw new APIError("ERR_2")
-        }
-
-        // Get access status
-        const accessStatus = await this.getAppsAccessStatus(payload.appId, payload.userHash)
-
-        // Validate access status
-        if (accessStatus !== "GRANTED") {
-            throw new APIError('ERR_7')
-        }
-
-        return {
-            userHash: payload.userHash
-        }
-    }
-
-    encrypt(payload) {
-        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
-        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
-        const payloadStr = JSON.stringify(payload)
-        let encrypted = cipher.update(payloadStr)
-        encrypted = Buffer.concat([encrypted, cipher.final()])
-        return encrypted.toString('base64')
-    }
-
-    decrypt(encrypted) {
-        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
-        let encryptedBuf = Buffer.from(encrypted, 'base64')
-        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
-        let decrypted = decipher.update(encryptedBuf)
-        decrypted = Buffer.concat([decrypted, decipher.final()])
-        const jsonStr = decrypted.toString()
-        return JSON.parse(jsonStr)
-    }
-
-    async verifyOtpCode(countryCode, phone, verificationCode) {
-        // Verify code
-        try {
-            await this.components.nexmo.checkVerificationSMS(countryCode, phone, verificationCode)
-        } catch (e) {
-            // If a ValidationError, throw a handled error
-            if (e.name && e.name === 'ValidationError') {
-                throw new APIError("ERR_5")
-            }
-            // Else, re-throw unhandled error
-            throw e
-        }
-    }
 
     handleCheckAppUserAccess = this.handleRESTAsync(async () => {
         return {}

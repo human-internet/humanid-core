@@ -2,7 +2,8 @@
 
 const
     APIError = require('../server/api_error'),
-    Constants = require('../constants')
+    Constants = require('../constants'),
+    crypto = require('crypto')
 
 const
     BaseService = require('./base')
@@ -15,6 +16,12 @@ const
 class AuthService extends BaseService {
     constructor(services, args) {
         super('Auth', services, args)
+
+        this._exchangeToken = {
+            aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
+            aesIv: this.config.EXCHANGE_TOKEN_AES_IV,
+            lifetime: this.config.EXCHANGE_TOKEN_LIFETIME
+        }
     }
 
     async authClient(credential, scope) {
@@ -57,6 +64,72 @@ class AuthService extends BaseService {
             return true
         }
         return false
+    }
+
+    async validateExchangeToken(exchangeToken) {
+        // Decrypt token
+        let payload
+        try {
+            payload = this.decryptAES(exchangeToken)
+        } catch (e) {
+            this.logger.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
+            throw new APIError("ERR_1")
+        }
+
+        // Validate expired at
+        const now = this.components.common.getEpoch(new Date())
+        if (now > payload.expiredAt) {
+            throw new APIError("ERR_2")
+        }
+
+        // Get access status
+        const accessStatus = await this.services.User.getAppsAccessStatus(payload.appId, payload.userHash)
+
+        // Validate access status
+        if (accessStatus !== "GRANTED") {
+            throw new APIError('ERR_7')
+        }
+
+        return {
+            userAppId: payload.userHash
+        }
+    }
+
+    createExchangeToken(appId, userHash, timestamp) {
+        // Create expired at
+        const epoch = this.components.common.getEpoch(timestamp)
+        const expiredAt = epoch + this._exchangeToken.lifetime
+
+        // Create payload
+        const payload = {
+            appId,
+            userHash,
+            expiredAt
+        }
+
+        // Encrypt
+        return this.encryptAES(payload)
+    }
+
+    encryptAES(payload) {
+        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
+        const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
+        const payloadStr = JSON.stringify(payload)
+        let encrypted = cipher.update(payloadStr)
+        encrypted = Buffer.concat([encrypted, cipher.final()])
+        return encrypted.toString('base64')
+    }
+
+    decryptAES(encrypted) {
+        const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
+        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
+        let encryptedBuf = Buffer.from(encrypted, 'base64')
+        const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
+        let decrypted = decipher.update(encryptedBuf)
+        decrypted = Buffer.concat([decrypted, decipher.final()])
+        const jsonStr = decrypted.toString()
+        return JSON.parse(jsonStr)
     }
 }
 
