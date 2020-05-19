@@ -471,7 +471,7 @@ class MobileController extends BaseController {
             }
         })
 
-        this.logger.log(`DEBUG: DeletedRowCount=${count}`)
+        this.logger.debug(`DeletedRowCount=${count}`)
 
         return {}
     })
