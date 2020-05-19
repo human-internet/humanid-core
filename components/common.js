@@ -34,6 +34,7 @@ config.EXCHANGE_TOKEN_AES_KEY = process.env.EXCHANGE_TOKEN_AES_KEY || config.EXC
 config.EXCHANGE_TOKEN_AES_IV = process.env.EXCHANGE_TOKEN_AES_IV || config.EXCHANGE_TOKEN_AES_IV
 config.EXCHANGE_TOKEN_LIFETIME = process.env.EXCHANGE_TOKEN_LIFETIME || config.EXCHANGE_TOKEN_LIFETIME
 config.APP_DEBUG = process.env.APP_DEBUG || false
+config.BASE_PATH = process.env.BASE_PATH || config.BASE_PATH || ''
 
 // Demo App Config
 config.DEMO_APP_JWT_LIFETIME = process.env.DEMO_APP_JWT_LIFETIME || '15m';

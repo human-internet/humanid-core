@@ -70,6 +70,9 @@ class Server {
         const models = this.models
         const {common, nexmo} = this.components
 
+        // Get base url
+        const basePath = this.config.BASE_PATH
+
         // Init Main Routers
         this.app = express()
 
@@ -78,12 +81,12 @@ class Server {
         this.app.use(bodyParser.urlencoded({extended: true}))
 
         // Configure routing
-        this.app.use('/', express.static('doc'))
-        this.app.use('/lib', express.static('client/dist'))
-        this.app.use('/examples', express.static('examples'))
-        this.app.use('/console', new WebConsoleController(models, common, middlewares).router)
-        this.app.use('/mobile', new MobileController(routerParams).router)
-        this.app.use('/web', new WebController(models, common, nexmo).router)
+        this.app.use(`${basePath}/`, express.static('doc'))
+        this.app.use(`${basePath}/lib`, express.static('client/dist'))
+        this.app.use(`${basePath}/examples`, express.static('examples'))
+        this.app.use(`${basePath}/console`, new WebConsoleController(models, common, middlewares).router)
+        this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router)
+        this.app.use(`${basePath}/web`, new WebController(models, common, nexmo).router)
 
         // Handle Errors
         this.app.use((req, res) => {
