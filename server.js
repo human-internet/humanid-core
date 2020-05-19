@@ -95,7 +95,7 @@ class Server {
         this.app.use(`${basePath}/`, express.static('doc'))
         this.app.use(`${basePath}/lib`, express.static('client/dist'))
         this.app.use(`${basePath}/examples`, express.static('examples'))
-        this.app.use(`${basePath}/console`, new WebConsoleController(models, common, middlewares).router)
+        this.app.use(`${basePath}/console`, new WebConsoleController(models, common, legacyMiddlewares).router)
         this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router)
         this.app.use(`${basePath}/server`, new ServerController(routerParams).router)
         this.app.use(`${basePath}/web`, new WebController(models, common, nexmo).router)
