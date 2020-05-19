@@ -30,7 +30,7 @@ class UserService extends BaseService {
         // register user to the app
         // app user hash = app secret + user id
         // Do not use user.hash so we can update the phone number
-        let appUserHash = common.hmac(payload.appSecret + user.id)
+        let appUserHash = common.hmac(this.config.APP_SECRET + user.id)
         let appUser = await this.models.LegacyAppUser.findOrCreate({
             where: {appId: payload.legacyAppsId, userId: user.id},
             defaults: {
