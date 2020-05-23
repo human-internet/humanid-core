@@ -27,9 +27,14 @@ if (require.main === module) {
                 app.listen(port, () => logger.info(`Listening on port ${port}..`))
             })
     } else {
-        app.listen(port, () =>
-            logger.info(`Listening on port ${port}..`),
-        )
+        app.listen(port, () => {
+            logger.info(`Listening on port ${port}...`)
+            logger.info(`Base Path: ${common.config.BASE_PATH}`)
+
+            if (common.config.DEMO_MODE) {
+                logger.info('Running on Demo mode')
+            }
+        })
     }
 } else {
     module.exports = app
