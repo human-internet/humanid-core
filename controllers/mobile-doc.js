@@ -108,3 +108,37 @@
  *
  * @apiUse ErrorResponse
  */
+
+// ----------
+
+/**
+ * @api {post} /mobile/users/revokeAccess Revoke App Access
+ * @apiVersion 0.0.1
+ * @apiName RevokeAppAccess
+ * @apiGroup Core.MobileAPI
+ * @apiDescription Revoke Partner App access to User data
+ *
+ * @apiUse AppCredentialParam
+ * @apiUse UserCredentialParam
+ *
+ * @apiUse SuccessResponse
+ * @apiUse OkResponseExample
+ *
+ * @apiUse ErrorResponse
+ */
+
+/**
+ * @api {post} /mobile/users/revoke-access Revoke App Access
+ * @apiVersion 0.0.2
+ * @apiName RevokeAppAccess
+ * @apiGroup Core.MobileAPI
+ * @apiDescription Revoke Partner App access to User data
+ *
+ * @apiUse MobileClientCredential
+ * @apiUse UserCredentialParam
+ *
+ * @apiUse SuccessResponse
+ * @apiUse OkResponseExample
+ *
+ * @apiUse ErrorResponse
+ */
