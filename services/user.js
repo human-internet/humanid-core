@@ -1,7 +1,8 @@
 'use strict'
 
 const
-    APIError = require('../server/api_error')
+    APIError = require('../server/api_error'),
+    Constants = require("../constants")
 
 const
     BaseService = require('./base')
@@ -55,6 +56,25 @@ class UserService extends BaseService {
                 exchangeToken
             }
         }
+    }
+
+    async revokeAccess(opt) {
+        // Get apps access status
+        const accessStatus = await this.getAppsAccessStatus(opt.legacyAppsId, opt.legacyUserHash)
+        if (accessStatus !== "GRANTED") {
+            throw new APIError(Constants.RESPONSE_ERROR_UNAUTHORIZED)
+        }
+
+        // Delete row
+        const {LegacyAppUser: AppUser} = this.models
+        const count = await AppUser.destroy({
+            where: {
+                appId: opt.legacyAppsId,
+                hash: opt.legacyUserHash
+            }
+        })
+
+        this.logger.debug(`DeletedRowCount=${count}`)
     }
 
     async verifyOtpCode(countryCode, phone, verificationCode) {

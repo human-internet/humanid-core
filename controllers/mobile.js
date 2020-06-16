@@ -53,23 +53,22 @@ class MobileController extends BaseController {
                 return await this.services.User.login(body)
             }))
 
-        /**
-         * @apiIgnore WIP
-         * @api {post} /mobile/users/revokeAccess Revoke App Access
-         * @apiName RevokeAppAccess
-         * @apiGroup Core.MobileAPI
-         * @apiDescription Revoke Partner App access to User data
-         *
-         * @apiUse AppCredentialParam
-         * @apiUse UserCredentialParam
-         *
-         * @apiUse SuccessResponse
-         * @apiUse OkResponseExample
-         *
-         * @apiUse ErrorResponse
-         */
-        router.put('/users/revokeAccess',
-            [this.handleValidateAppCred, this.handleValidateAppUserCred], this.handleRevokeAccess)
+        router.put('/users/revoke-access', this.middlewares.authClientMobile, this.handleRESTAsync(
+            async (req) => {
+                // Get body
+                let {body} = req
+
+                // Validate payload
+                this.validate({userHash: 'required'}, body)
+
+                // Call revoke service
+                await this.services.User.revokeAccess({
+                    legacyAppsId: req.client.legacyAppsId,
+                    legacyUserHash: body.userHash
+                })
+
+                return {}
+            }))
 
         /**
          * @apiIgnore WIP
@@ -198,24 +197,6 @@ class MobileController extends BaseController {
     })
 
     handleCheckAppUserAccess = this.handleRESTAsync(async () => {
-        return {}
-    })
-
-    handleRevokeAccess = this.handleRESTAsync(async (req) => {
-        // Get body
-        let body = req.body
-
-        // Delete row
-        const {LegacyAppUser: AppUser} = this.models
-        const count = await AppUser.destroy({
-            where: {
-                appId: body.appId,
-                hash: body.userHash
-            }
-        })
-
-        this.logger.debug(`DeletedRowCount=${count}`)
-
         return {}
     })
 
