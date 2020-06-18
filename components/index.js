@@ -3,17 +3,26 @@
 const
     Common = require('./common'),
     ResponseMapper = require('./response-mapper'),
-    Nexmo = require('./nexmo')
+    smsNexmo = require('./nexmo'),
+    smsAWS = require('./aws-sms')
 
 function init({config}) {
     // Init response mapper singleton
     ResponseMapper.init({filePath: config.server.workDir + '/response-codes.json'})
 
+    // Init AWS SMS Provider
+    smsAWS.init({
+        accessKeyId: config['AWS_ACCESS_KEY_ID'],
+        secretAccessKey: config['AWS_SECRET_ACCESS_KEY'],
+        region: config['AWS_SMS_REGION']
+    })
+
     // Return components
     return {
         common: Common,
-        nexmo: Nexmo,
-        response: ResponseMapper
+        nexmo: smsNexmo,
+        response: ResponseMapper,
+        smsAWS: smsAWS,
     }
 }
 
