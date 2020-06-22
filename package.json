@@ -37,7 +37,7 @@
     "node-fetch": "^2.6.0",
     "request": "^2.88.0",
     "sequelize": "^5.18.4",
-    "sqlite3": "^4.1.1",
+    "sqlite3": "^4.2.0",
     "umzug": "^2.2.0",
     "winston": "^3.2.1"
   },
