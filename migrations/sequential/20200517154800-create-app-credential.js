@@ -2,6 +2,7 @@
 
 module.exports = {
     up: async (queryInterface, Sequelize) => {
+        // Create reference data table
         await queryInterface.createTable('CredentialStatus', {
             id: {
                 type: Sequelize.INTEGER,
@@ -34,6 +35,24 @@ module.exports = {
                 defaultValue: '2020-01-01 00:00:00'
             }
         })
+        await queryInterface.createTable('AppEnvironment', {
+            id: {
+                type: Sequelize.INTEGER,
+                primaryKey: true,
+                autoIncrement: false,
+            },
+            name: {
+                type: Sequelize.STRING(32),
+                allowNull: false
+            },
+            updatedAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: '2020-01-01 00:00:00'
+            }
+        })
+
+        // Create table
         await queryInterface.createTable('AppCredential', {
             id: {
                 type: Sequelize.BIGINT,
@@ -45,6 +64,14 @@ module.exports = {
                 allowNull: false,
                 references: {
                     model: 'App',
+                    key: 'id'
+                }
+            },
+            environmentId: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+                references: {
+                    model: 'AppEnvironment',
                     key: 'id'
                 }
             },
@@ -97,7 +124,11 @@ module.exports = {
                 defaultValue: 1
             }
         })
+
+        // Create index
         await queryInterface.addIndex('AppCredential', ['clientId'])
+
+        // Insert reference data
         await queryInterface.bulkInsert('CredentialStatus', [
             {id: 1, name: 'Active', updatedAt: '2020-01-01 00:00:00'},
             {id: 2, name: 'Inactive', updatedAt: '2020-01-01 00:00:00'}
@@ -105,6 +136,10 @@ module.exports = {
         await queryInterface.bulkInsert('CredentialType', [
             {id: 1, name: 'Server Credential', updatedAt: '2020-01-01 00:00:00'},
             {id: 2, name: 'Mobile SDK Credential', updatedAt: '2020-01-01 00:00:00'}
+        ])
+        await queryInterface.bulkInsert('AppEnvironment', [
+            {id: 1, name: 'Production', updatedAt: '2020-01-01 00:00:00'},
+            {id: 2, name: 'Development', updatedAt: '2020-01-01 00:00:00'}
         ])
     },
     down: async queryInterface => {
