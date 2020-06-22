@@ -145,6 +145,7 @@ module.exports = {
     down: async queryInterface => {
         await queryInterface.removeIndex('AppCredential', ['clientId'])
         await queryInterface.dropTable('AppCredential')
+        await queryInterface.dropTable('AppEnvironment')
         await queryInterface.dropTable('CredentialType')
         await queryInterface.dropTable('CredentialStatus')
     }
