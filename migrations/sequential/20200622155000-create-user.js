@@ -65,6 +65,11 @@ module.exports = {
                     key: 'id'
                 }
             },
+            lastVerifiedAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+                defaultValue: '2020-01-01 00:00:00'
+            },
             createdAt: {
                 type: Sequelize.DATE,
                 allowNull: false,
