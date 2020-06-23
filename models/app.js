@@ -13,6 +13,14 @@ module.exports = sequelize => {
             type: Sequelize.BIGINT,
             primaryKey: true
         },
+        ownerEntityTypeId: {
+            type: Sequelize.INTEGER,
+            allowNull: false
+        },
+        ownerId: {
+            type: Sequelize.STRING(64),
+            allowNull: false
+        },
         extId: {
             type: Sequelize.STRING(64),
             allowNull: false
@@ -27,11 +35,11 @@ module.exports = sequelize => {
         },
         appStatusId: {
             type: Sequelize.INTEGER,
-            allowNull: false
-        },
-        version: {
-            type: Sequelize.BIGINT,
-            allowNull: false
+            allowNull: false,
+            references: {
+                model: 'AppStatus',
+                key: 'id'
+            }
         }
     }, {
         tableName: TABLE_NAME,

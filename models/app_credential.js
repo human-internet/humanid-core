@@ -8,13 +8,17 @@ const
     TABLE_NAME = 'AppCredential'
 
 module.exports = (sequelize) => {
-    return sequelize.define(MODEL_NAME, {
+    const Model = sequelize.define(MODEL_NAME, {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true
         },
         appId: {
             type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        environmentId: {
+            type: Sequelize.INTEGER,
             allowNull: false
         },
         credentialTypeId: {
@@ -40,13 +44,18 @@ module.exports = (sequelize) => {
         credentialStatusId: {
             type: Sequelize.INTEGER,
             allowNull: false
-        },
-        version: {
-            type: Sequelize.BIGINT,
-            allowNull: false
         }
     }, {
         tableName: TABLE_NAME,
         timestamps: true
     })
+
+    Model.associate = function (models) {
+        Model.belongsTo(models.App, {
+            foreignKey: 'appId',
+            as: 'app',
+        })
+    }
+
+    return Model
 }
