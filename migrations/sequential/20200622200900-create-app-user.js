@@ -104,7 +104,7 @@ module.exports = {
                 primaryKey: true,
                 autoIncrement: true
             },
-            userAppId: {
+            appUserId: {
                 type: Sequelize.BIGINT,
                 allowNull: false,
                 references: {
