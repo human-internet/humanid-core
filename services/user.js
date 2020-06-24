@@ -114,8 +114,7 @@ class UserService extends BaseService {
         // Check session if expired or not
         if (dateUtil.compare(timestamp, session.expiredAt) === dateUtil.GREATER_THAN) {
             // Delete existing session
-            await UserOTP.destroy({where: {sessionId: session.id}})
-            await UserOTPSession.destroy({where: {id: session.id}})
+            await this.clearOTPSession(session.id)
             // Create a new session
             session = await UserOTPSession.create(defaultSession)
         }
