@@ -2,6 +2,7 @@
 
 const
     Common = require('./common'),
+    DateUtil = require('./date_util'),
     ResponseMapper = require('./response-mapper'),
     smsNexmo = require('./nexmo'),
     smsAWS = require('./aws-sms')
@@ -20,6 +21,7 @@ function init({config}) {
     // Return components
     return {
         common: Common,
+        dateUtil: DateUtil,
         nexmo: smsNexmo,
         response: ResponseMapper,
         smsAWS: smsAWS,
