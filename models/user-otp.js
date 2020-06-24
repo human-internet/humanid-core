@@ -11,7 +11,8 @@ module.exports = (sequelize) => {
     const Model = sequelize.define(MODEL_NAME, {
         id: {
             type: Sequelize.BIGINT,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
         sessionId: {
             type: Sequelize.BIGINT,
@@ -21,7 +22,7 @@ module.exports = (sequelize) => {
             type: Sequelize.INTEGER,
             allowNull: false
         },
-        requestId: {
+        signature: {
             type: Sequelize.STRING,
             allowNull: false
         },
@@ -29,16 +30,13 @@ module.exports = (sequelize) => {
             type: Sequelize.JSON,
             allowNull: false
         },
-        expiredAt: {
-            type: Sequelize.DATE,
-            allowNull: false,
-        },
         createdAt: {
             type: Sequelize.DATE,
             allowNull: false
         }
     }, {
-        tableName: TABLE_NAME
+        tableName: TABLE_NAME,
+        timestamps: false
     })
 
     Model.associate = function (models) {

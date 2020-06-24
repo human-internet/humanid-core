@@ -7,15 +7,15 @@ module.exports = {
             id: {
                 type: Sequelize.BIGINT,
                 primaryKey: true,
-                autoIncrement: false,
+                autoIncrement: true,
             },
-            appUserId: {
-                type: Sequelize.BIGINT,
-                allowNull: false,
-                references: {
-                    model: 'AppUser',
-                    key: 'id'
-                }
+            requestId: {
+                type: Sequelize.STRING(64),
+                allowNull: false
+            },
+            userHashId: {
+                type: Sequelize.STRING(256),
+                allowNull: false
             },
             rule: {
                 type: Sequelize.JSON,
@@ -28,6 +28,10 @@ module.exports = {
             failAttemptCount: {
                 type: Sequelize.INTEGER,
                 allowNull: false
+            },
+            nextResendAt: {
+                type: Sequelize.DATE,
+                allowNull: true
             },
             expiredAt: {
                 type: Sequelize.DATE,
@@ -70,10 +74,6 @@ module.exports = {
                 type: Sequelize.INTEGER,
                 allowNull: false
             },
-            requestId: {
-                type: Sequelize.STRING(64),
-                allowNull: false
-            },
             signature: {
                 type: Sequelize.STRING(256),
                 allowNull: false
@@ -81,11 +81,6 @@ module.exports = {
             metadata: {
                 type: Sequelize.JSON,
                 allowNull: false
-            },
-            expiredAt: {
-                type: Sequelize.DATE,
-                allowNull: false,
-                defaultValue: '2020-01-01 00:00:00'
             },
             createdAt: {
                 type: Sequelize.DATE,
@@ -95,7 +90,8 @@ module.exports = {
         })
 
         // Create index
-        await queryInterface.addIndex('UserOTP', ['requestId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('UserOTPSession', ['userHashId'])
+        await queryInterface.addIndex('UserOTPSession', ['requestId'], {indicesType: "UNIQUE"})
     },
     down: async queryInterface => {
         await queryInterface.dropTable('UserOTP')
