@@ -41,6 +41,10 @@ config.DEMO_MODE = process.env.DEMO_MODE || config.DEMO_MODE || false
 config.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID || config.AWS_ACCESS_KEY_ID
 config.AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY || config.AWS_SECRET_ACCESS_KEY
 config.AWS_SMS_REGION = process.env.AWS_SMS_REGION || config.AWS_SMS_REGION || 'us-west-2'
+config.HASH_ID_SALT_1 = process.env.HASH_ID_SALT_1 || config.HASH_ID_SALT_1 || 'hash_id_salt1'
+config.HASH_ID_SALT_2 = process.env.HASH_ID_SALT_2 || config.HASH_ID_SALT_2 || 'hash_id_salt2'
+config.HASH_ID_REPEAT = process.env.HASH_ID_REPEAT || config.HASH_ID_REPEAT || 4
+config.HASH_ID_SECRET = process.env.HASH_ID_SECRET || config.HASH_ID_SECRET || 'hash_id_secret'
 
 // Demo App Config
 config.DEMO_APP_JWT_LIFETIME = process.env.DEMO_APP_JWT_LIFETIME || '15m';
