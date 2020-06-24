@@ -11,7 +11,8 @@ module.exports = (sequelize) => {
     const Model = sequelize.define(MODEL_NAME, {
         id: {
             type: Sequelize.BIGINT,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
         appId: {
             type: Sequelize.BIGINT,
@@ -30,7 +31,8 @@ module.exports = (sequelize) => {
             allowNull: false
         }
     }, {
-        tableName: TABLE_NAME
+        tableName: TABLE_NAME,
+        timestamps: true
     })
 
     Model.associate = function (models) {
