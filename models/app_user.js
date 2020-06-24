@@ -38,7 +38,7 @@ module.exports = (sequelize) => {
             foreignKey: 'appId',
             as: 'app',
         })
-        Model.belongsTo(models.AppUser, {
+        Model.belongsTo(models.User, {
             foreignKey: 'userId',
             as: 'user',
         })

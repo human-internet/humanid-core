@@ -7,7 +7,7 @@ const
     MODEL_NAME = 'UserOTPSession'
 
 module.exports = (sequelize) => {
-    return sequelize.define(MODEL_NAME, {
+    const Model = sequelize.define(MODEL_NAME, {
         id: {
             type: Sequelize.BIGINT,
             primaryKey: true,
@@ -46,4 +46,13 @@ module.exports = (sequelize) => {
         tableName: TABLE_NAME,
         timestamp: true
     })
+
+    Model.associate = function (models) {
+        Model.hasMany(models.UserOTP, {
+            foreignKey: 'sessionId',
+            as: 'otps',
+        })
+    }
+
+    return Model
 }

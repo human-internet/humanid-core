@@ -40,7 +40,7 @@ module.exports = (sequelize) => {
     })
 
     Model.associate = function (models) {
-        Model.belongsTo(models.AppUser, {
+        Model.belongsTo(models.UserOTPSession, {
             foreignKey: 'sessionId',
             as: 'session',
         })
