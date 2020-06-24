@@ -4,8 +4,8 @@ const
     Sequelize = require('sequelize')
 
 const
-    TABLE_NAME = 'AppUser',
-    MODEL_NAME = 'AppUser'
+    TABLE_NAME = 'AppUserSession',
+    MODEL_NAME = 'AppUserSession'
 
 module.exports = (sequelize) => {
     const Model = sequelize.define(MODEL_NAME, {
