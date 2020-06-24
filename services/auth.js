@@ -50,10 +50,8 @@ class AuthService extends BaseService {
             throw new APIError(Constants.RESPONSE_ERROR_FORBIDDEN)
         }
 
-        // TODO: Remove legacyAppsId
         return {
-            appId: appCred.id,
-            legacyAppsId: appCred.name
+            appId: appCred.id
         }
     }
 
