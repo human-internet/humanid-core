@@ -14,6 +14,8 @@ const
     BaseService = require('./base')
 
 const
+    USER_STATUS_VERIFIED = 2,
+    ACCESS_GRANTED = 1,
     HASH_ID_FORMAT_VERSION = 1,
     OTP_RULE = {
         otpSessionLifetime: 300,
@@ -30,6 +32,7 @@ class UserService extends BaseService {
         // Init nano id generator for
         this.generateOTPCode = nanoId.customAlphabet("0123456789", OTP_RULE.otpCodeLength)
         this.generateOTPReqId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24)
+        this.generateAppUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 20)
     }
 
     // parsePhoneNo parse phone number to E.164 format
@@ -245,42 +248,55 @@ class UserService extends BaseService {
     }
 
     async login(payload) {
-        // Get common component
-        const {common} = this.components
+        // Get references
+        const {User, AppUser} = this.models
+
+        // Parse phone number input
+        const phone = this.parsePhoneNo(payload.countryCode, payload.phone)
+
+        // Get hash id
+        const hashId = this.getHashId(phone.number)
 
         // Verify code
-        await this.verifyOtpCode(payload.countryCode, payload.phone, payload.verificationCode)
+        await this.verifyOtpCode(hashId, payload.verificationCode)
+
+        // Init timestamp
+        const timestamp = new Date()
 
         // Get user, if user not found create a new one
-        let hash = common.hmac(common.combinePhone(payload.countryCode, payload.phone))
-        let user = await this.models.LegacyUser.findOrCreate({
-            where: {hash: hash},
-            defaults: {hash: hash}
+        let user = await User.findOrCreate({
+            where: {hashId: hashId},
+            defaults: {
+                hashId: hashId,
+                hashIdVersion: 1,
+                hashIdFormatVersion: HASH_ID_FORMAT_VERSION,
+                countryCode: phone.country,
+                userStatusId: USER_STATUS_VERIFIED,
+                lastVerifiedAt: timestamp,
+                createdAt: timestamp,
+                updatedAt: timestamp
+            }
         })
         user = user[0]
 
-        // register user to the app
-        // app user hash = app secret + user id
-        // Do not use user.hash so we can update the phone number
-        let appUserHash = common.hmac(this.config.APP_SECRET + user.id)
-        let appUser = await this.models.LegacyAppUser.findOrCreate({
-            where: {appId: payload.legacyAppsId, userId: user.id},
+        // Register user to the app
+        const userId = user.get('id')
+        const appId = payload.appId
+        let appUser = await AppUser.findOrCreate({
+            where: {appId: appId, userId: userId},
             defaults: {
-                appId: payload.legacyAppsId,
-                userId: user.id,
-                hash: appUserHash,
-                deviceId: payload.deviceId,
+                appId: appId,
+                userId: userId,
+                extId: this.generateAppUserExtId(),
+                accessStatusId: ACCESS_GRANTED,
+                createdAt: timestamp,
+                updatedAt: timestamp
             }
         })
         appUser = appUser[0]
 
-        // If user device id is different with request, throw error
-        if (appUser.deviceId !== payload.deviceId) {
-            throw new APIError("ERR_3", `Existing login found on deviceId: ${appUser.deviceId}`)
-        }
-
         // Create exchange token
-        const exchangeToken = this.services.Auth.createExchangeToken(payload.legacyAppsId, appUser.hash, new Date())
+        const exchangeToken = this.services.Auth.createExchangeToken(appId, appUser.extId, new Date())
 
         return {
             data: {
@@ -308,17 +324,91 @@ class UserService extends BaseService {
         this.logger.debug(`DeletedRowCount=${count}`)
     }
 
-    async verifyOtpCode(countryCode, phone, verificationCode) {
-        // Verify code
-        try {
-            await this.components.nexmo.checkVerificationSMS(countryCode, phone, verificationCode)
-        } catch (e) {
-            // If a ValidationError, throw a handled error
-            if (e.name && e.name === 'ValidationError') {
-                throw new APIError("ERR_5")
+    async verifyOtpCode(hashId, verificationCode) {
+        // Get references
+        const {dateUtil} = this.components
+        const {UserOTPSession, UserOTP} = this.models
+
+        // Get session
+        const session = await UserOTPSession.findOne({
+            where: {userHashId: hashId},
+            include: [{model: UserOTP, as: 'otps'}],
+            order: [['otps', 'otpNo', 'DESC']]
+        })
+
+        // Validate session exist
+        if (!session) {
+            throw new APIError("ERR_11")
+        }
+
+        // Validate session expired
+        if (dateUtil.compare(new Date(), session.expiredAt) === dateUtil.GREATER_THAN) {
+            throw new APIError("ERR_15")
+        }
+
+        // Validate failed attempt count
+        if (session.failAttemptCount >= session.rule.failAttemptLimit) {
+            throw new APIError("ERR_13")
+        }
+
+        // Validate otp list exist
+        const otpList = session['otps']
+        const otpCount = otpList.length
+        if (!otpList || otpCount === 0) {
+            throw new APIError("ERR_11")
+        }
+
+        // Iterate validation
+        let valid
+        for (let i = 0; i < otpCount; i++) {
+            const otp = otpList[i]
+            try {
+                if (await argon2.verify(otp.signature, verificationCode)) {
+                    valid = true
+                    break
+                }
+            } catch (err) {
+                this.logger.error(`Failed to verify OTP. OTP No = ${otp.otpNo}`)
             }
-            // Else, re-throw unhandled error
-            throw e
+        }
+
+        // If invalid, throw error
+        if (!valid) {
+            session.failAttemptCount += 1
+            session.updatedAt = new Date()
+            session.version += 1
+            await session.save()
+
+            // Throw error
+            throw new APIError("ERR_5")
+        }
+
+        // Clear otp session
+        await this.clearOTPSession(session.id)
+    }
+
+    async clearOTPSession(id) {
+        // Get references
+        const {UserOTP, UserOTPSession} = this.models
+
+        // Clear otp session
+        const tx = await UserOTP.sequelize.transaction()
+        try {
+            // Delete existing session
+            let count = await UserOTP.destroy({where: {sessionId: id}})
+            if (count === 0) {
+                throw new Error("no UserOTP rows deleted")
+            }
+
+            count = await UserOTPSession.destroy({where: {id: id}})
+            if (count === 0) {
+                throw new Error("no UserOTPSession rows deleted")
+            }
+            await tx.commit()
+        } catch (err) {
+            this.logger.error(`Failed to clear OTP Session. Error = ${err.toString()}`)
+            await tx.rollback()
+            throw err
         }
     }
 

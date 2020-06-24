@@ -47,9 +47,8 @@ class MobileController extends BaseController {
                     verificationCode: 'required'
                 }, body)
 
-                // Set legacyAppId
-                // TODO: Remove legacy apps id implementation
-                body.legacyAppsId = req.client.legacyAppsId
+                // Set appId
+                body.appId = req.client.appId
 
                 // Call login service
                 return await this.services.User.login(body)

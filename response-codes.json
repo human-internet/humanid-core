@@ -68,5 +68,10 @@
     "success": false,
     "status": 400,
     "message": "Wait for allowed next resend timestamp"
+  },
+  "ERR_15": {
+    "success": false,
+    "status": 400,
+    "message": "OTP Session has expired"
   }
 }
