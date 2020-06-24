@@ -51,7 +51,7 @@ class AuthService extends BaseService {
         }
 
         return {
-            appId: appCred.id
+            appId: appCred.appId
         }
     }
 
