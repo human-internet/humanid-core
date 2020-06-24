@@ -7,13 +7,19 @@ const
     MODEL_NAME = 'UserOTPSession'
 
 module.exports = (sequelize) => {
-    const Model = sequelize.define(MODEL_NAME, {
+    return sequelize.define(MODEL_NAME, {
         id: {
             type: Sequelize.BIGINT,
-            primaryKey: true
+            primaryKey: true,
+            autoIncrement: true
         },
-        appUserId: {
-            type: Sequelize.BIGINT,
+        requestId: {
+            type: Sequelize.STRING,
+            allowNull: false,
+            unique: true
+        },
+        userHashId: {
+            type: Sequelize.STRING,
             allowNull: false
         },
         rule: {
@@ -28,24 +34,16 @@ module.exports = (sequelize) => {
             type: Sequelize.INTEGER,
             allowNull: false
         },
+        nextResendAt: {
+            type: Sequelize.DATE,
+            allowNull: true
+        },
         expiredAt: {
             type: Sequelize.DATE,
             allowNull: false,
-        },
-        createdAt: {
-            type: Sequelize.DATE,
-            allowNull: false
         }
     }, {
-        tableName: TABLE_NAME
+        tableName: TABLE_NAME,
+        timestamp: true
     })
-
-    Model.associate = function (models) {
-        Model.belongsTo(models.AppUser, {
-            foreignKey: 'appUserId',
-            as: 'appUser',
-        })
-    }
-
-    return Model
 }
