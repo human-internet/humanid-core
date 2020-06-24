@@ -29,9 +29,11 @@ class MobileController extends BaseController {
                 }, body)
 
                 // Send Verification via SMS
-                await this.components.nexmo.sendVerificationSMS(body.countryCode, body.phone)
+                const result = await this.services.User.requestLoginOTP(body.countryCode, body.phone)
 
-                return {}
+                return {
+                    data: result
+                }
             }))
 
         router.post('/users/login', this.middlewares.authClientMobile, this.handleRESTAsync(
