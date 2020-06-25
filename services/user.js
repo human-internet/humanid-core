@@ -15,7 +15,6 @@ const
 
 const
     USER_STATUS_VERIFIED = 2,
-    ACCESS_GRANTED = 1,
     HASH_ID_FORMAT_VERSION = 1,
     OTP_RULE = {
         otpSessionLifetime: 300,
@@ -287,7 +286,7 @@ class UserService extends BaseService {
                 appId: appId,
                 userId: userId,
                 extId: this.generateAppUserExtId(),
-                accessStatusId: ACCESS_GRANTED,
+                accessStatusId: Constants.APP_ACCESS_GRANTED,
                 createdAt: timestamp,
                 updatedAt: timestamp
             }
