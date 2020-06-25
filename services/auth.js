@@ -93,16 +93,28 @@ class AuthService extends BaseService {
         }
     }
 
-    createExchangeToken(appId, userHash, timestamp) {
+    async createExchangeToken(appUser) {
+        // Get references
+        const {dateUtil} = this.components
+        const {UserExchangeSession} = this.models
+
         // Create expired at
-        const epoch = this.components.common.getEpoch(timestamp)
-        const expiredAt = epoch + this._exchangeToken.lifetime
+        const timestamp = new Date()
+        const expiredAt = dateUtil.addSecond(timestamp, this._exchangeToken.lifetime)
+
+        // Persist exchange token
+        const exchangeSession = await UserExchangeSession.create({
+            appUserId: appUser.id,
+            expiredAt: expiredAt,
+            createdAt: timestamp
+        })
 
         // Create payload
         const payload = {
-            appId,
-            userHash,
-            expiredAt
+            exchangeSessionId: exchangeSession.id,
+            appId: appUser.appId,
+            extId: appUser.extId,
+            expiredAt: dateUtil.toEpoch(expiredAt)
         }
 
         // Encrypt
