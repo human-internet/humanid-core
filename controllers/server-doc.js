@@ -59,3 +59,29 @@
  *
  * @apiUse ErrorResponse
  */
+
+/**
+ * @api {post} /server/users/exchange-token Verify Exchange Token
+ * @apiVersion 0.0.3
+ * @apiName VerifyExchangeToken
+ * @apiGroup Core.ServerAPI
+ * @apiDescription Host-to-host API for Partner App Server to retrieve user hash
+ *
+ * @apiUse ServerClientCredential
+ * @apiParam {String} exchangeToken Token that can be used by Partner app server to verify if a user has been authorized by humanId
+ *
+ * @apiUse SuccessResponse
+ * @apiSuccess {Object} data Response data
+ * @apiSuccess {String} data.appUserId User identifier for Partner app
+ * @apiSuccessExample {json} SuccessResponse:
+ *   {
+ *     "success": true,
+ *     "code": "OK",
+ *     "message": "Success",
+ *     "data": {
+ *       "appUserId": "<APP_USER_ID>"
+ *     }
+ *   }
+ *
+ * @apiUse ErrorResponse
+ */

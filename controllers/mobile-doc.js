@@ -127,7 +127,7 @@
 
 /**
  * @api {post} /mobile/users/login Login
- * @apiVersion 0.0.2
+ * @apiVersion 0.0.3
  * @apiName LoginByOtp
  * @apiGroup Core.MobileAPI
  * @apiDescription Login by with given OTP code
