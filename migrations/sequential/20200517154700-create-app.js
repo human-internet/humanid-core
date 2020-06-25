@@ -92,7 +92,7 @@ module.exports = {
 
         // Add index
         await queryInterface.addIndex('App', ['ownerId'])
-        await queryInterface.addIndex('App', ['extId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('App', ['extId'], {unique: true})
 
         // Insert reference data
         await queryInterface.bulkInsert('AppStatus', [

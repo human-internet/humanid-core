@@ -149,7 +149,7 @@ module.exports = {
         })
 
         // Create index
-        await queryInterface.addIndex('AppUser', ['extId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('AppUser', ['extId'], {unique: true})
         await queryInterface.addIndex('AppUserSession', ['devicePlatformId', 'deviceId'])
 
         // Insert reference data

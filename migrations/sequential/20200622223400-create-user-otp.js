@@ -91,7 +91,7 @@ module.exports = {
 
         // Create index
         await queryInterface.addIndex('UserOTPSession', ['userHashId'])
-        await queryInterface.addIndex('UserOTPSession', ['requestId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('UserOTPSession', ['requestId'], {unique: true})
     },
     down: async queryInterface => {
         await queryInterface.dropTable('UserOTP')

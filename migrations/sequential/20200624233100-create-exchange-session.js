@@ -37,7 +37,7 @@ module.exports = {
             }
         })
 
-        await queryInterface.addIndex('UserExchangeSession', ['extId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('UserExchangeSession', ['extId'], {unique: true})
     },
     down: async queryInterface => {
         await queryInterface.dropTable('UserExchangeSession')

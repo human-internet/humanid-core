@@ -83,7 +83,7 @@ module.exports = {
         })
 
         // Create index
-        await queryInterface.addIndex('User', ['hashId'], {indicesType: "UNIQUE"})
+        await queryInterface.addIndex('User', ['hashId'], {unique: true})
 
         // Insert reference data
         await queryInterface.bulkInsert('UserStatus', [
