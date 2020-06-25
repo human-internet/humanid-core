@@ -61,7 +61,7 @@
  */
 
 /**
- * @api {post} /server/users/exchange-token Verify Exchange Token
+ * @api {post} /server/users/exchange Verify Exchange Token
  * @apiVersion 0.0.3
  * @apiName VerifyExchangeToken
  * @apiGroup Core.ServerAPI

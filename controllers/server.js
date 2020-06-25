@@ -17,7 +17,7 @@ class ServerController extends BaseController {
     route() {
         this.router = express.Router()
 
-        this.router.post('/users/verifyExchangeToken', this.middlewares.authClientServer, this.handleRESTAsync(
+        this.router.post('/users/exchange', this.middlewares.authClientServer, this.handleRESTAsync(
             async req => {
                 // Validate request
                 const body = req.body
