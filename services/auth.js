@@ -3,7 +3,9 @@
 const
     APIError = require('../server/api_error'),
     Constants = require('../constants'),
-    crypto = require('crypto')
+    crypto = require('crypto'),
+    nanoId = require('nanoid'),
+    {Op} = require("sequelize");
 
 const
     BaseService = require('./base')
@@ -17,9 +19,10 @@ class AuthService extends BaseService {
     constructor(services, args) {
         super('Auth', services, args)
 
+        this.generateExchangeId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+", 24)
+
         this._exchangeToken = {
             aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
-            aesIv: this.config.EXCHANGE_TOKEN_AES_IV,
             lifetime: this.config.EXCHANGE_TOKEN_LIFETIME
         }
     }
@@ -65,32 +68,84 @@ class AuthService extends BaseService {
     }
 
     async validateExchangeToken(exchangeToken) {
+        // Get references
+        const {UserExchangeSession, AppUser} = this.models
+        const {dateUtil} = this.components
+
+        // extract exchange id and encrypted payload
+        const exchangeId = exchangeToken.slice(0, 24);
+        const encryptedPayload = exchangeToken.slice(25, exchangeToken.length);
+
+        // Get exchange session by external id
+        const session = await UserExchangeSession.findOne({
+            where: {extId: exchangeId},
+            include: [{model: AppUser, as: 'appUser'}],
+        })
+
+        // Validate session existence
+        if (!session) {
+            this.logger.debug("Invalid session: session not found")
+            throw new APIError("ERR_1")
+        }
+
+        // Validate expiry
+        if (dateUtil.compare(new Date(), session.expiredAt) === dateUtil.GREATER_THAN) {
+            throw new APIError("ERR_2")
+        }
+
         // Decrypt token
         let payload
         try {
-            payload = this.decryptAES(exchangeToken)
+            payload = this.decryptAES(encryptedPayload, session.iv)
         } catch (e) {
             this.logger.error(`ERROR: unable to decrypt exchange token. Error=${e}`)
             throw new APIError("ERR_1")
         }
 
-        // Validate expired at
-        const now = this.components.common.getEpoch(new Date())
-        if (now > payload.expiredAt) {
-            throw new APIError("ERR_2")
+        // Get app user
+        const appUser = session['appUser']
+
+        // Validate payload
+        if (payload.exchangeId !== exchangeId ||
+            payload.appId !== appUser.appId ||
+            payload.extId !== appUser.extId) {
+            this.logger.debug(`Invalid payload with exchange session. Payload = ${JSON.stringify(payload)}`)
+            throw new APIError("ERR_1")
         }
 
-        // Get access status
-        const accessStatus = await this.services.User.getAppsAccessStatus(payload.appId, payload.userHash)
+        // Get app access status
+        if (!appUser) {
+            this.logger.error("Invalid session: appUser not found")
+            throw new APIError("ERR_1")
+        }
 
         // Validate access status
-        if (accessStatus !== "GRANTED") {
+        if (appUser.accessStatusId !== Constants.APP_ACCESS_GRANTED) {
             throw new APIError('ERR_7')
         }
 
+        // Clear exchange token
+        await this.clearExchangeToken(session.id, new Date())
+
         return {
-            userAppId: payload.userHash
+            appUserId: appUser.extId
         }
+    }
+
+    async clearExchangeToken(id, t) {
+        const {UserExchangeSession} = this.models
+
+        // Delete session
+        let count = await UserExchangeSession.destroy({
+            where: {id: id}
+        })
+        this.logger.debug(`Deleted exchange session: ${count}`)
+
+        // Clear dangling expired exchange token
+        count = await UserExchangeSession.destroy({
+            where: {expiredAt: {[Op.lte]: t}}
+        })
+        this.logger.debug(`Deleted dangling exchange session: ${count}`)
     }
 
     async createExchangeToken(appUser) {
@@ -98,32 +153,40 @@ class AuthService extends BaseService {
         const {dateUtil} = this.components
         const {UserExchangeSession} = this.models
 
+        // Generate exchange id
+        const exchangeId = this.generateExchangeId()
+
         // Create expired at
         const timestamp = new Date()
         const expiredAt = dateUtil.addSecond(timestamp, this._exchangeToken.lifetime)
 
+        // Create AES IV
+        const iv = crypto.randomBytes(16);
+
         // Persist exchange token
-        const exchangeSession = await UserExchangeSession.create({
+        await UserExchangeSession.create({
+            extId: exchangeId,
             appUserId: appUser.id,
+            iv: iv.toString('hex'),
             expiredAt: expiredAt,
             createdAt: timestamp
         })
 
         // Create payload
         const payload = {
-            exchangeSessionId: exchangeSession.id,
+            exchangeId: exchangeId,
             appId: appUser.appId,
             extId: appUser.extId,
             expiredAt: dateUtil.toEpoch(expiredAt)
         }
 
         // Encrypt
-        return this.encryptAES(payload)
+        let token = this.encryptAES(payload, iv)
+        return `${exchangeId}/${token}`
     }
 
-    encryptAES(payload) {
+    encryptAES(payload, iv) {
         const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
         const cipher = crypto.createCipheriv('aes-256-cbc', key, iv)
         const payloadStr = JSON.stringify(payload)
         let encrypted = cipher.update(payloadStr)
@@ -131,9 +194,9 @@ class AuthService extends BaseService {
         return encrypted.toString('base64')
     }
 
-    decryptAES(encrypted) {
+    decryptAES(encrypted, iv) {
         const key = Buffer.from(this._exchangeToken.aesKey, 'hex')
-        const iv = Buffer.from(this._exchangeToken.aesIv, 'hex')
+        iv = Buffer.from(iv, 'hex')
         let encryptedBuf = Buffer.from(encrypted, 'base64')
         const decipher = crypto.createDecipheriv('aes-256-cbc', key, iv)
         let decrypted = decipher.update(encryptedBuf)

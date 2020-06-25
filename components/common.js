@@ -33,7 +33,6 @@ config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_
 config.NEXMO_FROM = process.env.NEXMO_FROM || config.NEXMO_FROM || 'humanID'
 config.APP_PORT = process.env.APP_PORT || config.APP_PORT || 3000
 config.EXCHANGE_TOKEN_AES_KEY = process.env.EXCHANGE_TOKEN_AES_KEY || config.EXCHANGE_TOKEN_AES_KEY
-config.EXCHANGE_TOKEN_AES_IV = process.env.EXCHANGE_TOKEN_AES_IV || config.EXCHANGE_TOKEN_AES_IV
 config.EXCHANGE_TOKEN_LIFETIME = process.env.EXCHANGE_TOKEN_LIFETIME || config.EXCHANGE_TOKEN_LIFETIME
 config.APP_DEBUG = process.env.APP_DEBUG || false
 config.BASE_PATH = process.env.BASE_PATH || config.BASE_PATH || ''
