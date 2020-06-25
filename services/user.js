@@ -279,7 +279,7 @@ class UserService extends BaseService {
         user = user[0]
 
         // Register user to the app
-        const userId = user.get('id')
+        const userId = user.id
         const appId = payload.appId
         let appUser = await AppUser.findOrCreate({
             where: {appId: appId, userId: userId},
@@ -295,7 +295,16 @@ class UserService extends BaseService {
         appUser = appUser[0]
 
         // Create exchange token
-        const exchangeToken = this.services.Auth.createExchangeToken(appId, appUser.extId, new Date())
+        const exchangeToken = await this.services.Auth.createExchangeToken(appUser)
+
+        // Persist lastVerifiedAt timestamp
+        const lastVerifiedAt = new Date()
+        await User.update({
+            lastVerifiedAt: lastVerifiedAt,
+            updatedAt: lastVerifiedAt
+        }, {
+            where: {id: userId}
+        })
 
         return {
             data: {
