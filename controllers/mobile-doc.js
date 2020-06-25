@@ -54,7 +54,6 @@
  * @apiParam {String} phone User mobile phone number
  *
  * @apiUse SuccessResponse
- * @apiUse OkResponseExample
  * @apiSuccess {Object} data Response data
  * @apiSuccess {String} data.requestId OTP Request ID
  * @apiSuccess {String} data.nextResendAt Timestamp in Unix Epoch that indicates when resend OTP is allowed
