@@ -14,8 +14,16 @@ module.exports = (sequelize) => {
             primaryKey: true,
             autoIncrement: true
         },
+        extId: {
+            type: Sequelize.STRING,
+            allowNull: false
+        },
         appUserId: {
             type: Sequelize.BIGINT,
+            allowNull: false
+        },
+        iv: {
+            type: Sequelize.STRING,
             allowNull: false
         },
         expiredAt: {
