@@ -167,7 +167,7 @@ class AppService extends BaseService {
         const result = await App.findAndCountAll({where: whereFilter, limit: limit, offset: skip})
 
         // Compose response
-        const credentialList = result.rows.map(item => {
+        const appsResp = result.rows.map(item => {
             return {
                 extId: item.extId,
                 ownerEntityTypeId: item.ownerEntityTypeId,
@@ -181,7 +181,7 @@ class AppService extends BaseService {
         })
 
         return {
-            credentials: credentialList,
+            apps: appsResp,
             _metadata: {
                 limit: limit,
                 skip: skip,
