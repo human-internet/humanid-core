@@ -103,7 +103,7 @@ class Server {
         this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router)
         this.app.use(`${basePath}/server`, new ServerController(routerParams).router)
         this.app.use(`${basePath}/web-login`, new WebLoginController(routerParams).router)
-        this.app.get("/health", this.handleShowHealth)
+        this.app.get(`${basePath}/health`, this.handleShowHealth)
         this.app.use(`${basePath}/web`, new WebController(models, common, nexmo).router)
         this.app.use(`${basePath}/public`, express.static('public'))
         this.app.use(`${basePath}/vendor`, express.static('doc/vendor'))
