@@ -266,7 +266,8 @@ class ConsoleController extends BaseController {
         const skip = parseInt(req.query['skip'], 10) || 0
         const limit = parseInt(req.query['limit'], 10) || 10
         const filters = {
-            ownerId: req.query['filterOwnerId']
+            ownerId: req.query['filterOwnerId'],
+            name: req.query['filterName'],
         }
 
         const result = await this.services.App.list(skip, limit, filters)

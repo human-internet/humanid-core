@@ -4,7 +4,8 @@ const
     APIError = require('../server/api_error'),
     nanoId = require('nanoid'),
     crypto = require('crypto'),
-    {QueryTypes} = require("sequelize"),
+    sequelize = require("sequelize"),
+    {QueryTypes, Op} = sequelize,
     jwt = require('jsonwebtoken'),
     Joi = require('joi'),
     _ = require('lodash'),
@@ -780,6 +781,11 @@ class AppService extends BaseService {
         const whereFilter = {}
         if (filters.ownerId) {
             whereFilter.ownerId = filters.ownerId
+        }
+
+        if (filters.name) {
+            // whereFilter.name = sequelize.where(sequelize.fn('LOWER', sequelize.col('name')), 'LIKE', '%' + filters.name + '%');
+            whereFilter.name = {[Op.like]: `%${filters.name}%`}
         }
 
         // Get rows
