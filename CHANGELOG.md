@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.1.1
+
+- [FIXED] add seeders directory to fix error when running migration
+
+## 1.1.0
+
+- [ADDED] add Web Log-in for Mobile API
+
 ## 1.0.1
 
 - [SECURITY] audit and fix vulnerable dependencies
