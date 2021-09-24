@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.0
+
+- [ADDED] add API Update App Name
+
 ## 1.1.1
 
 - [FIXED] add seeders directory to fix error when running migration
