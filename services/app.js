@@ -952,6 +952,23 @@ class AppService extends BaseService {
         ac.updatedAt = new Date();
         await ac.save();
     }
+
+    async updateAppName(extId, name) {
+        // Retrieve app credential
+        const ac = await this.models.App.findOne({
+            where: { extId },
+        });
+
+        // If credential not found, return error
+        if (!ac) {
+            throw new APIError("ERR_17");
+        }
+
+        // Update name
+        ac.name = name;
+        ac.updatedAt = new Date();
+        await ac.save();
+    }
 }
 
 module.exports = AppService;
