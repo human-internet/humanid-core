@@ -132,7 +132,7 @@ class AppService extends BaseService {
                 return app.config.web.redirectUrls;
             }
             case Constants.WebLogin.SourceMobile: {
-                const baseUri = `humanid-${app.extId}://login/`;
+                const baseUri = `humanid-${app.extId.toLowerCase()}://login/`;
                 return {
                     failed: baseUri + "failed",
                     success: baseUri + "success",
