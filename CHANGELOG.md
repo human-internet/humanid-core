@@ -2,6 +2,7 @@
 
 ## 1.2.1
 
+- [FIXED] change deep link uri scheme to lower case
 - [FIXED] implement get redirect url from source mobile
 
 ## 1.2.0
