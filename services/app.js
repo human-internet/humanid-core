@@ -125,13 +125,31 @@ class AppService extends BaseService {
         };
     }
 
-    async getAppWebLoginInfo(appExtId) {
+    getRedirectUrl(app, source) {
+        switch (source) {
+            case Constants.WebLogin.SourceWeb: {
+                this.validateWebAppConfig(app);
+                return app.config.web.redirectUrls;
+            }
+            case Constants.WebLogin.SourceMobile: {
+                const baseUri = `humanid-${app.extId}://login/`;
+                return {
+                    failed: baseUri + "failed",
+                    success: baseUri + "success",
+                };
+            }
+            default: {
+                throw new Error(`unknown source: ${source}`);
+            }
+        }
+    }
+
+    async getAppWebLoginInfo(appExtId, source) {
         // Get app by external id
         const app = await this.getApp(appExtId);
 
         // Get redirect url
-        this.validateWebAppConfig(app);
-        const redirectUrls = app.config.web.redirectUrls;
+        const redirectUrls = this.getRedirectUrl(app, source);
 
         // Resolve assets url
         const logoUrls = this.resolveLogoUrl(app.logoFile);
@@ -208,7 +226,7 @@ class AppService extends BaseService {
         return "US";
     }
 
-    async validateWebLoginToken({ token, purpose }) {
+    async validateWebLoginToken({ token, purpose, source }) {
         // Verify jwt
         const { common } = this.components;
         const jwtSecret = this.config["WEB_LOGIN_SESSION_SECRET"];
@@ -246,9 +264,8 @@ class AppService extends BaseService {
         }
 
         // Retrieve redirect url value
-        const app = appCred["app"];
-        this.validateWebAppConfig(app);
-        const redirectUrl = app.config.web.redirectUrls;
+        const app = appCred.app;
+        const redirectUrl = this.getRedirectUrl(app, source);
 
         return {
             appId: appCred.appId,
