@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.1
+
+- [FIXED] implement get redirect url from source mobile
+
 ## 1.2.0
 
 - [ADDED] add API Update App Name
