@@ -4,7 +4,7 @@
     "description": "humanID API Core",
     "main": "index.js",
     "engines": {
-        "node": "12.x"
+        "node": "16.x"
     },
     "scripts": {
         "start": "node index.js",

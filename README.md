@@ -3,7 +3,7 @@
 ## Requirements
 
 1. Unix Shell (Use WSL or Cygwin in Windows)
-2. Node.js v12 LTS
+2. Node.js v16 LTS
 3. MySQL 5.7
 4. API Credentials
    - SMS Provider
