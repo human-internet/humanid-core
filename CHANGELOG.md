@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.2.2
+
+- [FIXED] Update vulnerable dependencies
+
 ## 1.2.1
 
 - [FIXED] change deep link uri scheme to lower case
