@@ -108,7 +108,7 @@ class AppService extends BaseService {
         // Return validation result
         if (validationResult.error) {
             this.logger.error(`ValidationError = ${validationResult.error}`);
-            throw new APIError("ERR_29").setData({validationError: validationResult.error.details});
+            throw new APIError("ERR_29").setData({ validationError: validationResult.error.details });
         }
 
         // Validate web config if set
@@ -192,7 +192,7 @@ class AppService extends BaseService {
 
         // Validate redirect url configuration
         const app = await App.findOne({
-            where: { id: appId },
+            where: {id: appId},
         });
 
         // Validate source config for web
@@ -202,6 +202,8 @@ class AppService extends BaseService {
 
         priorityCountry = this.getPriorityCountry(priorityCountry, app.config);
 
+        const limitCountry = app.config.web.limitCountry || [];
+
         // Generate session
         const session = this.createWebLoginSessionToken({
             clientId: appCredential.clientId,
@@ -210,12 +212,20 @@ class AppService extends BaseService {
         });
 
         // Generate web login URL
-        let webLoginURL = `${this.config["WEB_LOGIN_URL"]}?t=${session.token}&a=${
-            app.extId
-        }&lang=${languageCode}&priority_country=${priorityCountry.toUpperCase()}&s=${source}`;
+        const webLoginURL = new URL(this.config["WEB_LOGIN_URL"]);
+        webLoginURL.searchParams.append("t", session.token);
+        webLoginURL.searchParams.append("a", app.extId);
+        webLoginURL.searchParams.append("lang", languageCode);
+        webLoginURL.searchParams.append("priority_country", priorityCountry.toUpperCase());
+        webLoginURL.searchParams.append("s", source);
+
+        // Append limit country if set
+        if (limitCountry.length > 0) {
+            webLoginURL.searchParams.append("lc", limitCountry.join(",").toUpperCase());
+        }
 
         return {
-            webLoginUrl: webLoginURL,
+            webLoginUrl: webLoginURL.href,
         };
     }
 
@@ -289,7 +299,7 @@ class AppService extends BaseService {
         let result = this.schemas.webConfig.validate(config);
         if (result.error) {
             this.logger.error(`ValidationError = ${result.error}`);
-            throw new APIError("ERR_28").setData({validationError: result.error.details});
+            throw new APIError("ERR_28").setData({ validationError: result.error.details });
         }
 
         // Init priority country list if not set
@@ -304,7 +314,7 @@ class AppService extends BaseService {
         result = CountryValidator.isValidAlpha2(config.priorityCountry);
         if (result.error) {
             this.logger.error(`ValidationError = ${result.error}`);
-            throw new APIError("ERR_28").setData({validationError: result.error});
+            throw new APIError("ERR_28").setData({ validationError: result.error });
         }
 
         // Init limit country list if not set
@@ -319,7 +329,7 @@ class AppService extends BaseService {
         result = CountryValidator.isValidAlpha2(config.limitCountry);
         if (result.error) {
             this.logger.error(`ValidationError = ${result.error}`);
-            throw new APIError("ERR_28").setData({validationError: result.error});
+            throw new APIError("ERR_28").setData({ validationError: result.error });
         }
 
         // Ensure limit country value does not available in priority
