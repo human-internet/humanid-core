@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.3.0
+
+- [ADDED] Implement limit country on generating Web Log-in URL
+- [ADDED] Implement web config schema input validation on Update App configuration
+- [FIXED] Upgrade vulnerable dependency on aws-sdk
+
 ## 1.2.2
 
 - [FIXED] Update vulnerable dependencies

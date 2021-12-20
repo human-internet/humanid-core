@@ -1,6 +1,6 @@
 {
     "name": "humanid-core",
-    "version": "1.2.1",
+    "version": "1.3.0",
     "description": "humanID API Core",
     "main": "index.js",
     "engines": {
