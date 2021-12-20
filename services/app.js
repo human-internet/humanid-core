@@ -10,7 +10,8 @@ const APIError = require("../server/api_error"),
     _ = require("lodash"),
     fs = require("fs"),
     util = require("util"),
-    path = require("path");
+    path = require("path"),
+    CountryValidator = require("../validator/country-validator");
 
 const BaseService = require("./base"),
     Constants = require("../constants");
@@ -86,6 +87,7 @@ class AppService extends BaseService {
             }),
             priorityCountry: Joi.array().items(Joi.string().length(2)).optional(),
             privacyPolicyUrl: Joi.string().uri().optional(),
+            limitCountry: Joi.array().items(Joi.string().length(2)).optional(),
         });
 
         this.schemas = {
@@ -106,7 +108,12 @@ class AppService extends BaseService {
         // Return validation result
         if (validationResult.error) {
             this.logger.error(`ValidationError = ${validationResult.error}`);
-            throw new APIError("ERR_29").setData({ validationError: validationResult.error.details });
+            throw new APIError("ERR_29").setData({validationError: validationResult.error.details});
+        }
+
+        // Validate web config if set
+        if (payload.web) {
+            this.validateWebConfigInput(payload.web);
         }
 
         // Save config
@@ -275,6 +282,58 @@ class AppService extends BaseService {
             sessionId: sessionId,
             redirectUrl: redirectUrl.success,
         };
+    }
+
+    validateWebConfigInput(config) {
+        // Validate config structure
+        let result = this.schemas.webConfig.validate(config);
+        if (result.error) {
+            this.logger.error(`ValidationError = ${result.error}`);
+            throw new APIError("ERR_28").setData({validationError: result.error.details});
+        }
+
+        // Init priority country list if not set
+        if (!config.priorityCountry) {
+            config.priorityCountry = [];
+        } else {
+            // Normalize values
+            config.priorityCountry = config.priorityCountry.map((v) => v.toUpperCase());
+        }
+
+        // Validate priorityCountry
+        result = CountryValidator.isValidAlpha2(config.priorityCountry);
+        if (result.error) {
+            this.logger.error(`ValidationError = ${result.error}`);
+            throw new APIError("ERR_28").setData({validationError: result.error});
+        }
+
+        // Init limit country list if not set
+        if (!config.limitCountry) {
+            config.limitCountry = [];
+        } else {
+            // Normalize values
+            config.limitCountry = config.limitCountry.map((v) => v.toUpperCase());
+        }
+
+        // Validate priorityCountry
+        result = CountryValidator.isValidAlpha2(config.limitCountry);
+        if (result.error) {
+            this.logger.error(`ValidationError = ${result.error}`);
+            throw new APIError("ERR_28").setData({validationError: result.error});
+        }
+
+        // Ensure limit country value does not available in priority
+        if (config.limitCountry.length > 0 && config.priorityCountry.length > 0) {
+            const countryIntersection = config.limitCountry.filter((i) => config.priorityCountry.includes(i));
+            if (countryIntersection.length > 0) {
+                const countries = countryIntersection.join(", ");
+                throw new APIError("ERR_29").setData({
+                    validationError: {
+                        message: `cannot have a same country in both priorityCountry and limitCountry. Country: ${countries}`,
+                    },
+                });
+            }
+        }
     }
 
     validateWebAppConfig(app) {
