@@ -46,17 +46,6 @@ const PLATFORM_ANDROID_SLUG = "android",
 
 const ORG_REGISTERED_DEV_USER_LIMIT = 2;
 
-// Create core query
-const FIND_SANDBOX_OTP_CORE_QUERY =
-        "FROM UserOTPSandbox as otp " +
-        "INNER JOIN OrgDevUser as devUser ON otp.devUserId = devUser.id " +
-        "WHERE devUser.ownerEntityTypeId = $ownerEntityTypeId AND devUser.ownerId = $ownerId AND otp.expiredAt > $timestamp",
-    FIND_SANDBOX_OTP_QUERY =
-        "SELECT devUser.phoneNoMasked, otp.otpCode, otp.expiredAt, otp.createdAt " +
-        FIND_SANDBOX_OTP_CORE_QUERY +
-        " ORDER BY otp.createdAt DESC LIMIT $limit OFFSET $offset;",
-    COUNT_SANDBOX_OTP_QUERY = `SELECT COUNT(*) as count ${FIND_SANDBOX_OTP_CORE_QUERY};`;
-
 const moveFile = util.promisify(fs.rename);
 
 class AppService extends BaseService {
@@ -192,7 +181,7 @@ class AppService extends BaseService {
 
         // Validate redirect url configuration
         const app = await App.findOne({
-            where: {id: appId},
+            where: { id: appId },
         });
 
         // Validate source config for web
@@ -459,33 +448,26 @@ class AppService extends BaseService {
 
     async listSandboxOTPs({ ownerEntityTypeId, ownerId, skip, limit }) {
         // Get data source reference
-        const { UserOTPSandbox } = this.models;
-        const db = UserOTPSandbox.sequelize;
+        const { UserOTPSandbox, OrgDevUser } = this.models;
 
         // Retrieve data
-        const rows = await db.query(FIND_SANDBOX_OTP_QUERY, {
-            bind: {
-                ownerEntityTypeId: ownerEntityTypeId,
-                ownerId: ownerId,
-                timestamp: new Date(),
-                offset: skip,
-                limit: limit,
+        const result = await UserOTPSandbox.findAndCountAll({
+            include: {
+                model: OrgDevUser,
+                as: "devUser",
+                required: true,
+                where: {
+                    ownerEntityTypeId,
+                    ownerId,
+                },
             },
-            type: QueryTypes.SELECT,
-        });
-
-        // Count all available records
-        const countResult = await db.query(COUNT_SANDBOX_OTP_QUERY, {
-            bind: {
-                ownerEntityTypeId: ownerEntityTypeId,
-                ownerId: ownerId,
-                timestamp: new Date(),
-            },
-            type: QueryTypes.SELECT,
+            where: { expiredAt: { [Op.gt]: new Date() } },
+            limit,
+            offset: skip,
         });
 
         // Response data
-        const respData = rows.map((item) => {
+        const respData = result.rows.map((item) => {
             return {
                 phoneNoMasked: item.phoneNoMasked,
                 otpCode: item.otpCode,
@@ -498,7 +480,7 @@ class AppService extends BaseService {
             _metadata: {
                 limit: limit,
                 skip: skip,
-                count: countResult[0].count,
+                count: result.count,
             },
         };
     }
