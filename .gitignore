@@ -1,7 +1,9 @@
+# Dependencies
 node_modules/
+
+# Configurations
+.env
 config.json
-*.log
-*.sqlite
 serviceAccountKey.json
 
 # Project Dirs
@@ -13,7 +15,11 @@ serviceAccountKey.json
 
 # Generated files
 doc/
+*.log
 
 # Public dir
 public/images/app-thumbnails/*
 !public/images/app-thumbnails/placeholder.png
+
+# Database
+*.sqlite
