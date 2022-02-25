@@ -165,7 +165,7 @@ class MobileController extends BaseController {
             this.handleRESTAsync(async (req) => {
                 // Get language parameter
                 const lang = req.query.lang || "en";
-                const priorityCountry = req.query.priorityCountry || "";
+                const priorityCountry = req.query["priority_country"] || "";
                 const source = Constants.WebLogin.SourceMobile;
 
                 // Validate requester credentials
