@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.1
+
+- [FIXED] Change priorityCountry param to priority_country
+
 ## 1.3.0
 
 - [ADDED] Implement limit country on generating Web Log-in URL
