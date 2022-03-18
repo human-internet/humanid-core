@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.3.2
+
+- fix(otp): Replace raw query with sequelize orm
+
 ## 1.3.1
 
 - [FIXED] Change priorityCountry param to priority_country
