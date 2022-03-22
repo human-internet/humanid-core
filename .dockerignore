@@ -1,0 +1,13 @@
+.idea/
+deployments/
+
+.docker*
+.env
+.eslint*
+.git*
+.prettier*
+
+.example.env
+
+README.md
+CHANGELOG.md
