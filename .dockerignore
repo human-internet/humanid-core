@@ -20,13 +20,4 @@ README.md
 CHANGELOG.md
 
 # Deprecated
-client/
-examples/
 storage/
-test/
-gulpfile.js
-erd.png
-contributors.txt
-config-example.json
-apidoc.json
-.travis.yml
