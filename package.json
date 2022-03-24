@@ -1,6 +1,6 @@
 {
     "name": "humanid-core",
-    "version": "1.3.0",
+    "version": "1.0.0",
     "description": "humanID API Core",
     "main": "index.js",
     "engines": {
@@ -8,14 +8,10 @@
     },
     "scripts": {
         "start": "node index.js",
-        "test": "mocha",
-        "doc": "apidoc -i controllers/ -o doc/",
-        "db:refresh": "NODE_ENV=DATABASE npx sequelize db:drop; NODE_ENV=DATABASE sequelize db:create; NODE_ENV=DATABASE npx sequelize db:migrate; NODE_ENV=DATABASE npx sequelize db:seed:all",
-        "db:migrate": "NODE_ENV=DATABASE npx sequelize db:migrate",
-        "db:undo": "NODE_ENV=DATABASE npx sequelize db:migrate:undo",
-        "db:status": "NODE_ENV=DATABASE npx sequelize db:migrate:status",
-        "build": "gulp",
-        "gen-aes-key": "node deployments/generate-aes-key.js"
+        "db:up": "npx sequelize db:migrate",
+        "db:down": "npx sequelize db:migrate:undo",
+        "db:status": "sequelize db:migrate:status",
+        "gen-aes-key": "nod0 deployments/generate-aes-key.js"
     },
     "keywords": [
         "human",
@@ -24,50 +20,38 @@
     "author": "yohanes.gultom@gmail.com",
     "license": "GPL-3.0",
     "dependencies": {
-        "argon2": "^0.28.2",
-        "aws-sdk": "^2.814.0",
+        "argon2": "^0.28.5",
+        "aws-sdk": "^2.1098.0",
         "bcryptjs": "^2.4.3",
-        "body-parser": "^1.19.0",
-        "cookie-parser": "^1.4.4",
+        "body-parser": "^1.19.2",
         "cors": "^2.8.5",
-        "express": "^4.17.1",
-        "express-paginate": "^1.0.0",
-        "joi": "^17.2.1",
+        "express": "^4.17.3",
+        "joi": "^17.6.0",
         "jsonwebtoken": "^8.5.1",
-        "libphonenumber-js": "^1.7.53",
-        "lodash": "^4.17.19",
-        "multer": "^1.4.2",
-        "mysql2": "^2.1.0",
-        "nanoid": "^3.1.10",
-        "node-fetch": "^2.6.1",
-        "request": "^2.88.0",
-        "sequelize": "^5.18.4",
-        "sqlite": "^4.0.23",
-        "umzug": "^2.2.0",
-        "winston": "^3.2.1"
+        "libphonenumber-js": "^1.9.50",
+        "lodash": "^4.17.21",
+        "multer": "^1.4.4",
+        "mysql2": "^2.3.3",
+        "nanoid": "^3.3.1",
+        "node-fetch": "^2.6.7",
+        "sequelize": "^6.17.0",
+        "winston": "^3.6.0"
     },
     "devDependencies": {
         "@types/bcryptjs": "^2.4.2",
-        "@types/express": "^4.17.3",
-        "@types/node": "^13.13.12",
-        "@types/node-fetch": "^2.5.7",
-        "@types/sequelize": "^4.28.8",
-        "apidoc": "^0.22.1",
-        "chai": "^4.2.0",
-        "chai-http": "^4.3.0",
-        "del": "^5.0.0",
+        "@types/express": "^4.17.13",
+        "@types/node": "^13.13.52",
+        "@types/node-fetch": "^2.6.1",
+        "@types/sequelize": "^4.28.11",
         "eslint": "^7.32.0",
-        "eslint-config-prettier": "^8.3.0",
+        "eslint-config-prettier": "^8.5.0",
         "eslint-plugin-prettier": "^3.4.1",
-        "gulp-minify": "^3.1.0",
-        "mocha": "^7.1.2",
-        "nock": "^12.0.3",
-        "prettier": "^2.3.2",
-        "sequelize-cli": "^5.5.0",
-        "sinon": "^7.4.1"
+        "prettier": "^2.6.0",
+        "sequelize-auto": "^0.8.8",
+        "sequelize-cli": "^6.4.1"
     },
     "repository": {
         "type": "git",
-        "url": "git@github.com:bluenumberfoundation/humanid-core.git"
+        "url": "git@github.com:human-internet/humanid-core.git"
     }
 }

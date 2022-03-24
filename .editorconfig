@@ -16,3 +16,10 @@ indent_style = tab
 
 [*.md]
 trim_trailing_whitespace = false
+
+[*.js]
+indent_style = unset
+indent_size = unset
+tab_width = unset
+end_of_line = unset
+insert_final_newline = unset

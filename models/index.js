@@ -1,97 +1,64 @@
-'use strict'
+"use strict";
 
-const
-    logger = require('../logger').child({scope: 'Core.Sequelize'}),
-    fs = require('fs'),
-    path = require('path'),
-    Sequelize = require('sequelize'),
-    Umzug = require('umzug'),
-    helpers = require('../components/common'),
-    basename = path.basename(__filename),
-    env = process.env.NODE_ENV || 'development',
-    config = helpers.config.DATABASE,
-    db = {}
+const logger = require("../logger").child({ scope: "Core.Sequelize" }),
+    Sequelize = require("sequelize"),
+    helpers = require("../components/common"),
+    config = helpers.config,
+    db = {};
+
+// Import models
+const App = require("./app"),
+    AppCredential = require("./app-credential"),
+    AppUser = require("./app-user"),
+    AppUserSession = require("./app-user-session"),
+    OrgDevUser = require("./org-dev-user"),
+    SMSTransaction = require("./sms-transaction"),
+    SMSTransactionLog = require("./sms-transaction-log"),
+    User = require("./user"),
+    UserEventLog = require("./user-event-log"),
+    UserExchangeSession = require("./user-exchange-session"),
+    UserOTP = require("./user-otp"),
+    UserOTPSandbox = require("./user-otp-sandbox"),
+    UserOTPSession = require("./user-otp-session");
 
 // Configure logging function
-let enableLog = process.env.ENABLE_SEQUELIZE_LOG
-let logSequelize
-if (enableLog && enableLog === 'true') {
-    logSequelize = msg => {
-        logger.debug(msg)
-    }
+let enableLog = process.env.ENABLE_SEQUELIZE_LOG;
+let logSequelize;
+if (enableLog && enableLog === "true") {
+    logSequelize = (msg) => {
+        logger.debug(msg);
+    };
 }
 
-let sequelize
-if (env === 'test') {
-    // override config for testing
-    sequelize = new Sequelize(
-        config.database || 'humanid',
-        config.username || 'root',
-        config.password,
-        {dialect: 'sqlite', logging: false}
-    )
-} else if (process.env.JAWSDB_URL) {
-    // for heroku
-    sequelize = new Sequelize(process.env['JAWSDB_URL'], {logging: logSequelize})
-} else {
-    // Set logger
-    config.logging = logSequelize
+const sequelize = new Sequelize(config.DB_NAME, config.DB_USER, config.DB_PASS, {
+    dialect: config.DB_DRIVER,
+    host: config.DB_HOST,
+    port: config.DB_PORT,
+    logging: logSequelize,
+});
 
-    // Init sequelize
-    sequelize = new Sequelize(config.database, config.username, config.password, config)
-}
+// Register models
+db.App = App(sequelize);
+db.AppCredential = AppCredential(sequelize);
+db.AppUser = AppUser(sequelize);
+db.AppUserSession = AppUserSession(sequelize);
+db.OrgDevUser = OrgDevUser(sequelize);
+db.SMSTransaction = SMSTransaction(sequelize);
+db.SMSTransactionLog = SMSTransactionLog(sequelize);
+db.User = User(sequelize);
+db.UserEventLog = UserEventLog(sequelize);
+db.UserExchangeSession = UserExchangeSession(sequelize);
+db.UserOTP = UserOTP(sequelize);
+db.UserOTPSandbox = UserOTPSandbox(sequelize);
+db.UserOTPSession = UserOTPSession(sequelize);
 
-fs
-    .readdirSync(__dirname)
-    .filter(file => {
-        return (file.indexOf('.') !== 0) && (file !== basename) && (file.slice(-3) === '.js')
-    })
-    .forEach(file => {
-        const model = sequelize['import'](path.join(__dirname, file))
-        db[model.name] = model
-    })
-
-Object.keys(db).forEach(modelName => {
+Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {
-        db[modelName].associate(db)
+        db[modelName].associate(db);
     }
-})
+});
 
-db.sequelize = sequelize
-db.Sequelize = Sequelize
+db.sequelize = sequelize;
+db.Sequelize = Sequelize;
 
-// auto migrate
-db.migrate = async () => {
-    return new Umzug({
-        storage: 'sequelize',
-        storageOptions: {
-            sequelize: sequelize
-        },
-        migrations: {
-            params: [
-                sequelize.getQueryInterface(),
-                Sequelize
-            ],
-            path: path.join(__dirname, '../migrations/sequential')
-        }
-    }).up([])
-}
-
-db.seed = async () => {
-    return new Umzug({
-        storage: 'sequelize',
-        storageOptions: {
-            sequelize: sequelize
-        },
-        migrations: {
-            params: [
-                sequelize.getQueryInterface(),
-                Sequelize
-            ],
-            path: path.join(__dirname, '../migrations/seeders')
-        }
-    }).up([])
-}
-
-
-module.exports = db
+module.exports = db;
