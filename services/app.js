@@ -191,7 +191,7 @@ class AppService extends BaseService {
 
         priorityCountry = this.getPriorityCountry(priorityCountry, app.config);
 
-        const limitCountry = app.config.web.limitCountry || [];
+        const limitCountry = app.config?.limitCountry || [];
 
         // Generate session
         const session = this.createWebLoginSessionToken({
