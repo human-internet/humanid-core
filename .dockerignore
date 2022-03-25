@@ -8,7 +8,8 @@ node_modules/
 # Configuration files
 .docker*
 .eslint*
-.git*
+.gitattributes
+.gitignore
 .prettier*
 .env
 .editorconfig

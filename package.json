@@ -11,7 +11,9 @@
         "db:up": "npx sequelize db:migrate",
         "db:down": "npx sequelize db:migrate:undo",
         "db:status": "sequelize db:migrate:status",
-        "gen-aes-key": "nod0 deployments/generate-aes-key.js"
+        "gen-aes-key": "node scripts/generate-aes-key.js",
+        "manifest:version": "git describe --tags $(git rev-list --tags --max-count=1)",
+        "manifest:buildSignature": "git rev-parse HEAD"
     },
     "keywords": [
         "human",
