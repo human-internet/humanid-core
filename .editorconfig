@@ -17,6 +17,9 @@ indent_style = tab
 [*.md]
 trim_trailing_whitespace = false
 
+[*.yml]
+indent_size = 2
+
 [*.js]
 indent_style = unset
 indent_size = unset

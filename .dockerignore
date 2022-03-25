@@ -21,3 +21,5 @@ CHANGELOG.md
 
 # Deprecated
 storage/
+
+docker-compose.yml
