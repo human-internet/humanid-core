@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.3.3
+
+- feat(boot): Add feature to run database upgrade on boot
+- fix(config): Fix boolean value parsing from env
+- feat(server): Add version and build signature on health response
+- fix(web-login): Fix limit country config retrieval
+- fix(otp): Replace raw query with sequelize orm
+
 ## 1.3.2
 
 - fix(otp): Replace raw query with sequelize orm
