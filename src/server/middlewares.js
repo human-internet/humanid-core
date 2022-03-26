@@ -1,60 +1,63 @@
-'use strict'
+"use strict";
 
-const Constants = require("../constants")
+const Constants = require("../constants");
 
 class Middlewares {
-    constructor({components, services, server, logger}) {
-        this.components = components
-        this.services = services
-        this.logger = logger
-        this.server = server
+    constructor({ components, services, server, logger }) {
+        this.components = components;
+        this.services = services;
+        this.logger = logger;
+        this.server = server;
 
         this.authClientWebLogin = this.server.handleAsync(async (req, res, next) => {
             // Get credential
-            const cred = this.getClientCredential(req)
+            const cred = this.getClientCredential(req);
 
             // Call validation service
-            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_WEB_LOGIN)
+            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_WEB_LOGIN);
 
-            next()
-        })
+            next();
+        });
 
         this.authClientServer = this.server.handleAsync(async (req, res, next) => {
             // Get credential
-            const cred = this.getClientCredential(req)
+            const cred = this.getClientCredential(req);
 
             // Call validation service
-            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_SERVER)
+            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_SERVER);
 
-            next()
-        })
+            next();
+        });
 
         this.authClientMobile = this.server.handleAsync(async (req, res, next) => {
             // Get credential
-            const cred = this.getClientCredential(req)
+            const cred = this.getClientCredential(req);
 
             // Call validation service
-            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_MOBILE)
+            req.client = await this.services.Auth.authClient(cred, Constants.AUTH_SCOPE_MOBILE);
 
-            next()
-        })
+            next();
+        });
     }
 
     getClientCredential(req) {
         // Get parameter
         const cred = {
-            clientId: req.headers['client-id'],
-            clientSecret: req.headers['client-secret']
-        }
+            clientId: req.headers["client-id"],
+            clientSecret: req.headers["client-secret"],
+        };
 
         // Validate credential
-        this.components.common.validateReq({
-            clientId: 'required',
-            clientSecret: 'required'
-        }, cred)
+        this.components.common.validateReq(
+            {
+                clientId: "required",
+                clientSecret: "required",
+            },
+            cred
+        );
 
-        return cred
+        return cred;
     }
 }
 
-module.exports = Middlewares
+module.exports = Middlewares;

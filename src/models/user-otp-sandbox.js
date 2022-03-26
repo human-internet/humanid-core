@@ -1,11 +1,9 @@
-'use strict'
+"use strict";
 
-const
-    Sequelize = require('sequelize')
+const Sequelize = require("sequelize");
 
-const
-    TABLE_NAME = 'UserOTPSandbox',
-    MODEL_NAME = 'UserOTPSandbox'
+const TABLE_NAME = "UserOTPSandbox",
+    MODEL_NAME = "UserOTPSandbox";
 
 module.exports = (sequelize) => {
     const Model = sequelize.define(
