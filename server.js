@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 /**
  * @typedef {Object} RESTHandlerResult
@@ -15,48 +15,46 @@
  * @returns {RESTHandlerResult}
  */
 
-const
-    APIError = require('./server/api_error'),
-    Constants = require('./constants'),
-    express = require('express'),
-    bodyParser = require('body-parser'),
-    path = require('path'),
-    {getElapsedTime} = require('./components/date_util')
+const APIError = require("./server/api_error"),
+    Constants = require("./constants"),
+    express = require("express"),
+    bodyParser = require("body-parser"),
+    path = require("path"),
+    manifest = require("./manifest"),
+    { getElapsedTime } = require("./components/date_util");
 
-const
-    ConsoleController = require('./controllers/console'),
-    MobileController = require('./controllers/mobile'),
-    ServerController = require('./controllers/server'),
-    WebLoginController = require('./controllers/web-login')
+const ConsoleController = require("./controllers/console"),
+    MobileController = require("./controllers/mobile"),
+    ServerController = require("./controllers/server"),
+    WebLoginController = require("./controllers/web-login");
 
-const
-    Middlewares = require('./server/middlewares')
+const Middlewares = require("./server/middlewares");
 
 class Server {
-    constructor({config, components, models, services, logger}) {
+    constructor({ config, components, models, services, logger }) {
         // Set logger
-        this.logger = logger
+        this.logger = logger;
 
         // Init config
         // TODO: refactor config structure
-        this.config = config
+        this.config = config;
         this.config.server = {
-            workDir: path.resolve('./')
-        }
+            workDir: path.resolve("./"),
+        };
 
         // Init models
-        this.models = models
+        this.models = models;
 
         // Init components
         this.components = components.init({
-            config: this.config
-        })
+            config: this.config,
+        });
 
         // Init services
-        this.services = services.init(this)
+        this.services = services.init(this);
 
         // Init router
-        this.initRouter()
+        this.initRouter();
 
         // Set start time
         this.startedAt = new Date();
@@ -73,43 +71,41 @@ class Server {
                 handleAsync: this.handleAsync,
                 handleRESTAsync: this.handleRESTAsync,
                 sendResponse: this.sendResponse,
-                sendErrorResponse: this.sendErrorResponse
+                sendErrorResponse: this.sendErrorResponse,
             },
-            services: this.services
-        }
+            services: this.services,
+        };
 
         // Middlewares
-        routerParams.middlewares = new Middlewares(routerParams)
+        routerParams.middlewares = new Middlewares(routerParams);
 
         // Get base url
-        const basePath = this.config.BASE_PATH
+        const basePath = this.config.BASE_PATH;
 
         // Init Main Routers
-        this.app = express()
+        this.app = express();
 
         // Configure middlewares
-        this.app.use(bodyParser.json())
-        this.app.use(bodyParser.urlencoded({extended: true}))
+        this.app.use(bodyParser.json());
+        this.app.use(bodyParser.urlencoded({ extended: true }));
 
         // Configure routing
-        this.app.use(`${basePath}/console`, new ConsoleController(routerParams).router)
-        this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router)
-        this.app.use(`${basePath}/server`, new ServerController(routerParams).router)
-        this.app.use(`${basePath}/web-login`, new WebLoginController(routerParams).router)
-        this.app.get(`${basePath}/health`, this.handleShowHealth)
-        this.app.use(`${basePath}/public`, express.static('public'))
-        this.app.use(`${basePath}/vendor`, express.static('doc/vendor'))
-        this.app.use(`${basePath}/`, express.static('doc'))
+        this.app.use(`${basePath}/console`, new ConsoleController(routerParams).router);
+        this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router);
+        this.app.use(`${basePath}/server`, new ServerController(routerParams).router);
+        this.app.use(`${basePath}/web-login`, new WebLoginController(routerParams).router);
+        this.app.get(`${basePath}/health`, this.handleShowHealth);
+        this.app.use(`${basePath}/public`, express.static("public"));
 
         // Handle Errors
         this.app.use((req, res) => {
-            this.sendErrorResponse(res, new APIError(Constants.RESPONSE_ERROR_NOT_FOUND))
-        })
+            this.sendErrorResponse(res, new APIError(Constants.RESPONSE_ERROR_NOT_FOUND));
+        });
 
         // Handle Resource Not Found
         this.app.use((err, req, res) => {
-            this.sendErrorResponse(res, err)
-        })
+            this.sendErrorResponse(res, err);
+        });
     }
 
     /**
@@ -123,28 +119,28 @@ class Server {
      */
     sendResponse = (res, opt = {}) => {
         // Get response component
-        const {response: responseMapper} = this.components
+        const { response: responseMapper } = this.components;
 
         // Deconstruct options
-        const {code, message, data} = opt
+        const { code, message, data } = opt;
 
         /** @type {Response} */
-        let resp
+        let resp;
 
         if (code) {
             // If code is set, get response code
-            resp = responseMapper.get(code, {success: true})
+            resp = responseMapper.get(code, { success: true });
         } else {
             // Else, get a generic success
-            resp = responseMapper.getSuccess()
+            resp = responseMapper.getSuccess();
         }
 
         // Compose response
-        const body = resp.compose({message, data})
+        const body = resp.compose({ message, data });
 
         // Send response
-        res.json(body)
-    }
+        res.json(body);
+    };
 
     /**
      * Send error response
@@ -154,16 +150,16 @@ class Server {
      */
     sendErrorResponse = (res, err) => {
         // Get response component
-        const {response: responseMapper} = this.components
+        const { response: responseMapper } = this.components;
 
         /** @type Response */
-        let resp
+        let resp;
         /** @type any */
-        let data
+        let data;
 
         // If error is not APIError, convert to Internal Error
         if (err.constructor.name !== "APIError") {
-            resp = responseMapper.getInternalError()
+            resp = responseMapper.getInternalError();
 
             // If debug mode, add source error stack
             if (this.config.DEBUG) {
@@ -171,27 +167,25 @@ class Server {
                     _errorDebug: {
                         name: err.name,
                         message: err.message,
-                        stack: err.stack
-                    }
-                }
+                        stack: err.stack,
+                    },
+                };
             }
 
-            this.logger.error(err.stack, {scope: 'Server'})
+            this.logger.error(err.stack, { scope: "Server" });
         } else {
-            resp = responseMapper.get(err.code)
+            resp = responseMapper.get(err.code);
             if (err.data) {
-                data = err.data
+                data = err.data;
             }
         }
 
         // Compose body
-        const body = resp.compose({data, message: err.message})
+        const body = resp.compose({ data, message: err.message });
 
         // Send response
-        res
-            .status(resp.status)
-            .json(body)
-    }
+        res.status(resp.status).json(body);
+    };
 
     /**
      * Wraps a Promised-based handler function and returns an express handler
@@ -199,16 +193,16 @@ class Server {
      * @param handlerFn
      * @returns {function(...[*]=)}
      */
-    handleAsync = handlerFn => {
+    handleAsync = (handlerFn) => {
         // Create function
         return async (req, res, next) => {
             try {
-                await handlerFn(req, res, next)
+                await handlerFn(req, res, next);
             } catch (err) {
-                this.sendErrorResponse(res, err)
+                this.sendErrorResponse(res, err);
             }
-        }
-    }
+        };
+    };
 
     /**
      * Wraps a Async REST Handler function, receive result and send response
@@ -216,26 +210,27 @@ class Server {
      * @param {RESTHandlerAsyncFn} handlerFn
      * @returns {function(...[*]=)} Express handler function
      */
-    handleRESTAsync = handlerFn => {
+    handleRESTAsync = (handlerFn) => {
         // Create function
         return async (req, res) => {
             try {
-                const result = await handlerFn(req)
-                this.sendResponse(res, result)
+                const result = await handlerFn(req);
+                this.sendResponse(res, result);
             } catch (err) {
-                this.sendErrorResponse(res, err)
+                this.sendErrorResponse(res, err);
             }
-        }
-    }
+        };
+    };
 
     handleShowHealth = (req, res) => {
         // Get uptime
+        const { appVersion, buildSignature } = manifest;
         const uptime = getElapsedTime(this.startedAt);
         this.sendResponse(res, {
-            data: {uptime}
-        })
+            data: { uptime, appVersion, buildSignature },
+        });
         return true;
-    }
+    };
 }
 
-module.exports = Server
+module.exports = Server;
