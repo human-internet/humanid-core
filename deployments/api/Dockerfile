@@ -17,13 +17,17 @@ FROM node:16-alpine
 
 WORKDIR /usr/src/app
 
-COPY . ./
-COPY --from=manifest /usr/src/app/manifest.js ./manifest.js
+COPY migrations ./migrations
+COPY public ./public
+COPY src ./src
+COPY package.json package-lock.json .sequelizerc entrypoint.sh ./
+COPY --from=manifest /usr/src/app/manifest.js ./src/manifest.js
 
-RUN npm i -g npm
+RUN npm i -g npm \
+    && mkdir -p storage/temp
 
 ENV NODE_ENV="production"
 
 RUN npm ci
 
-CMD ["npm", "start"]
+ENTRYPOINT ["sh", "/usr/src/app/entrypoint.sh"]
