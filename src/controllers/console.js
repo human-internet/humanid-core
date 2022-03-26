@@ -1,11 +1,11 @@
-'use strict'
+"use strict";
 
-const BaseController = require('./base'),
-    express = require('express'),
-    APIError = require('../server/api_error'),
-    Constants = require('../constants'),
-    multer = require('multer'),
-    path = require('path')
+const BaseController = require("./base"),
+    express = require("express"),
+    APIError = require("../server/api_error"),
+    Constants = require("../constants"),
+    multer = require("multer"),
+    path = require("path");
 
 class ConsoleController extends BaseController {
     constructor(args) {
@@ -365,4 +365,4 @@ class ConsoleController extends BaseController {
     };
 }
 
-module.exports = ConsoleController
+module.exports = ConsoleController;

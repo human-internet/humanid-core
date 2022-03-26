@@ -2,12 +2,12 @@
     "name": "humanid-core",
     "version": "1.0.0",
     "description": "humanID API Core",
-    "main": "index.js",
+    "main": "src/index.js",
     "engines": {
         "node": "16.x"
     },
     "scripts": {
-        "start": "node index.js",
+        "start": "node src/index.js",
         "db:up": "npx sequelize db:migrate",
         "db:down": "npx sequelize db:migrate:undo",
         "db:status": "sequelize db:migrate:status",

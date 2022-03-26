@@ -9,7 +9,7 @@ const Common = require("./common"),
 
 function init({ config }) {
     // Init response mapper singleton
-    ResponseMapper.init({ filePath: config.server.workDir + "/response-codes.json" });
+    ResponseMapper.init({ filePath: config.server.workDir + "/src/response-codes.json" });
 
     // Init AWS SMS Provider
     smsAWS.init({
