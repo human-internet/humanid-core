@@ -8,13 +8,13 @@ const APIError = require("../server/api_error"),
     LibPhoneNo = require("libphonenumber-js");
 
 // load config
-let config = { DATABASE: {} };
+let config = {};
 
 // Server
 config.WORK_DIR = process.env.WORK_DIR || process.cwd();
 config.PORT = process.env.PORT || 3000;
-config.DEBUG = process.env.DEBUG || false;
-config.DEMO_MODE = process.env.DEMO_MODE || false;
+config.DEBUG = process.env.DEBUG === "true";
+config.DEMO_MODE = process.env.DEMO_MODE === "true";
 config.BASE_PATH = process.env.BASE_PATH || "";
 config.BASE_URL = process.env.BASE_URL || `http://localhost:${config.PORT}${config.BASE_PATH}`;
 
@@ -24,7 +24,7 @@ config.DB_PORT = process.env.DB_PORT || 3306;
 config.DB_USER = process.env.DB_USER || "root";
 config.DB_PASS = process.env.DB_PASS || "root";
 config.DB_NAME = process.env.DB_NAME || "l-humanid-core";
-config.DB_ENABLE_LOGGING = process.env.DB_ENABLE_LOGGING || false;
+config.DB_ENABLE_LOGGING = process.env.DB_ENABLE_LOGGING === "true";
 
 config.ASSETS_URL = process.env.ASSETS_URL || config.BASE_URL + "/public";
 config.ASSETS_DIR = process.env.ASSETS_DIR || path.join(config.WORK_DIR, "/public");
