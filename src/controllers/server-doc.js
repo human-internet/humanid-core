@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 /**
  * @apiDefine ServerClientCredential
