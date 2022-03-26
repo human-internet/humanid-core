@@ -1,17 +1,17 @@
-FROM node:16-alpine as manifest
+FROM nbsdev/nodejs-builder:16 as manifest
 
-RUN apk add --no-cache git
+ARG ARG_APP_VERSION=""
+
+ENV APP_NAME="humanID.API" \
+    APP_SLUG="human-id/api" \
+    APP_VERSION=${ARG_APP_VERSION} \
+    MANIFEST_OUT="manifest.js"
 
 WORKDIR /usr/src/app
 
 COPY .git ./.git
-COPY package.json scripts/gen-manifest.sh ./
 
-RUN export APP_NAME="humanID.API" \
-    && export APP_SLUG="human-id/api" \
-    && export APP_VERSION="$(npm run --silent manifest:version)" \
-    && export BUILD_SIGNATURE="$(npm run --silent manifest:buildSignature)" \
-    && MANIFEST_OUT=manifest.js sh gen-manifest.sh
+RUN gen-manifest
 
 FROM node:16-alpine
 
