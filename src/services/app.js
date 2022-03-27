@@ -107,7 +107,7 @@ class AppService extends BaseService {
 
         // Save config
         app.config = payload;
-        app.save();
+        await app.save();
     }
 
     resolveLogoUrl(fileName) {
@@ -542,7 +542,7 @@ class AppService extends BaseService {
             },
             {
                 where: { id: app.id },
-            }
+            },
         );
         this.logger.debug(`updated app logoFile count = ${count}`);
 
