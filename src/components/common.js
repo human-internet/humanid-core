@@ -30,8 +30,6 @@ config.ASSETS_URL = process.env.ASSETS_URL || config.BASE_URL + "/public";
 config.ASSETS_DIR = process.env.ASSETS_DIR || path.join(config.WORK_DIR, "/public");
 config.HMAC_SECRET = process.env.HMAC_SECRET || "ThisIsADefaultSecretPhrase";
 
-// Server.DemoMode
-
 // Server.UserHash
 config.HASH_ID_SALT_1 = process.env.HASH_ID_SALT_1;
 config.HASH_ID_SALT_2 = process.env.HASH_ID_SALT_2;
@@ -64,6 +62,14 @@ config.NEXMO_SENDER_ID_VN = process.env.NEXMO_SENDER_ID_VN;
 config.AWS_ACCESS_KEY_ID = process.env.AWS_ACCESS_KEY_ID;
 config.AWS_SECRET_ACCESS_KEY = process.env.AWS_SECRET_ACCESS_KEY;
 config.AWS_SMS_REGION = process.env.AWS_SMS_REGION || "us-west-2";
+
+// Adapters.S3
+config.S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID;
+config.S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY;
+config.S3_BUCKET_NAME = process.env.S3_BUCKET_NAME;
+config.S3_REGION = process.env.S3_REGION;
+config.S3_CDN_BASE_URL = process.env.S3_CDN_BASE_URL || "https://s3.human-id.org";
+config.S3_DIR_PREFIX = process.env.S3_DIR_PREFIX || "local";
 
 // hash data using secret
 const hmac = (data, secret) => {
