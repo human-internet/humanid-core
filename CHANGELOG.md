@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.3.4
+
+- feat(assets): Add upload files to S3
+- fix(app): Fix promise save call
+- feat(boot): Add feature to run database upgrade on boot
+- fix(config): Fix boolean value parsing from env
+- feat(server): Add version and build signature on health response
+- fix(web-login): Fix limit country config retrieval
+
 ## 1.3.3
 
 - feat(boot): Add feature to run database upgrade on boot
