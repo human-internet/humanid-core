@@ -36,7 +36,6 @@ Configure application with Environment Variables. See `.example.env` for availab
 | `DB_USER`                    | Database Server Username                                                | String                                                                              | ✓        |
 | `DB_PASS`                    | Database Server Password                                                | String                                                                              | ✓        |
 | `DB_NAME`                    | Database Server Database Name                                           | String                                                                              | ✓        |
-| `ASSET_URL`                  | Base URL for Assets                                                     | String                                                                              |          |
 | `HMAC_SECRET`                | Secret for generating HMAC                                              | String                                                                              | ✓        |
 | `HASH_ID_SALT_1`             | 1st Salt for User Hash ID generate                                      | String                                                                              | ✓        |
 | `HASH_ID_SALT_2`             | 2nd Salt for User Hash ID generate                                      | String                                                                              | ✓        |
@@ -54,6 +53,12 @@ Configure application with Environment Variables. See `.example.env` for availab
 | `AWS_SECRET_ACCESS_KEY`      | AWS Secret Access Key                                                   | String                                                                              | ✓        |
 | `AWS_SMS_REGION`             | AWS Region                                                              | String. Default: `us-west-2`                                                        |          |
 | `BOOT_DB_UPGRADE`            | Run database upgrade on boot                                            | Boolean. Default: `false`                                                           |          |
+| `S3_ACCESS_KEY_ID`           | AWS Secret Key ID with S3 R/W privileges                                | String                                                                              | ✓        |
+| `S3_SECRET_ACCESS_KEY`       | AWS Secret Access Key with S3 R/W privileges                            | String                                                                              | ✓        |
+| `S3_BUCKET_NAME`             | AWS Bucket Name                                                         | String                                                                              | ✓        |
+| `S3_REGION`                  | AWS S3 Region                                                           | String. Default: `us-east-2`                                                        | ✓        |
+| `S3_CDN_BASE_URL`            | AWS S3 CDN Base URL                                                     | String. Default: `https://s3.human-id.org`                                          | ✓        |
+| `S3_DIR_PREFIX`              | AWS S3 Directory Prefix                                                 | String. Default: `local`                                                            | ✓        |
 
 ### Init Database
 
