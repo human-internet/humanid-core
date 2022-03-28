@@ -18,8 +18,8 @@ doc/
 *.log
 
 # Public dir
-public/images/app-thumbnails/*
-!public/images/app-thumbnails/placeholder.png
+public/apps/app-thumbnails/*
+!public/apps/placeholder.png
 
 # Database
 *.sqlite
