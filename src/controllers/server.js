@@ -49,10 +49,19 @@ class ServerController extends BaseController {
                 this.validate({ exchangeToken: "required" }, body);
 
                 // Validate exchange token
-                const result = await this.services.Auth.validateExchangeToken(body.exchangeToken);
+                const { Auth: AuthService } = this.services;
+                const { sessionId, appUserId, countryCode } = await AuthService.validateExchangeToken(
+                    body.exchangeToken
+                );
+
+                // Clear exchange token
+                await AuthService.clearExchangeToken(sessionId, new Date());
 
                 return {
-                    data: result,
+                    data: {
+                        appUserId,
+                        countryCode,
+                    },
                 };
             })
         );
