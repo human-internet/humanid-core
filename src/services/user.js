@@ -511,7 +511,7 @@ class UserService extends BaseService {
         appUser = appUser[0];
 
         // Create exchange token
-        const exchangeToken = await this.services.Auth.createExchangeToken(appUser);
+        const { token: exchangeToken } = await this.services.Auth.createExchangeToken(appUser);
 
         // Persist lastVerifiedAt timestamp
         const lastVerifiedAt = new Date();
