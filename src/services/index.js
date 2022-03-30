@@ -2,9 +2,10 @@
 
 const AuthService = require("./auth"),
     UserService = require("./user"),
-    AppService = require("./app");
+    AppService = require("./app"),
+    AccountService = require("./account");
 
-const SERVICES = [AuthService, UserService, AppService];
+const SERVICES = [AuthService, UserService, AppService, AccountService];
 
 function init(args) {
     // Get logger

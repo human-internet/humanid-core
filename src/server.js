@@ -26,6 +26,7 @@ const APIError = require("./server/api_error"),
 const ConsoleController = require("./controllers/console"),
     MobileController = require("./controllers/mobile"),
     ServerController = require("./controllers/server"),
+    AccountController = require("./controllers/account"),
     WebLoginController = require("./controllers/web-login");
 
 const Middlewares = require("./server/middlewares");
@@ -94,6 +95,7 @@ class Server {
         this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router);
         this.app.use(`${basePath}/server`, new ServerController(routerParams).router);
         this.app.use(`${basePath}/web-login`, new WebLoginController(routerParams).router);
+        this.app.use(`${basePath}/accounts`, new AccountController(routerParams).router);
         this.app.get(`${basePath}/health`, this.handleShowHealth);
         this.app.use(`${basePath}/public`, express.static("public"));
 
