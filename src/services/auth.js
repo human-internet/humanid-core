@@ -150,13 +150,11 @@ class AuthService extends BaseService {
             throw new APIError("ERR_7");
         }
 
-        // Clear exchange token
-        await this.clearExchangeToken(session.id, new Date());
-
         // Compose response
         const user = appUser["user"];
 
         return {
+            sessionId: session.id,
             appUserId: appUser.extId,
             countryCode: user.countryCode,
         };
