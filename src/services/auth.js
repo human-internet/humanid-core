@@ -212,7 +212,10 @@ class AuthService extends BaseService {
 
         // Encrypt
         let token = this.encryptAES(payload, iv);
-        return `${exchangeId}/${token}`;
+        return {
+            token: `${exchangeId}/${token}`,
+            expiredAt,
+        };
     }
 
     encryptAES(payload, iv) {
