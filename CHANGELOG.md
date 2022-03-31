@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.0
+
+- feat(account): Add API Set Account Recovery Email
+- fix(auth): Remove clear exchange token from validate function
+- fix(auth): Add expiredAt in create exchange token result
+- feat(assets): Add upload files to S3
+- fix(app): Fix promise save call
+
 ## 1.3.4
 
 - feat(assets): Add upload files to S3
