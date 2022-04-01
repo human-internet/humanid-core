@@ -2,6 +2,7 @@ const BaseController = require("./base");
 const express = require("express");
 const Joi = require("joi");
 const APIError = require("../server/api_error");
+const Constants = require("../constants");
 
 class AccountController extends BaseController {
     constructor(args) {
@@ -15,6 +16,7 @@ class AccountController extends BaseController {
             setRecoveryEmail: Joi.object().keys({
                 exchangeToken: Joi.string().required(),
                 recoveryEmail: Joi.string().email().required(),
+                source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
             }),
         };
 

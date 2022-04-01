@@ -88,6 +88,14 @@ class AppService extends BaseService {
         };
     }
 
+    composeRedirectUrl(redirectUrl, exchangeToken) {
+        // Encode exchange token to URL
+        exchangeToken = encodeURIComponent(exchangeToken);
+
+        // Compose redirect url
+        return `${redirectUrl}?et=${exchangeToken}`;
+    }
+
     async updateConfig(appExtId, payload) {
         // Get app by external id
         const app = await this.getApp(appExtId);
@@ -551,7 +559,7 @@ class AppService extends BaseService {
             },
             {
                 where: { id: app.id },
-            },
+            }
         );
         this.logger.debug(`updated app logoFile count = ${count}`);
 
