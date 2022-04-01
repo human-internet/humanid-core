@@ -4,6 +4,7 @@ const BaseController = require("./base"),
     express = require("express"),
     APIError = require("../server/api_error"),
     Constants = require("../constants");
+const { parsePhoneNo } = require("../components/common");
 
 class MobileController extends BaseController {
     handleLogin = this.handleRESTAsync(async (req) => {
@@ -204,7 +205,8 @@ class MobileController extends BaseController {
                 const language = req.query.lang || "en";
 
                 // Send Verification via SMS
-                const result = await this.services.User.requestLoginOTP(body.countryCode, body.phone, {
+                const phone = parsePhoneNo(body.countryCode, body.phone);
+                const result = await this.services.User.requestLoginOTP(phone, {
                     appId: req.client.appId,
                     environmentId: req.client.environmentId,
                     language: language,
