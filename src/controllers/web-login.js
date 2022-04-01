@@ -4,6 +4,7 @@ const BaseController = require("./base"),
     express = require("express");
 
 const Constants = require("../constants");
+const { parsePhoneNo } = require("../components/common");
 
 class WebLoginController extends BaseController {
     constructor(args) {
@@ -89,7 +90,8 @@ class WebLoginController extends BaseController {
                 const language = req.query["lang"] || "en";
 
                 // Send Verification via SMS
-                const result = await this.services.User.requestLoginOTP(body.countryCode, body.phone, {
+                const phone = parsePhoneNo(body.countryCode, body.phone);
+                const result = await this.services.User.requestLoginOTP(phone, {
                     appId: client.appId,
                     environmentId: client.environmentId,
                     language: language,

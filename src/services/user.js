@@ -407,10 +407,7 @@ class UserService extends BaseService {
         };
     }
 
-    async requestLoginOTP(inputCountryCode, inputPhoneNo, option) {
-        // Parse phone number input
-        const phone = this.components.common.parsePhoneNo(inputCountryCode, inputPhoneNo);
-
+    async requestLoginOTP(phone, option) {
         // Get hash id
         const hashId = this.getHashId(phone.number);
 
