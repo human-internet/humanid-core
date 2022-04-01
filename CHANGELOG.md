@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.1
+
+- fix(account): Change response exchangeToken to redirectUrl on successfully Set Email for Account Recovery
+
 ## 1.4.0
 
 - feat(account): Add API Set Account Recovery Email
