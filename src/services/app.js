@@ -415,7 +415,7 @@ class AppService extends BaseService {
 
         // If lifetime is unset, then set default lifetime from config
         if (!lifetime) {
-            lifetime = this.config["WEB_LOGIN_SESSION_LIFETIME"];
+            lifetime = this.config.WEB_LOGIN_SESSION_LIFETIME;
         }
 
         // Sign credentials
@@ -432,7 +432,7 @@ class AppService extends BaseService {
         const expiredAt = dateUtil.addSecond(new Date(), lifetime);
 
         // Create jwt
-        const secret = this.config["WEB_LOGIN_SESSION_SECRET"];
+        const secret = this.config.WEB_LOGIN_SESSION_SECRET;
         const token = jwt.sign(payload, secret, {
             jwtid: sessionId,
             subject: clientId,
