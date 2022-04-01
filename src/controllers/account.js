@@ -12,10 +12,16 @@ class AccountController extends BaseController {
         this.logger = args.logger.child({ scope: "Core.Account" });
 
         // Init validation schemas
-        this.validationSchemas = {
+        this.schemas = {
             setRecoveryEmail: Joi.object().keys({
                 exchangeToken: Joi.string().required(),
                 recoveryEmail: Joi.string().email().required(),
+                source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
+            }),
+            requestRecoveryOtp: Joi.object().keys({
+                phone: Joi.string().required(),
+                lang: Joi.string(),
+                token: Joi.string().required(),
                 source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
             }),
         };
@@ -32,7 +38,7 @@ class AccountController extends BaseController {
             this.handleRESTAsync(async (req) => {
                 // Get and validate body
                 const payload = req.body;
-                const validationResult = this.validationSchemas.setRecoveryEmail.validate(payload);
+                const validationResult = this.schemas.setRecoveryEmail.validate(payload);
                 if (validationResult.error) {
                     this.logger.error(`ValidationError = ${validationResult.error}`);
                     throw new APIError("400").setData({ validationError: validationResult.error });
@@ -43,6 +49,30 @@ class AccountController extends BaseController {
 
                 return { data };
             })
+        );
+
+        this.router.post(
+            "/recovery/otp",
+            this.middlewares.authWebLoginClient,
+            this.handleRESTAsync(async (req) => {
+                // Get and validate body
+                const payload = req.body;
+                const validationResult = this.schemas.requestRecoveryOtp.validate(payload);
+                if (validationResult.error) {
+                    this.logger.error(`ValidationError = ${validationResult.error}`);
+                    throw new APIError("400").setData({ validationError: validationResult.error });
+                }
+
+                // Normalize payload
+                if (!payload.lang) {
+                    payload.lang = "en";
+                }
+
+                // Call service
+                const data = await this.services.Account.requestRecoveryOtp(payload);
+
+                return { data };
+            }),
         );
     }
 }

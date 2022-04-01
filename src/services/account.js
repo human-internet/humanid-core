@@ -1,6 +1,9 @@
 const BaseService = require("./base"),
     argon2 = require("argon2"),
     dateUtil = require("../components/date_util");
+const { parsePhoneNumber } = require("libphonenumber-js");
+const APIError = require("../server/api_error");
+const Constants = require("../constants");
 
 class AccountService extends BaseService {
     constructor(services, args) {
@@ -42,6 +45,44 @@ class AccountService extends BaseService {
         return {
             redirectUrl: AppService.composeRedirectUrl(redirectUrl.success, token),
             expiredAt: dateUtil.toEpoch(expiredAt),
+        };
+    }
+
+    async requestRecoveryOtp(payload) {
+        // Breakdown phone and country code
+        const phone = parsePhoneNumber(payload.phone);
+        if (!phone.isValid()) {
+            throw new APIError("ERR_10");
+        }
+
+        // Validate client
+        const { App: AppService } = this.services;
+        const client = await AppService.validateWebLoginToken({
+            token: payload.token,
+            purpose: Constants.WEB_LOGIN_SESSION_PURPOSE_REQUEST_LOGIN_OTP,
+            source: payload.source,
+        });
+
+        // TODO: Validate new phone number did not found in existing AppUsers
+
+        // Create otp
+        const { User: UserService } = this.services;
+        const otp = await UserService.requestLoginOTP(phone, {
+            appId: client.appId,
+            environmentId: client.environmentId,
+            language: payload.lang,
+        });
+
+        // Create recovery session
+        const session = AppService.createWebLoginSessionToken({
+            clientId: client.clientId,
+            clientSecret: client.clientSecret,
+            purpose: Constants.JWT_PURPOSE_REQUEST_LOGIN_OTP_RECOVERY,
+        });
+
+        return {
+            otp,
+            session,
         };
     }
 }
