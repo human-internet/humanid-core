@@ -9,11 +9,18 @@ class AccountService extends BaseService {
 
     async setRecoveryEmail(payload) {
         // Validate exchange token
-        const { Auth: AuthService } = this.services;
+        const { Auth: AuthService, App: AppService } = this.services;
         const { appUserId, sessionId } = await AuthService.validateExchangeToken(payload.exchangeToken);
 
         // Get app user id instance
-        const appUser = await this.models.AppUser.findOne({ where: { extId: appUserId } });
+        const appUser = await this.models.AppUser.findOne({
+            where: { extId: appUserId },
+            include: {
+                model: this.models.App,
+                as: "app",
+                required: true,
+            },
+        });
         if (!appUser) {
             throw new Error(`unexpected AppUser not found. appUserId = ${appUserId}`);
         }
@@ -29,8 +36,11 @@ class AccountService extends BaseService {
         // Issue new exchange token
         const { token, expiredAt } = await AuthService.createExchangeToken(appUser);
 
+        // Compose redirect url
+        const redirectUrl = AppService.getRedirectUrl(appUser.app, payload.source);
+
         return {
-            exchangeToken: token,
+            redirectUrl: AppService.composeRedirectUrl(redirectUrl.success, token),
             expiredAt: dateUtil.toEpoch(expiredAt),
         };
     }

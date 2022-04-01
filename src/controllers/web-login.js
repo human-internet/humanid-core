@@ -141,11 +141,8 @@ class WebLoginController extends BaseController {
                 // Get exchange token
                 const result = await this.services.User.login(body);
 
-                // Encode exchange token to URL
-                const exchangeToken = encodeURIComponent(result.data.exchangeToken);
-
                 // Compose redirect url
-                const redirectUrl = `${client.redirectUrl}?et=${exchangeToken}`;
+                const redirectUrl = App.composeRedirectUrl(client.redirectUrl, result.data.exchangeToken);
 
                 return {
                     data: {
