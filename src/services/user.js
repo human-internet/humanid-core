@@ -511,7 +511,7 @@ class UserService extends BaseService {
         appUser = appUser[0];
 
         // Create exchange token
-        const { token: exchangeToken } = await this.services.Auth.createExchangeToken(appUser);
+        const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
 
         // Persist lastVerifiedAt timestamp
         const lastVerifiedAt = new Date();
@@ -522,12 +522,16 @@ class UserService extends BaseService {
             },
             {
                 where: { id: userId },
-            }
+            },
         );
+
+        const { dateUtil } = this.components;
 
         return {
             data: {
                 exchangeToken,
+                expiredAt: dateUtil.toEpoch(expiredAt),
+                hasSetupRecovery: appUser.recoveryEmail != null && appUser.recoveryEmail !== "",
             },
         };
     }
