@@ -54,6 +54,9 @@ class Server {
         // Init services
         this.services = services.init(this);
 
+        // Set-up base path
+        this.basePath = this.config.BASE_PATH;
+
         // Init router
         this.initRouter();
 
@@ -80,9 +83,6 @@ class Server {
         // Middlewares
         routerParams.middlewares = new Middlewares(routerParams);
 
-        // Get base url
-        const basePath = this.config.BASE_PATH;
-
         // Init Main Routers
         this.app = express();
 
@@ -91,13 +91,13 @@ class Server {
         this.app.use(bodyParser.urlencoded({ extended: true }));
 
         // Configure routing
-        this.app.use(`${basePath}/console`, new ConsoleController(routerParams).router);
-        this.app.use(`${basePath}/mobile`, new MobileController(routerParams).router);
-        this.app.use(`${basePath}/server`, new ServerController(routerParams).router);
-        this.app.use(`${basePath}/web-login`, new WebLoginController(routerParams).router);
-        this.app.use(`${basePath}/accounts`, new AccountController(routerParams).router);
-        this.app.get(`${basePath}/health`, this.handleShowHealth);
-        this.app.use(`${basePath}/public`, express.static("public"));
+        this.app.use(`${this.basePath}/console`, new ConsoleController(routerParams).router);
+        this.app.use(`${this.basePath}/mobile`, new MobileController(routerParams).router);
+        this.app.use(`${this.basePath}/server`, new ServerController(routerParams).router);
+        this.app.use(`${this.basePath}/web-login`, new WebLoginController(routerParams).router);
+        this.app.use(`${this.basePath}/accounts`, new AccountController(routerParams).router);
+        this.app.get(`${this.basePath}/health`, this.handleShowHealth);
+        this.app.use(`${this.basePath}/public`, express.static("public"));
 
         // Handle Errors
         this.app.use((req, res) => {
@@ -203,8 +203,21 @@ class Server {
             } catch (err) {
                 this.sendErrorResponse(res, err);
             }
-            this.logger.info(`Endpoint: ${req.path}, Status: ${res.statusCode}`);
+
+            this.logRequest(req.originalUrl, res);
         };
+    };
+
+    logRequest = (originalUrl, { headersSent, statusCode }) => {
+        // Only log request when response has been sent
+        if (!headersSent) {
+            return;
+        }
+
+        // Remove base path from original url
+        const pattern = new RegExp(`^${this.basePath}`);
+        const path = originalUrl.replace(pattern, "");
+        this.logger.info(`Path: ${path}, HttpStatus: ${statusCode}`);
     };
 
     /**
@@ -222,7 +235,8 @@ class Server {
             } catch (err) {
                 this.sendErrorResponse(res, err);
             }
-            this.logger.info(`Endpoint: ${req.path}, Status: ${res.statusCode}`);
+
+            this.logRequest(req.originalUrl, res);
         };
     };
 
