@@ -522,7 +522,7 @@ class UserService extends BaseService {
             },
             {
                 where: { id: userId },
-            },
+            }
         );
 
         const { dateUtil } = this.components;
