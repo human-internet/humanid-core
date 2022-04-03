@@ -203,11 +203,12 @@ class Server {
             } catch (err) {
                 this.sendErrorResponse(res, err);
             }
+            this.logger.info(`Endpoint: ${req.path}, Status: ${res.statusCode}`);
         };
     };
 
     /**
-     * Wraps a Async REST Handler function, receive result and send response
+     * Wraps an Async REST Handler function, receive result and send response
      *
      * @param {RESTHandlerAsyncFn} handlerFn
      * @returns {function(...[*]=)} Express handler function
@@ -221,6 +222,7 @@ class Server {
             } catch (err) {
                 this.sendErrorResponse(res, err);
             }
+            this.logger.info(`Endpoint: ${req.path}, Status: ${res.statusCode}`);
         };
     };
 
