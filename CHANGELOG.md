@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.4.2
+
+- fix(server): Fix duplicate log when writing request log and fix formatting
+- fix(web-login): Add expiredAt and hasSetupRecovery flag in API Log-in response
+- feat(server): Add request log after writing response
+
 ## 1.4.1
 
 - fix(account): Change response exchangeToken to redirectUrl on successfully Set Email for Account Recovery
