@@ -140,6 +140,7 @@ class WebLoginController extends BaseController {
 
                 // Get exchange token
                 const result = await this.services.User.login(body);
+                const { expiredAt, hasSetupRecovery } = result.data;
 
                 // Compose redirect url
                 const redirectUrl = App.composeRedirectUrl(client.redirectUrl, result.data.exchangeToken);
@@ -147,6 +148,8 @@ class WebLoginController extends BaseController {
                 return {
                     data: {
                         redirectUrl: redirectUrl,
+                        expiredAt,
+                        hasSetupRecovery,
                     },
                 };
             })
