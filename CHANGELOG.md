@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.4.3
+
+- fix(sandbox): Fix missing phoneNoMasked response in API List Sandbox OTP
+
 ## 1.4.2
 
 - fix(server): Fix duplicate log when writing request log and fix formatting
