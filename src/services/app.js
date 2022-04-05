@@ -468,8 +468,9 @@ class AppService extends BaseService {
 
         // Response data
         const respData = result.rows.map((item) => {
+            const { devUser } = item;
             return {
-                phoneNoMasked: item.phoneNoMasked,
+                phoneNoMasked: devUser.phoneNoMasked,
                 otpCode: item.otpCode,
                 createdAt: item.createdAt,
             };
