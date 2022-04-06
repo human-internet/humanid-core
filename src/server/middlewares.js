@@ -2,6 +2,7 @@
 
 const Constants = require("../constants");
 const APIError = require("./api_error");
+const logger = require("../logger");
 
 class Middlewares {
     constructor({ components, services, server, logger }) {
@@ -79,17 +80,20 @@ class Middlewares {
     parseBasicAuthorization(req) {
         const value = req.headers.authorization;
         if (!value) {
+            logger.debug(`ERROR: authorization header is empty`);
             throw new APIError("400");
         }
 
         // Split string into 2
         const tmp = value.split(" ", 2);
         if (tmp.length !== 2) {
+            logger.debug(`ERROR: invalid authorization header value. Value = ${value}`);
             throw new APIError("400");
         }
 
         // If header not basic
         if (tmp[0] !== "Basic") {
+            logger.debug(`ERROR: invalid authorization header format. Value = ${value}`);
             throw new APIError("401");
         }
 
