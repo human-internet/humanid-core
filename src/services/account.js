@@ -4,10 +4,13 @@ const BaseService = require("./base"),
 const { parsePhoneNumber } = require("libphonenumber-js");
 const APIError = require("../server/api_error");
 const Constants = require("../constants");
+const { config } = require("../components/common");
+const nanoId = require("nanoid");
 
 class AccountService extends BaseService {
     constructor(services, args) {
         super("Account", services, args);
+        this.newUserRecoverySessionExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
     }
 
     async setRecoveryEmail(payload) {
@@ -48,7 +51,7 @@ class AccountService extends BaseService {
         };
     }
 
-    async requestRecoveryOtp(payload) {
+    async requestVerifyNewPhoneOtp(payload) {
         // Breakdown phone and country code
         const phone = parsePhoneNumber(payload.phone);
         if (!phone.isValid()) {
@@ -77,13 +80,59 @@ class AccountService extends BaseService {
         const session = AppService.createWebLoginSessionToken({
             clientId: client.clientId,
             clientSecret: client.clientSecret,
-            purpose: Constants.JWT_PURPOSE_REQUEST_LOGIN_OTP_RECOVERY,
+            purpose: Constants.JWT_PURPOSE_RECOVERY_VERIFY_NEW_PHONE,
         });
 
         return {
             otp,
             session,
         };
+    }
+
+    async verifyNewPhone(payload) {
+        // Breakdown phone and country code
+        const phone = parsePhoneNumber(payload.phone);
+        if (!phone.isValid()) {
+            throw new APIError("ERR_10");
+        }
+
+        // Validate session
+        const { App: AppService } = this.services;
+        const client = await AppService.validateWebLoginToken({
+            token: payload.token,
+            purpose: Constants.JWT_PURPOSE_RECOVERY_VERIFY_NEW_PHONE,
+            source: payload.source,
+        });
+
+        // Get hash id
+        const { User: UserService } = this.services;
+        const hashId = UserService.getHashId(phone.number);
+
+        // Verify code
+        await UserService.verifyOtpCode(hashId, payload.otpCode);
+
+        // Get user (create user if exists)
+        const user = await UserService.getUser(hashId, phone.country);
+
+        // Create User Recovery Session record
+        const createdAt = new Date();
+        const extId = this.newUserRecoverySessionExtId();
+        const expiredAt = dateUtil.toEpoch(createdAt) + config.RECOVERY_SESSION_LIFETIME;
+
+        await this.models.UserRecoverySession.create({
+            userId: user.id,
+            extId,
+            expiredAt: dateUtil.fromEpoch(expiredAt),
+            createdAt,
+        });
+
+        // Create a session
+        return AppService.createWebLoginSessionToken({
+            clientId: client.clientId,
+            clientSecret: client.clientSecret,
+            sessionId: extId,
+            purpose: Constants.JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT,
+        });
     }
 }
 

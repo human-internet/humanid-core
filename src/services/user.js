@@ -419,6 +419,7 @@ class UserService extends BaseService {
 
         // Create otp
         const otp = await this.createOTP(session, new Date());
+        this.logger.debug(`OTP = ${otp.code}`);
 
         // Determine sandbox
         let devUser;
@@ -459,6 +460,29 @@ class UserService extends BaseService {
         };
     }
 
+    async getUser(hashId, countryCode) {
+        // Init timestamp
+        const timestamp = new Date();
+
+        // Get user, if user not found create a new one
+        const rows = await this.models.User.findOrCreate({
+            where: { hashId: hashId },
+            defaults: {
+                hashId: hashId,
+                hashIdVersion: 1,
+                hashIdFormatVersion: HASH_ID_FORMAT_VERSION,
+                countryCode,
+                userStatusId: USER_STATUS_VERIFIED,
+                lastVerifiedAt: timestamp,
+                createdAt: timestamp,
+                updatedAt: timestamp,
+            },
+        });
+
+        // Get user refs
+        return rows[0];
+    }
+
     async login(payload) {
         // Get references
         const { User, AppUser } = this.models;
@@ -476,20 +500,7 @@ class UserService extends BaseService {
         const timestamp = new Date();
 
         // Get user, if user not found create a new one
-        let user = await User.findOrCreate({
-            where: { hashId: hashId },
-            defaults: {
-                hashId: hashId,
-                hashIdVersion: 1,
-                hashIdFormatVersion: HASH_ID_FORMAT_VERSION,
-                countryCode: phone.country,
-                userStatusId: USER_STATUS_VERIFIED,
-                lastVerifiedAt: timestamp,
-                createdAt: timestamp,
-                updatedAt: timestamp,
-            },
-        });
-        user = user[0];
+        const user = await this.getUser(hashId, phone.country);
 
         // Register user to the app
         const userId = user.id;

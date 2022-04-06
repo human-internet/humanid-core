@@ -71,6 +71,9 @@ config.S3_REGION = process.env.S3_REGION;
 config.S3_CDN_BASE_URL = process.env.S3_CDN_BASE_URL || "https://s3.human-id.org";
 config.S3_DIR_PREFIX = process.env.S3_DIR_PREFIX || "local";
 
+// Recovery
+config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIME) || 300;
+
 // hash data using secret
 const hmac = (data, secret) => {
     secret = secret || config.HMAC_SECRET;
