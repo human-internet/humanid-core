@@ -14,7 +14,8 @@ module.exports = {
     ENV_DEVELOPMENT: 2,
     WEB_LOGIN_SESSION_PURPOSE_REQUEST_LOGIN_OTP: "web-login/request-login-otp",
     WEB_LOGIN_SESSION_PURPOSE_LOGIN: "web-login/login",
-    JWT_PURPOSE_REQUEST_LOGIN_OTP_RECOVERY: "web-login/recovery/request-login-otp",
+    JWT_PURPOSE_RECOVERY_VERIFY_NEW_PHONE: "R1",
+    JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT: "R2",
     WebLogin: {
         SourceMobile: "m",
         SourceWeb: "w",
