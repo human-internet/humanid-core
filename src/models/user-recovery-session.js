@@ -13,6 +13,10 @@ module.exports = (sequelize) => {
                 allowNull: false,
                 primaryKey: true,
             },
+            requestId: {
+                type: Sequelize.STRING(255),
+                allowNull: false,
+            },
             userId: {
                 type: Sequelize.BIGINT,
                 allowNull: false,
@@ -21,16 +25,31 @@ module.exports = (sequelize) => {
                     key: "id",
                 },
             },
-            extId: {
-                type: Sequelize.STRING(255),
+            rule: {
+                type: Sequelize.JSON,
                 allowNull: false,
-                unique: "user_recovery_session_ext_id",
+            },
+            otpCount: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
+            failAttemptCount: {
+                type: Sequelize.INTEGER,
+                allowNull: false,
+            },
+            nextResendAt: {
+                type: Sequelize.DATE,
+                allowNull: true,
             },
             expiredAt: {
                 type: Sequelize.DATE,
                 allowNull: false,
             },
             createdAt: {
+                type: Sequelize.DATE,
+                allowNull: false,
+            },
+            updatedAt: {
                 type: Sequelize.DATE,
                 allowNull: false,
             },
