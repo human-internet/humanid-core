@@ -20,7 +20,8 @@ const App = require("./app"),
     UserOTP = require("./user-otp"),
     UserOTPSandbox = require("./user-otp-sandbox"),
     UserOTPSession = require("./user-otp-session"),
-    UserRecoverySession = require("./user-recovery-session");
+    UserRecoverySession = require("./user-recovery-session"),
+    UserRecoveryOTP = require("./user-recovery-otp");
 
 // Configure logging function
 let enableLog = process.env.ENABLE_SEQUELIZE_LOG;
@@ -53,6 +54,7 @@ db.UserOTP = UserOTP(sequelize);
 db.UserOTPSandbox = UserOTPSandbox(sequelize);
 db.UserOTPSession = UserOTPSession(sequelize);
 db.UserRecoverySession = UserRecoverySession(sequelize);
+db.UserRecoveryOTP = UserRecoveryOTP(sequelize);
 
 Object.keys(db).forEach((modelName) => {
     if (db[modelName].associate) {

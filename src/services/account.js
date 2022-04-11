@@ -7,10 +7,18 @@ const Constants = require("../constants");
 const { config } = require("../components/common");
 const nanoId = require("nanoid");
 
+const RECOVERY_OTP_RULE = {
+    otpSessionLifetime: 300,
+    otpCountLimit: 3,
+    failAttemptLimit: 5,
+    nextResendDelay: 60,
+    otpCodeLength: 6,
+};
+
 class AccountService extends BaseService {
     constructor(services, args) {
         super("Account", services, args);
-        this.newUserRecoverySessionExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
+        this.newUserRecoverySessionRequestId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 8);
     }
 
     async setRecoveryEmail(payload) {
@@ -116,21 +124,26 @@ class AccountService extends BaseService {
 
         // Create User Recovery Session record
         const createdAt = new Date();
-        const extId = this.newUserRecoverySessionExtId();
+        const requestId = this.newUserRecoverySessionRequestId();
         const expiredAt = dateUtil.toEpoch(createdAt) + config.RECOVERY_SESSION_LIFETIME;
 
+        // Define rule
         await this.models.UserRecoverySession.create({
             userId: user.id,
-            extId,
+            requestId,
+            rule: RECOVERY_OTP_RULE,
+            otpCount: 0,
+            failAttemptCount: 0,
             expiredAt: dateUtil.fromEpoch(expiredAt),
             createdAt,
+            updatedAt: createdAt,
         });
 
         // Create a session
         return AppService.createWebLoginSessionToken({
             clientId: client.clientId,
             clientSecret: client.clientSecret,
-            sessionId: extId,
+            sessionId: requestId,
             purpose: Constants.JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT,
         });
     }
