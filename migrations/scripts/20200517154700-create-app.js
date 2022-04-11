@@ -99,6 +99,7 @@ module.exports = {
             { id: 1, name: "Unverified", updatedAt: "2020-01-01 00:00:00" },
             { id: 2, name: "Verified", updatedAt: "2020-01-01 00:00:00" },
             { id: 3, name: "Suspended", updatedAt: "2020-01-01 00:00:00" },
+            { id: 4, name: "Hidden", updatedAt: "2020-01-01 00:00:00" },
         ]);
         await queryInterface.bulkInsert("EntityType", [
             { id: 1, name: "Organization", updatedAt: "2020-01-01 00:00:00" },
