@@ -4,6 +4,8 @@ const Joi = require("joi");
 const APIError = require("../server/api_error");
 const Constants = require("../constants");
 
+const sourceValidator = Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required();
+
 class AccountController extends BaseController {
     constructor(args) {
         super(args.models, args);
@@ -16,19 +18,19 @@ class AccountController extends BaseController {
             setRecoveryEmail: Joi.object().keys({
                 exchangeToken: Joi.string().required(),
                 recoveryEmail: Joi.string().email().required(),
-                source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
+                source: sourceValidator,
             }),
             requestVerifyNewPhoneOtp: Joi.object().keys({
                 phone: Joi.string().required(),
                 lang: Joi.string(),
                 token: Joi.string().required(),
-                source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
+                source: sourceValidator,
             }),
             verifyNewPhone: Joi.object().keys({
                 phone: Joi.string().required(),
                 otpCode: Joi.string().required(),
                 token: Joi.string().required(),
-                source: Joi.string().equal(Constants.WebLogin.SourceWeb, Constants.WebLogin.SourceMobile).required(),
+                source: sourceValidator,
             }),
         };
 
