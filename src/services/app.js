@@ -13,6 +13,7 @@ const APIError = require("../server/api_error"),
     s3 = require("../adapters/s3"),
     BaseService = require("./base"),
     Constants = require("../constants"),
+    { config } = require("../components/common"),
     { promisify } = require("util");
 
 const APP_UNVERIFIED = 1;
@@ -42,8 +43,6 @@ const CREDENTIAL_ACTIVE = 1,
 
 const PLATFORM_ANDROID_SLUG = "android",
     PLATFORM_IOS_SLUG = "ios";
-
-const ORG_REGISTERED_DEV_USER_LIMIT = 2;
 
 const APP_PATH = "apps";
 
@@ -678,7 +677,7 @@ class AppService extends BaseService {
         });
 
         // If registered count reach limit, then return error
-        if (devUserCount >= ORG_REGISTERED_DEV_USER_LIMIT) {
+        if (devUserCount >= config.ORG_DEV_USER_LIMIT) {
             throw new APIError("ERR_23");
         }
 
