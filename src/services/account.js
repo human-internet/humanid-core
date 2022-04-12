@@ -85,8 +85,25 @@ class AccountService extends BaseService {
             source: payload.source,
         });
 
-        // Create otp
+        // Check if the phone has been associated to an account in the same app id
         const { User: UserService } = this.services;
+        const hashId = UserService.getHashId(phone.number);
+        const appUser = await this.models.AppUser.findOne({
+            where: { appId: client.appId },
+            include: {
+                model: this.models.User,
+                as: "user",
+                required: true,
+                where: {
+                    hashId,
+                },
+            },
+        });
+        if (appUser) {
+            throw new APIError("ERR_37");
+        }
+
+        // Create otp
         const otp = await UserService.requestLoginOTP(phone, {
             appId: client.appId,
             environmentId: client.environmentId,
