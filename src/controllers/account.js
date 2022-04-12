@@ -151,7 +151,7 @@ class AccountController extends BaseController {
                 const data = await this.services.Account.transferAccount(payload);
 
                 return { data };
-            }),
+            })
         );
     }
 }
