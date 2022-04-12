@@ -178,5 +178,10 @@
         "success": false,
         "status": 400,
         "message": "Old and New Phone number must be different"
+    },
+    "ERR_37": {
+        "success": false,
+        "status": 400,
+        "message": "New Phone has been associated to an account"
     }
 }
