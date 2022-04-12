@@ -455,9 +455,15 @@ class AccountService extends BaseService {
 
         // Retrieve all expired session
         const expiredSessions = await this.models.UserRecoverySession.findAll({
-            expiredAt: { [Op.lte]: new Date() },
+            where: { expiredAt: { [Op.lte]: new Date() } },
         });
 
+        if (expiredSessions.length === 0) {
+            this.logger.debug("No expired recovery session found");
+            return;
+        }
+
+        this.logger.debug(`Expired recovery session found = ${expiredSessions.length}`);
         for (const session of expiredSessions) {
             await this.deleteRecoverySession(session.id);
         }
@@ -466,10 +472,10 @@ class AccountService extends BaseService {
     async deleteRecoverySession(sessionId) {
         const { UserRecoveryOTP, UserRecoverySession } = this.models;
         let count = await UserRecoveryOTP.destroy({ where: { sessionId } });
-        this.logger.debug(`Current Session OTP deleted. Count = ${count}`);
+        this.logger.debug(`Recovery session OTP deleted. SessionId = ${sessionId}, Count = ${count}`);
 
         count = await UserRecoverySession.destroy({ where: { id: sessionId } });
-        this.logger.debug(`Current Session deleted. Count = ${count}`);
+        this.logger.debug(`Recovery session deleted. SessionId = ${sessionId}, Count = ${count}`);
     }
 
     async transferAccount(payload) {
