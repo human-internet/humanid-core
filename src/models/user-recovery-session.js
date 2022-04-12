@@ -92,6 +92,11 @@ module.exports = (sequelize) => {
             foreignKey: "userId",
             as: "user",
         });
+
+        Model.belongsTo(models.AppUser, {
+            foreignKey: "targetAppUserId",
+            as: "targetAppUser",
+        });
     };
 
     return Model;
