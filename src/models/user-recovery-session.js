@@ -25,6 +25,14 @@ module.exports = (sequelize) => {
                     key: "id",
                 },
             },
+            targetAppUserId: {
+                type: Sequelize.BIGINT,
+                allowNull: true,
+                references: {
+                    model: "AppUser",
+                    key: "id",
+                },
+            },
             rule: {
                 type: Sequelize.JSON,
                 allowNull: false,

@@ -158,5 +158,25 @@
         "success": false,
         "status": 400,
         "message": "App Credential not found"
+    },
+    "ERR_33": {
+        "success": false,
+        "status": 400,
+        "message": "User not found"
+    },
+    "ERR_34": {
+        "success": false,
+        "status": 400,
+        "message": "Account Recovery has not been set-up"
+    },
+    "ERR_35": {
+        "success": false,
+        "status": 400,
+        "message": "Invalid email for Account Recovery"
+    },
+    "ERR_36": {
+        "success": false,
+        "status": 400,
+        "message": "Old and New Phone number must be different"
     }
 }
