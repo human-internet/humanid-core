@@ -7,6 +7,7 @@ const BaseService = require("./base"),
     Constants = require("../constants"),
     { config } = require("../components/common"),
     nanoId = require("nanoid");
+const { Op } = require("sequelize");
 
 // Constants
 const HOUR_SEC = 3600;
@@ -28,7 +29,7 @@ class AccountService extends BaseService {
 
     async setRecoveryEmail(payload) {
         // Validate exchange token
-        const { Auth: AuthService, App: AppService } = this.services;
+        const { Auth: AuthService } = this.services;
         const { appUserId, sessionId } = await AuthService.validateExchangeToken(payload.exchangeToken);
 
         // Get app user id instance
@@ -52,11 +53,16 @@ class AccountService extends BaseService {
         // Clear exchange token
         await AuthService.clearExchangeToken(sessionId, new Date());
 
+        return this.getAppRedirectUrl(appUser, payload.source);
+    }
+
+    async getAppRedirectUrl(appUser, source) {
         // Issue new exchange token
+        const { Auth: AuthService, App: AppService } = this.services;
         const { token, expiredAt } = await AuthService.createExchangeToken(appUser);
 
         // Compose redirect url
-        const redirectUrl = AppService.getRedirectUrl(appUser.app, payload.source);
+        const redirectUrl = AppService.getRedirectUrl(appUser.app, source);
 
         return {
             redirectUrl: AppService.composeRedirectUrl(redirectUrl.success, token),
@@ -375,6 +381,109 @@ class AccountService extends BaseService {
             otpCount: otp.otpCount,
             config: recoverySession.rule,
         };
+    }
+
+    async validateTransferOtp(recoverySession, otpCode) {
+        // Validate session expired
+        if (dateUtil.compare(new Date(), recoverySession.expiredAt) === dateUtil.GREATER_THAN) {
+            throw new APIError("ERR_15");
+        }
+
+        // Validate failed attempt count
+        if (recoverySession.failAttemptCount >= recoverySession.rule.failAttemptLimit) {
+            throw new APIError("ERR_13");
+        }
+
+        // Query otps
+        const otpRows = await this.models.UserRecoveryOTP.findAll({
+            where: { sessionId: recoverySession.id },
+        });
+
+        // Validate otp list exist
+        const otpCount = otpRows.length;
+        if (!otpRows || otpCount === 0) {
+            throw new APIError("ERR_11");
+        }
+
+        // Iterate validation
+        let valid;
+        for (let i = 0; i < otpCount; i++) {
+            const otp = otpRows[i];
+            try {
+                if (await argon2.verify(otp.signature, otpCode)) {
+                    valid = true;
+                    break;
+                }
+            } catch (err) {
+                this.logger.error(`Failed to verify OTP. OTP No = ${otp.otpNo}`);
+            }
+        }
+
+        // If invalid, throw error
+        if (!valid) {
+            recoverySession.failAttemptCount += 1;
+            recoverySession.updatedAt = new Date();
+            await recoverySession.save();
+
+            // Throw error
+            throw new APIError("ERR_5");
+        }
+
+        // Clear otp session
+        await this.clearRecoverySession(recoverySession.id);
+    }
+
+    async clearRecoverySession(currentSessionId) {
+        await this.deleteRecoverySession(currentSessionId);
+
+        // Retrieve all expired session
+        const expiredSessions = await this.models.UserRecoverySession.findAll({
+            expiredAt: { [Op.lte]: new Date() },
+        });
+
+        for (const session of expiredSessions) {
+            await this.deleteRecoverySession(session.id);
+        }
+    }
+
+    async deleteRecoverySession(sessionId) {
+        const { UserRecoveryOTP, UserRecoverySession } = this.models;
+        let count = await UserRecoveryOTP.destroy({ where: { sessionId } });
+        this.logger.debug(`Current Session OTP deleted. Count = ${count}`);
+
+        count = await UserRecoverySession.destroy({ where: { id: sessionId } });
+        this.logger.debug(`Current Session deleted. Count = ${count}`);
+    }
+
+    async transferAccount(payload) {
+        // Get session
+        const { recoverySession } = await this.getRecoverySession(payload.token, payload.source);
+
+        // Get target app user
+        const targetAppUser = await this.models.AppUser.findByPk(recoverySession.targetAppUserId, {
+            include: {
+                model: this.models.App,
+                as: "app",
+                required: true,
+            },
+        });
+        if (!targetAppUser) {
+            throw new Error(`unexpected targetAppUser is empty. RecoverySessionId = ${recoverySession.requestId}`);
+        }
+
+        // Validate otp
+        await this.validateTransferOtp(recoverySession, payload.otpCode);
+
+        // Transfer appUser to new user
+        targetAppUser.userId = recoverySession.userId;
+        targetAppUser.updatedAt = new Date();
+        await targetAppUser.save();
+
+        // Clear session
+        await this.clearRecoverySession(recoverySession.id);
+
+        // Compose redirect url
+        return this.getAppRedirectUrl(targetAppUser, payload.source);
     }
 }
 
