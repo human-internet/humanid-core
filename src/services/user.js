@@ -615,7 +615,6 @@ class UserService extends BaseService {
         if (!valid) {
             session.failAttemptCount += 1;
             session.updatedAt = new Date();
-            session.version += 1;
             await session.save();
 
             // Throw error
