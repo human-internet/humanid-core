@@ -71,6 +71,15 @@ config.S3_REGION = process.env.S3_REGION;
 config.S3_CDN_BASE_URL = process.env.S3_CDN_BASE_URL || "https://s3.human-id.org";
 config.S3_DIR_PREFIX = process.env.S3_DIR_PREFIX || "local";
 
+// Adapters.SMTP
+config.SMTP_HOST = process.env.SMTP_HOST;
+config.SMTP_PORT = process.env.SMTP_PORT;
+config.SMTP_SECURE = (process.env.SMTP_SECURE || "true") === "true";
+config.SMTP_AUTH_USER = process.env.SMTP_AUTH_USER;
+config.SMTP_AUTH_PASS = process.env.SMTP_AUTH_PASS;
+config.SMTP_DEFAULT_FROM_NAME = process.env.SMTP_DEFAULT_FROM_NAME || "humanID";
+config.SMTP_DEFAULT_FROM_EMAIL = process.env.SMTP_DEFAULT_FROM_EMAIL || "no-reply@human-id.org";
+
 // Recovery
 config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIME) || 300;
 

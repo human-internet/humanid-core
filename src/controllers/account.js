@@ -32,6 +32,12 @@ class AccountController extends BaseController {
                 token: Joi.string().required(),
                 source: sourceValidator,
             }),
+            requestTransferAccountOtp: Joi.object().keys({
+                oldPhone: Joi.string().required(),
+                recoveryEmail: Joi.string().email().required(),
+                token: Joi.string().required(),
+                source: sourceValidator,
+            }),
         };
 
         // Initiate routing
@@ -103,6 +109,25 @@ class AccountController extends BaseController {
 
                 return { data };
             })
+        );
+
+        this.router.post(
+            "/recovery/transfer/otp",
+            this.middlewares.authWebLoginClient,
+            this.handleRESTAsync(async (req) => {
+                // Get and validate body
+                const payload = req.body;
+                const validationResult = this.schemas.requestTransferAccountOtp.validate(payload);
+                if (validationResult.error) {
+                    this.logger.error(`ValidationError = ${validationResult.error}`);
+                    throw new APIError("400").setData({ validationError: validationResult.error });
+                }
+
+                // Call service
+                const data = await this.services.Account.requestTransferAccountOtp(payload);
+
+                return { data };
+            }),
         );
     }
 }
