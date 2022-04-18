@@ -1,5 +1,16 @@
 # Changelog
 
+## 1.5.0
+
+- fix(sandbox): Change dev user limit to configurable via env
+- feat(account): Add API Transfer Account to new phone number
+- fix(user): Remove unused version column
+- feat(account): Add API Request OTP for Transfer Account
+- fix(db): Fix missing AppStatus reference data
+- feat(account): Add API Verify New Phone
+- fix(auth): Add error logging when error parsing Authorization header occurred
+- feat(account): Add API Request OTP for Account Recovery
+
 ## 1.4.3
 
 - fix(sandbox): Fix missing phoneNoMasked response in API List Sandbox OTP
