@@ -382,7 +382,10 @@ class AccountService extends BaseService {
 
         // Create Email OTP
         const otp = await this.createRecoveryOTP(recoverySession, appUser.id, new Date());
-        this.logger.debug(`OTP Code = ${otp.code}`);
+
+        if (config.DEBUG) {
+            this.logger.debug(`OTP Code = ${otp.code}`);
+        }
 
         // Send OTP to email
         mailer.send({
@@ -506,7 +509,14 @@ class AccountService extends BaseService {
         await this.clearRecoverySession(recoverySession.id);
 
         // Compose redirect url
-        return this.getAppRedirectUrl(targetAppUser, payload.source);
+        const result = await this.getAppRedirectUrl(targetAppUser, payload.source);
+
+        // Set app to result
+        result.app = {
+            name: targetAppUser.app.name,
+        };
+
+        return result;
     }
 }
 
