@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.5.1
+
+- fix(account): Add app name in Transfer Account response
+
 ## 1.5.0
 
 - fix(sandbox): Change dev user limit to configurable via env
