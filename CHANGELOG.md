@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.6.0
+
+- feat(web-login): Add application config in Get Detail App response
+- feat(dc/app): Init default app config values on Create App
+- fix: Remove OTP logging for debug
+
 ## 1.5.1
 
 - fix(account): Add app name in Transfer Account response
