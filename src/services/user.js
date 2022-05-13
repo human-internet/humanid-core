@@ -419,7 +419,6 @@ class UserService extends BaseService {
 
         // Create otp
         const otp = await this.createOTP(session, new Date());
-        this.logger.debug(`OTP = ${otp.code}`);
 
         // Determine sandbox
         let devUser;
