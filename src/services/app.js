@@ -159,12 +159,26 @@ class AppService extends BaseService {
         // Resolve assets url
         const logoUrls = this.resolveLogoUrl(app.logoFile);
 
+        // Get config
+        let config;
+        if (!app.config || !app.config.web) {
+            config = this.initConfig();
+        } else {
+            config = app.config.web;
+        }
+
         // Composer response
         return {
             app: {
                 name: app.name,
                 logoUrls: logoUrls,
                 redirectUrlFail: redirectUrls.failed,
+                config: {
+                    limitCountry: config.limitCountry || [],
+                    priorityCountry: config.priorityCountry || [],
+                    accountRecovery: config.accountRecovery || false,
+                    privacyPolicyUrl: config.privacyPolicyUrl,
+                },
             },
         };
     }
