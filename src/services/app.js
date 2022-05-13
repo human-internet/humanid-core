@@ -77,6 +77,7 @@ class AppService extends BaseService {
             priorityCountry: Joi.array().items(Joi.string().length(2)).optional(),
             privacyPolicyUrl: Joi.string().uri().optional(),
             limitCountry: Joi.array().items(Joi.string().length(2)).optional(),
+            accountRecovery: Joi.boolean().optional(),
         });
 
         this.schemas = {
@@ -717,6 +718,15 @@ class AppService extends BaseService {
         });
     }
 
+    initConfig() {
+        return {
+            redirectUrls: {},
+            priorityCountry: [],
+            limitCountry: [],
+            accountRecovery: false,
+        };
+    }
+
     async create({ ownerEntityTypeId, ownerId, name }) {
         // Validate ownerEntityTypeId
         if (ownerEntityTypeId !== OWNER_ENTITY_ORGANIZATION) {
@@ -736,6 +746,7 @@ class AppService extends BaseService {
             extId: this.generateExtId(),
             name: name,
             appStatusId: APP_UNVERIFIED,
+            config: this.initConfig(),
             createdAt: timestamp,
             updatedAt: timestamp,
         });
