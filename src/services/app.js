@@ -735,10 +735,16 @@ class AppService extends BaseService {
 
     initConfig() {
         return {
-            redirectUrls: {},
-            priorityCountry: [],
-            limitCountry: [],
-            accountRecovery: false,
+            web: {
+                redirectUrls: {
+                    failed: "",
+                    success: "",
+                },
+                priorityCountry: [],
+                limitCountry: [],
+                accountRecovery: false,
+                privacyPolicyUrl: "",
+            },
         };
     }
 
