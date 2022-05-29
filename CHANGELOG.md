@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.0
+
+- feat(web-login): Add flag new account created and app offers account recovery or not
+
 ## 1.6.0
 
 - feat(web-login): Add application config in Get Detail App response
