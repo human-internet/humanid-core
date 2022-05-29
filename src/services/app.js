@@ -303,6 +303,7 @@ class AppService extends BaseService {
             clientSecret: appCred.clientSecret,
             sessionId: sessionId,
             redirectUrl: redirectUrl.success,
+            app,
         };
     }
 

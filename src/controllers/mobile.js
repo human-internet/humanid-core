@@ -238,7 +238,9 @@ class MobileController extends BaseController {
                 body.appId = req.client.appId;
 
                 // Call login service
-                return await this.services.User.login(body);
+                const data = await this.services.User.login(body);
+
+                return { data };
             })
         );
 

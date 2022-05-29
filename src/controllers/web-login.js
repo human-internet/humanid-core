@@ -141,17 +141,21 @@ class WebLoginController extends BaseController {
                 body.appId = client.appId;
 
                 // Get exchange token
-                const result = await this.services.User.login(body);
-                const { expiredAt, hasSetupRecovery } = result.data;
+                const { expiredAt, exchangeToken, user } = await this.services.User.login(body);
 
                 // Compose redirect url
-                const redirectUrl = App.composeRedirectUrl(client.redirectUrl, result.data.exchangeToken);
+                const redirectUrl = App.composeRedirectUrl(client.redirectUrl, exchangeToken);
 
                 return {
                     data: {
                         redirectUrl: redirectUrl,
                         expiredAt,
-                        hasSetupRecovery,
+                        user,
+                        app: {
+                            config: {
+                                accountRecovery: client.app.config.web.accountRecovery,
+                            },
+                        },
                     },
                 };
             })

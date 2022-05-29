@@ -504,7 +504,7 @@ class UserService extends BaseService {
         // Register user to the app
         const userId = user.id;
         const appId = payload.appId;
-        let appUser = await AppUser.findOrCreate({
+        const result = await AppUser.findOrCreate({
             where: { appId: appId, userId: userId },
             defaults: {
                 appId: appId,
@@ -515,7 +515,7 @@ class UserService extends BaseService {
                 updatedAt: timestamp,
             },
         });
-        appUser = appUser[0];
+        const appUser = result[0];
 
         // Create exchange token
         const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
@@ -535,9 +535,10 @@ class UserService extends BaseService {
         const { dateUtil } = this.components;
 
         return {
-            data: {
-                exchangeToken,
-                expiredAt: dateUtil.toEpoch(expiredAt),
+            exchangeToken,
+            expiredAt: dateUtil.toEpoch(expiredAt),
+            user: {
+                newAccount: result[1],
                 hasSetupRecovery: appUser.recoveryEmail != null && appUser.recoveryEmail !== "",
             },
         };
