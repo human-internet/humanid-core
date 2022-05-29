@@ -1,5 +1,10 @@
 # Changelog
 
+## 1.7.1
+
+- feat(app): Add seeder script to fix app config structure
+- fix(app): Fix init app config structure
+
 ## 1.7.0
 
 - feat(web-login): Add flag new account created and app offers account recovery or not
