@@ -8,7 +8,7 @@ const BaseService = require("./base"),
     { config } = require("../components/common"),
     nanoId = require("nanoid");
 const { Op } = require("sequelize");
-const { AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession } = require("../models");
+const { App, AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession } = require("../models");
 
 // Constants
 const HOUR_SEC = 3600;
@@ -108,7 +108,14 @@ class AccountService extends BaseService {
     }
 
     getAccount(appId, userId) {
-        return this.models.AppUser.findOne({ where: { appId, userId } });
+        return AppUser.findOne({
+            where: { appId, userId },
+            include: {
+                as: "app",
+                model: App,
+                required: true,
+            },
+        });
     }
 
     async verifyNewPhone(payload) {
@@ -163,7 +170,13 @@ class AccountService extends BaseService {
 
         // Check new phone has Account
         const existingAccount = await this.getAccount(client.appId, user.id);
-        result.hasAccount = existingAccount != null;
+        if (existingAccount) {
+            result.hasAccount = true;
+            result.redirectApp = await this.getAppRedirectUrl(existingAccount, payload.source);
+        } else {
+            result.hasAccount = false;
+            result.redirectApp = null;
+        }
 
         return result;
     }
