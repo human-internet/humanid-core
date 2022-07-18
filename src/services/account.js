@@ -8,6 +8,7 @@ const BaseService = require("./base"),
     { config } = require("../components/common"),
     nanoId = require("nanoid");
 const { Op } = require("sequelize");
+const { AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession } = require("../models");
 
 // Constants
 const HOUR_SEC = 3600;
@@ -106,8 +107,6 @@ class AccountService extends BaseService {
         };
     }
 
-    ZXA;
-
     getAccount(appId, userId) {
         return this.models.AppUser.findOne({ where: { appId, userId } });
     }
@@ -168,6 +167,7 @@ class AccountService extends BaseService {
 
         return result;
     }
+
     async getRecoverySession(token, source) {
         // Validate session
         const { App: AppService } = this.services;
@@ -475,6 +475,77 @@ class AccountService extends BaseService {
         this.logger.debug(`Recovery session deleted. SessionId = ${sessionId}, Count = ${count}`);
     }
 
+    async updateTransferAccount(targetAppUserId, appId, newUserId) {
+        // Begin transaction
+        const transaction = await AppUser.sequelize.transaction();
+
+        try {
+            // Remove existing account
+            await this.removeAccount(appId, newUserId, transaction);
+
+            // Update app user
+            await AppUser.update(
+                {
+                    userId: newUserId,
+                    updatedAt: new Date(),
+                },
+                { where: { id: targetAppUserId }, transaction }
+            );
+
+            await transaction.commit();
+        } catch (err) {
+            await transaction.rollback();
+            throw err;
+        }
+    }
+
+    async removeAccount(appId, userId, transaction) {
+        // Get existing app user
+        const appUser = await AppUser.findOne({ where: { appId, userId }, transaction });
+        if (!appUser) {
+            this.logger.debug(
+                `User does not have Account in this App. Skipping remove account. AppId = ${appId}, UserId = ${userId}`
+            );
+            return;
+        }
+        const appUserId = appUser.id;
+
+        // Get existing UserRecoverySession
+        const recoverySessions = await UserRecoverySession.findAll({
+            where: { targetAppUserId: appUserId },
+            transaction,
+        });
+        if (recoverySessions.length > 0) {
+            let otpCount = 0;
+            let sessionCount = 0;
+
+            // Delete all otps
+            for (const recoverySession of recoverySessions) {
+                const otpResult = await UserRecoveryOTP.destroy(
+                    { where: { sessionId: recoverySession.id } },
+                    transaction
+                );
+                otpCount += otpResult;
+
+                const sessionResult = await UserRecoverySession.destroy({
+                    where: { id: recoverySession.id },
+                    transaction,
+                });
+                sessionCount += sessionResult;
+            }
+            this.logger.debug(`Recovery Session OTPs deleted. Count = ${otpCount}, AppUserId = ${appUserId}`);
+            this.logger.debug(`Recovery Session deleted. Count = ${sessionCount}, AppUserId = ${appUserId}`);
+        }
+
+        // Remove on exchange session
+        let count = await UserExchangeSession.destroy({ where: { appUserId }, transaction });
+        this.logger.debug(`Exchange Session deleted. Count = ${count}, AppUserId = ${appUserId}`);
+
+        // Delete AppUser
+        count = await AppUser.destroy({ where: { id: appUserId }, transaction });
+        this.logger.debug(`AppUser deleted. Count = ${count}, AppUserId = ${appUserId}`);
+    }
+
     async transferAccount(payload) {
         // Get session
         const { recoverySession } = await this.getRecoverySession(payload.token, payload.source);
@@ -495,9 +566,7 @@ class AccountService extends BaseService {
         await this.validateTransferOtp(recoverySession, payload.otpCode);
 
         // Transfer appUser to new user
-        targetAppUser.userId = recoverySession.userId;
-        targetAppUser.updatedAt = new Date();
-        await targetAppUser.save();
+        await this.updateTransferAccount(targetAppUser.id, targetAppUser.appId, recoverySession.userId);
 
         // Clear session
         await this.clearRecoverySession(recoverySession.id);
