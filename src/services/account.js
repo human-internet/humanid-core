@@ -106,6 +106,12 @@ class AccountService extends BaseService {
         };
     }
 
+    ZXA;
+
+    getAccount(appId, userId) {
+        return this.models.AppUser.findOne({ where: { appId, userId } });
+    }
+
     async verifyNewPhone(payload) {
         // Breakdown phone and country code
         const phone = parsePhoneNumber(payload.phone);
@@ -149,14 +155,19 @@ class AccountService extends BaseService {
         });
 
         // Create a session
-        return AppService.createWebLoginSessionToken({
+        const result = AppService.createWebLoginSessionToken({
             clientId: client.clientId,
             clientSecret: client.clientSecret,
             sessionId: requestId,
             purpose: Constants.JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT,
         });
-    }
 
+        // Check new phone has Account
+        const existingAccount = await this.getAccount(client.appId, user.id);
+        result.hasAccount = existingAccount != null;
+
+        return result;
+    }
     async getRecoverySession(token, source) {
         // Validate session
         const { App: AppService } = this.services;
