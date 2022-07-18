@@ -1,5 +1,11 @@
 # Changelog
 
+## 1.7.2
+
+- fix(account): Delete existing Account on new phone when transferring recovered old Account
+- fix(account): Add hasAccount flag to indicate new phone is already AppUser account
+- fix(account): Allow request otp for new phone with existing AppUser to be transferred account for recovery
+
 ## 1.7.1
 
 - feat(app): Add seeder script to fix app config structure
