@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.3
+
+- fix(account): Returns redirect app url on success verify new phone
+
 ## 1.7.2
 
 - fix(account): Delete existing Account on new phone when transferring recovered old Account
