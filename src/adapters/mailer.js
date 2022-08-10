@@ -44,6 +44,7 @@ class Mailer {
     }
 
     handleSendEvent = async (options) => {
+        options.from = `"${config.SMTP_DEFAULT_FROM_NAME}" <${config.SMTP_DEFAULT_FROM_EMAIL}>`;
         this.logger.debug(`Event received: ${SEND_MAIL_EVENT}`);
         const result = await this.sender.sendMail(options);
         this.logger.debug(result);
