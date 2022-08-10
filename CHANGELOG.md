@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.4
+
+- fix(account): Set email "from" sender
+
 ## 1.7.3
 
 - fix(account): Returns redirect app url on success verify new phone
