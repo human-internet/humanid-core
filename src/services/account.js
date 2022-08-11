@@ -308,7 +308,7 @@ class AccountService extends BaseService {
     }
 
     composeRecoveryEmailBody(otpCode, expiredIn) {
-        return `Hi Human,
+        return `Hi human,
         <br />
         <br />
         Please use this one-time verification code to gain access to your account:
@@ -317,13 +317,16 @@ class AccountService extends BaseService {
         <b>${otpCode}</b>
         <br />
         <br />
-        This code will expire in ${expiredIn}.
+        This code will expire in ${expiredIn}, at which time your email address will be deleted from our servers.
         <br />
         If you did not ask for account recovery, please ignore this email.
         <br />
         <br />
         <br />
-        The humanID Team`;
+        <br />
+        The humanID Team
+        <br />
+        Learn more about the Foundation for a Human Internet at <a href="https://human-internet.org">human-internet.org</a>`;
     }
 
     getExpiresIn = (sec) => {
