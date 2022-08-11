@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.7.5
+
+- fix(account): Update recovery email body
+
 ## 1.7.4
 
 - fix(account): Set email "from" sender
