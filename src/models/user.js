@@ -48,7 +48,8 @@ module.exports = (sequelize) => {
             },
             lastVerifiedAt: {
                 type: Sequelize.DATE,
-                allowNull: false,
+                allowNull: true,
+                defaultValue: null,
             },
             recoveryEmail: {
                 type: Sequelize.STRING,
