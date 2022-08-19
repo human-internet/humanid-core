@@ -21,6 +21,7 @@ class AuthService extends BaseService {
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz+",
             24
         );
+        this.generateAppUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 20);
 
         this._exchangeToken = {
             aesKey: this.config.EXCHANGE_TOKEN_AES_KEY,
@@ -131,7 +132,7 @@ class AuthService extends BaseService {
         }
 
         // Get app user
-        const appUser = session["appUser"];
+        const appUser = session.appUser;
 
         // Validate payload
         if (payload.exchangeId !== exchangeId || payload.appId !== appUser.appId || payload.extId !== appUser.extId) {
@@ -150,9 +151,36 @@ class AuthService extends BaseService {
             throw new APIError("ERR_7");
         }
 
-        // Compose response
-        const user = appUser["user"];
+        // If mark reset, then update appUser.extId and update user.lastVerifiedAt
+        const user = appUser.user;
+        if (appUser.markReset) {
+            // Generate new appUser ext id
+            const extId = this.generateAppUserExtId();
 
+            // Update appUser
+            const updatedValues = {
+                extId,
+                markReset: false,
+                updatedAt: new Date(),
+            };
+            await AppUser.update(updatedValues, { where: { id: appUser.id } });
+
+            // Update User lastVerifiedAt
+            await User.update(
+                {
+                    lastVerifiedAt: new Date(),
+                    updatedAt: new Date(),
+                },
+                { where: { id: user.id } },
+            );
+
+            // Set updated values to appUser
+            appUser.extId = updatedValues.extId;
+            appUser.markReset = updatedValues.markReset;
+            appUser.updatedAt = updatedValues.updatedAt;
+        }
+
+        // Compose response
         return {
             sessionId: session.id,
             appUserId: appUser.extId,
