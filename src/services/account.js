@@ -602,7 +602,7 @@ class AccountService extends BaseService {
         await Promise.all(
             appUsers.map((appUser) => {
                 return this.removeAccountSessions(appUser.id, transaction);
-            }),
+            })
         );
     }
 
