@@ -63,7 +63,7 @@ module.exports = (sequelize) => {
             },
             appId: {
                 type: Sequelize.BIGINT,
-                allowNull: true,
+                allowNull: false,
                 references: {
                     model: "App",
                     key: "id",
