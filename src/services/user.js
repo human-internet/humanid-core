@@ -11,6 +11,7 @@ const APIError = require("../server/api_error"),
 const BaseService = require("./base");
 
 const Localization = require("../server/localization");
+const dateUtil = require("../components/date_util");
 
 const USER_STATUS_VERIFIED = 2,
     HASH_ID_FORMAT_VERSION = 1,
@@ -482,6 +483,19 @@ class UserService extends BaseService {
         return rows[0];
     }
 
+    isActive = (lastVerifiedAt) => {
+        if (lastVerifiedAt == null) {
+            return true;
+        }
+
+        // Convert to epoch
+        const verifiedAt = dateUtil.toEpoch(lastVerifiedAt);
+        const now = dateUtil.toEpoch(new Date());
+
+        // Check user is still active within 90 days
+        return now - verifiedAt <= 7776000; // 90 days in second
+    };
+
     async login(payload) {
         // Get references
         const { User, AppUser } = this.models;
@@ -516,21 +530,37 @@ class UserService extends BaseService {
             },
         });
         const appUser = result[0];
+        const newAccount = result[1];
+
+        // Check if is inactive
+        const isActive = this.isActive(user.lastVerifiedAt);
+        if (!newAccount && !isActive) {
+            // Mark existing appUser to reset
+            await AppUser.update(
+                {
+                    markReset: true,
+                    updatedAt: new Date(),
+                },
+                {
+                    where: { id: appUser.id },
+                }
+            );
+        } else {
+            // Persist lastVerifiedAt timestamp
+            const lastVerifiedAt = new Date();
+            await User.update(
+                {
+                    lastVerifiedAt: lastVerifiedAt,
+                    updatedAt: lastVerifiedAt,
+                },
+                {
+                    where: { id: userId },
+                }
+            );
+        }
 
         // Create exchange token
         const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
-
-        // Persist lastVerifiedAt timestamp
-        const lastVerifiedAt = new Date();
-        await User.update(
-            {
-                lastVerifiedAt: lastVerifiedAt,
-                updatedAt: lastVerifiedAt,
-            },
-            {
-                where: { id: userId },
-            }
-        );
 
         const { dateUtil } = this.components;
 
@@ -538,7 +568,8 @@ class UserService extends BaseService {
             exchangeToken,
             expiredAt: dateUtil.toEpoch(expiredAt),
             user: {
-                newAccount: result[1],
+                isActive,
+                newAccount,
                 hasSetupRecovery: user.recoveryEmail != null && user.recoveryEmail !== "",
             },
         };
