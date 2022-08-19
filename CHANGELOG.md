@@ -1,5 +1,20 @@
 # Changelog
 
+## 1.8.0
+
+- feat(account): Add API Log-in to App from Recovery Session
+- feat(web-login): Add migration script to insert Web Login credential
+- feat(account): Add appId to Recovery Session data
+- fix(account): Transfer all AppUser to New Phone and Remove all existing AppUser bound to New Phone,
+- fix(account): Change User lastVerifiedAt column to nullable
+- feat(account): Transfer account to new User, remove mark reset and update last verified at
+- fix(account): Fix recovery email error code on recovery email has been set
+- feat(user): Change App User extId on verify exchange token and marked reset
+- feat(user): Add reset marker for inactive App Users
+- feat(account): Verify recoveryEmail from User
+- feat(account): Store recoveryEmail on User
+- feat(account): Check if user has set up recoveryEmail on User
+
 ## 1.7.5
 
 - fix(account): Update recovery email body
