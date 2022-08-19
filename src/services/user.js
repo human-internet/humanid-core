@@ -539,7 +539,7 @@ class UserService extends BaseService {
                 },
                 {
                     where: { id: user.id },
-                },
+                }
             );
         }
 
