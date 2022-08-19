@@ -30,6 +30,11 @@ module.exports = (sequelize) => {
                 type: Sequelize.INTEGER,
                 allowNull: false,
             },
+            markReset: {
+                type: Sequelize.BOOLEAN,
+                allowNull: false,
+                defaultValue: false,
+            },
         },
         {
             tableName: TABLE_NAME,
