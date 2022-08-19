@@ -252,7 +252,7 @@ class AccountService extends BaseService {
         return { appUser, user: appUser.user };
     }
 
-    async createRecoveryOTP(recoverySession, targetAppUserId, timestamp) {
+    async createRecoveryOTP(recoverySession, targetAppUser, timestamp) {
         // Get references
         const { dateUtil } = this.components;
         const { UserRecoverySession, UserRecoveryOTP } = this.models;
@@ -291,7 +291,8 @@ class AccountService extends BaseService {
                 {
                     otpCount: otpCount,
                     nextResendAt: nextResendAt,
-                    targetAppUserId,
+                    targetAppUserId: targetAppUser.id,
+                    appId: targetAppUser.appId,
                     updatedAt: timestamp,
                     version: recoverySession.version + 1,
                 },
@@ -407,7 +408,7 @@ class AccountService extends BaseService {
         }
 
         // Create Email OTP
-        const otp = await this.createRecoveryOTP(recoverySession, appUser.id, new Date());
+        const otp = await this.createRecoveryOTP(recoverySession, appUser, new Date());
 
         if (config.DEBUG) {
             this.logger.debug(`OTP Code = ${otp.code}`);
