@@ -61,6 +61,14 @@ module.exports = (sequelize) => {
                 type: Sequelize.DATE,
                 allowNull: false,
             },
+            appId: {
+                type: Sequelize.BIGINT,
+                allowNull: true,
+                references: {
+                    model: "App",
+                    key: "id",
+                },
+            },
         },
         {
             tableName: TABLE_NAME,
