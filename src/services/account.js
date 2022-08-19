@@ -237,13 +237,14 @@ class AccountService extends BaseService {
         }
 
         // Check if user has been set recovery
-        if (!appUser.recoveryEmail) {
+        const { user } = appUser;
+        if (!user.recoveryEmail) {
             throw new APIError("ERR_34");
         }
 
         // Check if recovery email is correct
         try {
-            await argon2.verify(appUser.recoveryEmail, recoveryEmail);
+            await argon2.verify(user.recoveryEmail, recoveryEmail);
         } catch (err) {
             throw new APIError("ERR_35");
         }
