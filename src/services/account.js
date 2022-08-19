@@ -507,13 +507,13 @@ class AccountService extends BaseService {
         this.logger.debug(`Recovery session deleted. SessionId = ${sessionId}, Count = ${count}`);
     }
 
-    async updateTransferAccount(oldUserId, appId, newUserId) {
+    async updateTransferAccount(oldUser, appId, newUserId) {
         // Begin transaction
         const transaction = await AppUser.sequelize.transaction();
 
         try {
             // Remove existing account
-            await this.removeAccount(appId, newUserId, transaction);
+            await this.removeAccount(newUserId, transaction);
 
             // Transfer all AppUser to new User
             const timestamp = new Date();
@@ -523,36 +523,38 @@ class AccountService extends BaseService {
                     markReset: false,
                     updatedAt: timestamp,
                 },
-                { where: { userId: oldUserId }, transaction }
+                { where: { userId: oldUser.id }, transaction }
             );
 
             // Update user last verified at
             await User.update(
                 {
                     lastVerifiedAt: timestamp,
+                    recoveryEmail: oldUser.recoveryEmail,
                     updatedAt: timestamp,
                 },
                 { where: { id: newUserId }, transaction }
             );
 
+            // Update old user as new account
+            await User.update(
+                {
+                    lastVerifiedAt: null,
+                    recoveryEmail: null,
+                    updatedAt: timestamp,
+                },
+                { where: { id: oldUser.id }, transaction }
+            );
+
             await transaction.commit();
         } catch (err) {
+            this.logger.error(`Unable to transfer account. Error = ${err}`);
             await transaction.rollback();
             throw err;
         }
     }
 
-    async removeAccount(appId, userId, transaction) {
-        // Get existing app user
-        const appUser = await AppUser.findOne({ where: { appId, userId }, transaction });
-        if (!appUser) {
-            this.logger.debug(
-                `User does not have Account in this App. Skipping remove account. AppId = ${appId}, UserId = ${userId}`
-            );
-            return;
-        }
-        const appUserId = appUser.id;
-
+    removeAccountSessions = async (appUserId, transaction) => {
         // Get existing UserRecoverySession
         const recoverySessions = await UserRecoverySession.findAll({
             where: { targetAppUserId: appUserId },
@@ -587,6 +589,21 @@ class AccountService extends BaseService {
         // Delete AppUser
         count = await AppUser.destroy({ where: { id: appUserId }, transaction });
         this.logger.debug(`AppUser deleted. Count = ${count}, AppUserId = ${appUserId}`);
+    };
+
+    async removeAccount(userId, transaction) {
+        // Get existing app user
+        const appUsers = await AppUser.findAll({ where: { userId }, transaction });
+        if (appUsers.length === 0) {
+            this.logger.debug(`User does not have AppUser. Skipping remove account. UserId = ${userId}`);
+            return;
+        }
+
+        await Promise.all(
+            appUsers.map((appUser) => {
+                return this.removeAccountSessions(appUser.id, transaction);
+            }),
+        );
     }
 
     async transferAccount(payload) {
@@ -594,14 +611,21 @@ class AccountService extends BaseService {
         const { recoverySession } = await this.getRecoverySession(payload.token, payload.source);
 
         // Get target app user
-        const targetAppUser = await this.models.AppUser.findByPk(recoverySession.targetAppUserId, {
-            include: {
-                model: this.models.App,
-                as: "app",
-                required: true,
-            },
+        const oldAppUser = await this.models.AppUser.findByPk(recoverySession.targetAppUserId, {
+            include: [
+                {
+                    model: this.models.App,
+                    as: "app",
+                    required: true,
+                },
+                {
+                    model: this.models.User,
+                    as: "user",
+                    required: true,
+                },
+            ],
         });
-        if (!targetAppUser) {
+        if (!oldAppUser) {
             throw new Error(`unexpected targetAppUser is empty. RecoverySessionId = ${recoverySession.requestId}`);
         }
 
@@ -609,18 +633,18 @@ class AccountService extends BaseService {
         await this.validateTransferOtp(recoverySession, payload.otpCode);
 
         // Transfer appUser to new user
-        const oldUserId = targetAppUser.userId;
-        await this.updateTransferAccount(oldUserId, targetAppUser.appId, recoverySession.userId);
+        const oldUser = oldAppUser.user;
+        await this.updateTransferAccount(oldUser, oldAppUser.appId, recoverySession.userId);
 
         // Clear session
         await this.clearRecoverySession(recoverySession.id);
 
         // Compose redirect url
-        const result = await this.getAppRedirectUrl(targetAppUser, payload.source);
+        const result = await this.getAppRedirectUrl(oldAppUser, payload.source);
 
         // Set app to result
         result.app = {
-            name: targetAppUser.app.name,
+            name: oldAppUser.app.name,
         };
 
         return result;
