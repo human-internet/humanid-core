@@ -539,7 +539,7 @@ class UserService extends BaseService {
             expiredAt: dateUtil.toEpoch(expiredAt),
             user: {
                 newAccount: result[1],
-                hasSetupRecovery: appUser.recoveryEmail != null && appUser.recoveryEmail !== "",
+                hasSetupRecovery: user.recoveryEmail != null && user.recoveryEmail !== "",
             },
         };
     }
