@@ -50,6 +50,10 @@ module.exports = (sequelize) => {
                 type: Sequelize.DATE,
                 allowNull: false,
             },
+            recoveryEmail: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
         },
         {
             tableName: TABLE_NAME,

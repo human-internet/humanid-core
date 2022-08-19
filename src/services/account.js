@@ -36,20 +36,35 @@ class AccountService extends BaseService {
         // Get app user id instance
         const appUser = await this.models.AppUser.findOne({
             where: { extId: appUserId },
-            include: {
-                model: this.models.App,
-                as: "app",
-                required: true,
-            },
+            include: [
+                {
+                    model: this.models.App,
+                    as: "app",
+                    required: true,
+                },
+                {
+                    model: this.models.User,
+                    as: "user",
+                    required: true,
+                },
+            ],
         });
         if (!appUser) {
             throw new Error(`unexpected AppUser not found. appUserId = ${appUserId}`);
         }
 
+        // Get user
+        const { user } = appUser;
+
+        // Check if recovery email has been set
+        if (user.recoveryEmail) {
+            throw new APIError("ERR_7");
+        }
+
         // Create derived keys of email
-        appUser.recoveryEmail = await argon2.hash(payload.recoveryEmail);
-        appUser.updatedAt = new Date();
-        await appUser.save();
+        user.recoveryEmail = await argon2.hash(payload.recoveryEmail);
+        user.updatedAt = new Date();
+        await user.save();
 
         // Clear exchange token
         await AuthService.clearExchangeToken(sessionId, new Date());
