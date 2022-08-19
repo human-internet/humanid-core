@@ -183,5 +183,10 @@
         "success": false,
         "status": 400,
         "message": "New Phone has been associated to an account"
+    },
+    "ERR_38": {
+        "success": false,
+        "status": 400,
+        "message": "Account Recovery has already been set-up"
     }
 }
