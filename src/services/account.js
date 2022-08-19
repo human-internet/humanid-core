@@ -651,6 +651,43 @@ class AccountService extends BaseService {
 
         return result;
     }
+
+    logIn = async (payload) => {
+        // Get session
+        const { recoverySession } = await this.getRecoverySession(payload.token, payload.source);
+
+        // Get user
+        const user = await User.findByPk(recoverySession.userId);
+        if (!user) {
+            `unexpected condition. User not found. UserId = ${user.id}, RecoverySessionId = ${recoverySession.id}`;
+        }
+
+        // Get app
+        const app = await App.findByPk(recoverySession.appId);
+        if (!app) {
+            throw new Error(
+                `unexpected condition. App not found. AppId = ${app.id}, RecoverySessionId = ${recoverySession.id}`
+            );
+        }
+
+        // Register user to the app
+        const { appUser, newAccount, isActive } = await this.services.User.getAppUser(app.id, user);
+
+        // Create exchange token
+        const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
+
+        // Compose response
+        const { dateUtil } = this.components;
+        return {
+            exchangeToken,
+            expiredAt: dateUtil.toEpoch(expiredAt),
+            user: {
+                isActive,
+                newAccount,
+                hasSetupRecovery: user.recoveryEmail != null && user.recoveryEmail !== "",
+            },
+        };
+    };
 }
 
 module.exports = AccountService;

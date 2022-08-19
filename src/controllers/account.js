@@ -43,6 +43,10 @@ class AccountController extends BaseController {
                 token: Joi.string().required(),
                 source: sourceValidator,
             }),
+            login: Joi.object().keys({
+                token: Joi.string().required(),
+                source: sourceValidator,
+            }),
         };
 
         // Initiate routing
@@ -152,6 +156,25 @@ class AccountController extends BaseController {
 
                 return { data };
             })
+        );
+
+        this.router.post(
+            "/recovery/login",
+            this.middlewares.authWebLoginClient,
+            this.handleRESTAsync(async (req) => {
+                // Get and validate body
+                const payload = req.body;
+                const validationResult = this.schemas.login.validate(payload);
+                if (validationResult.error) {
+                    this.logger.error(`ValidationError = ${validationResult.error}`);
+                    throw new APIError("400").setData({ validationError: validationResult.error });
+                }
+
+                // Call service
+                const data = await this.services.Account.logIn(payload);
+
+                return { data };
+            }),
         );
     }
 }

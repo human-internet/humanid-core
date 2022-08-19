@@ -5,6 +5,8 @@ const _ = require("lodash"),
     nanoId = require("nanoid"),
     argon2 = require("argon2");
 
+const { AppUser, User } = require("../models");
+
 const APIError = require("../server/api_error"),
     Constants = require("../constants");
 
@@ -496,39 +498,21 @@ class UserService extends BaseService {
         return now - verifiedAt <= 7776000; // 90 days in second
     };
 
-    async login(payload) {
-        // Get references
-        const { User, AppUser } = this.models;
-
-        // Parse phone number input
-        const phone = this.components.common.parsePhoneNo(payload.countryCode, payload.phone);
-
-        // Get hash id
-        const hashId = this.getHashId(phone.number);
-
-        // Verify code
-        await this.verifyOtpCode(hashId, payload.verificationCode);
-
-        // Init timestamp
-        const timestamp = new Date();
-
-        // Get user, if user not found create a new one
-        const user = await this.getUser(hashId, phone.country);
-
+    getAppUser = async (appId, user) => {
         // Register user to the app
-        const userId = user.id;
-        const appId = payload.appId;
+        const timestamp = new Date();
         const result = await AppUser.findOrCreate({
-            where: { appId: appId, userId: userId },
+            where: { appId: appId, userId: user.id },
             defaults: {
                 appId: appId,
-                userId: userId,
+                userId: user.id,
                 extId: this.generateAppUserExtId(),
                 accessStatusId: Constants.APP_ACCESS_GRANTED,
                 createdAt: timestamp,
                 updatedAt: timestamp,
             },
         });
+
         const appUser = result[0];
         const newAccount = result[1];
 
@@ -554,16 +538,35 @@ class UserService extends BaseService {
                     updatedAt: lastVerifiedAt,
                 },
                 {
-                    where: { id: userId },
-                }
+                    where: { id: user.id },
+                },
             );
         }
+
+        return { appUser, newAccount, isActive };
+    };
+
+    async login(payload) {
+        // Parse phone number input
+        const phone = this.components.common.parsePhoneNo(payload.countryCode, payload.phone);
+
+        // Get hash id
+        const hashId = this.getHashId(phone.number);
+
+        // Verify code
+        await this.verifyOtpCode(hashId, payload.verificationCode);
+
+        // Get user, if user not found create a new one
+        const user = await this.getUser(hashId, phone.country);
+
+        // Register user to the app
+        const { appUser, newAccount, isActive } = await this.getAppUser(payload.appId, user);
 
         // Create exchange token
         const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
 
+        // Compose response
         const { dateUtil } = this.components;
-
         return {
             exchangeToken,
             expiredAt: dateUtil.toEpoch(expiredAt),
