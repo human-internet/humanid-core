@@ -58,7 +58,7 @@ class AccountService extends BaseService {
 
         // Check if recovery email has been set
         if (user.recoveryEmail) {
-            throw new APIError("ERR_7");
+            throw new APIError("ERR_38");
         }
 
         // Create derived keys of email
