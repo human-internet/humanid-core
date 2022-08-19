@@ -166,6 +166,7 @@ class AccountService extends BaseService {
         // Define rule
         await this.models.UserRecoverySession.create({
             userId: user.id,
+            appId: client.appId,
             requestId,
             rule: RECOVERY_OTP_RULE,
             otpCount: 0,
