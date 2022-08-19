@@ -8,7 +8,7 @@ const BaseService = require("./base"),
     { config } = require("../components/common"),
     nanoId = require("nanoid");
 const { Op } = require("sequelize");
-const { App, AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession } = require("../models");
+const { App, AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession, User } = require("../models");
 
 // Constants
 const HOUR_SEC = 3600;
@@ -507,7 +507,7 @@ class AccountService extends BaseService {
         this.logger.debug(`Recovery session deleted. SessionId = ${sessionId}, Count = ${count}`);
     }
 
-    async updateTransferAccount(targetAppUserId, appId, newUserId) {
+    async updateTransferAccount(oldUserId, appId, newUserId) {
         // Begin transaction
         const transaction = await AppUser.sequelize.transaction();
 
@@ -515,13 +515,24 @@ class AccountService extends BaseService {
             // Remove existing account
             await this.removeAccount(appId, newUserId, transaction);
 
-            // Update app user
+            // Transfer all AppUser to new User
+            const timestamp = new Date();
             await AppUser.update(
                 {
                     userId: newUserId,
-                    updatedAt: new Date(),
+                    markReset: false,
+                    updatedAt: timestamp,
                 },
-                { where: { id: targetAppUserId }, transaction }
+                { where: { userId: oldUserId }, transaction }
+            );
+
+            // Update user last verified at
+            await User.update(
+                {
+                    lastVerifiedAt: timestamp,
+                    updatedAt: timestamp,
+                },
+                { where: { id: newUserId }, transaction }
             );
 
             await transaction.commit();
@@ -598,7 +609,8 @@ class AccountService extends BaseService {
         await this.validateTransferOtp(recoverySession, payload.otpCode);
 
         // Transfer appUser to new user
-        await this.updateTransferAccount(targetAppUser.id, targetAppUser.appId, recoverySession.userId);
+        const oldUserId = targetAppUser.userId;
+        await this.updateTransferAccount(oldUserId, targetAppUser.appId, recoverySession.userId);
 
         // Clear session
         await this.clearRecoverySession(recoverySession.id);
