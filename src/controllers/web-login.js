@@ -148,6 +148,7 @@ class WebLoginController extends BaseController {
 
                 return {
                     data: {
+                        exchangeToken,
                         redirectUrl: redirectUrl,
                         expiredAt,
                         user,
