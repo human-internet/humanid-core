@@ -88,6 +88,7 @@ class AccountService extends BaseService {
         const redirectUrl = AppService.getRedirectUrl(appUser.app, source);
 
         return {
+            exchangeToken: token,
             redirectUrl: AppService.composeRedirectUrl(redirectUrl.success, token),
             expiredAt: dateUtil.toEpoch(expiredAt),
         };
@@ -657,7 +658,7 @@ class AccountService extends BaseService {
      * Log-in with Recovery Session
      *
      * @param payload
-     * @return {Promise<{redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
+     * @return {Promise<{exchangeToken: string, redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
      */
     logInWithRecoverySession = async (payload) => {
         // Get session
@@ -682,10 +683,11 @@ class AccountService extends BaseService {
 
         // Create redirect url
         appUser.app = app;
-        const { redirectUrl, expiredAt } = await this.getAppRedirectUrl(appUser, payload.source);
+        const { exchangeToken, redirectUrl, expiredAt } = await this.getAppRedirectUrl(appUser, payload.source);
 
         // Compose response
         return {
+            exchangeToken,
             redirectUrl,
             expiredAt,
             user: {
