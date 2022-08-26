@@ -658,7 +658,7 @@ class AccountService extends BaseService {
      * Log-in with Recovery Session
      *
      * @param payload
-     * @return {Promise<{exchangeToken: string, redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
+     * @return {Promise<{app: *, exchangeToken: string, redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
      */
     logInWithRecoverySession = async (payload) => {
         // Get session
@@ -694,6 +694,11 @@ class AccountService extends BaseService {
                 isActive,
                 newAccount,
                 hasSetupRecovery: user.recoveryEmail != null && user.recoveryEmail !== "",
+            },
+            app: {
+                config: {
+                    accountRecovery: app.config.web.accountRecovery || false,
+                },
             },
         };
     };
