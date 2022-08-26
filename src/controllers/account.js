@@ -171,7 +171,7 @@ class AccountController extends BaseController {
                 }
 
                 // Call service
-                const data = await this.services.Account.logIn(payload);
+                const data = await this.services.Account.logInWithRecoverySession(payload);
 
                 return { data };
             })

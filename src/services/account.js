@@ -72,6 +72,13 @@ class AccountService extends BaseService {
         return this.getAppRedirectUrl(appUser, payload.source);
     }
 
+    /**
+     * Create redirect url to client application
+     *
+     * @param appUser
+     * @param source
+     * @return {Promise<{expiredAt: number, redirectUrl: string}>}
+     */
     async getAppRedirectUrl(appUser, source) {
         // Issue new exchange token
         const { Auth: AuthService, App: AppService } = this.services;
@@ -186,13 +193,7 @@ class AccountService extends BaseService {
 
         // Check new phone has Account
         const existingAccount = await this.getAccount(client.appId, user.id);
-        if (existingAccount) {
-            result.hasAccount = true;
-            result.redirectApp = await this.getAppRedirectUrl(existingAccount, payload.source);
-        } else {
-            result.hasAccount = false;
-            result.redirectApp = null;
-        }
+        result.hasAccount = existingAccount != null;
 
         return result;
     }
@@ -652,7 +653,13 @@ class AccountService extends BaseService {
         return result;
     }
 
-    logIn = async (payload) => {
+    /**
+     * Log-in with Recovery Session
+     *
+     * @param payload
+     * @return {Promise<{redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
+     */
+    logInWithRecoverySession = async (payload) => {
         // Get session
         const { recoverySession } = await this.getRecoverySession(payload.token, payload.source);
 
@@ -673,14 +680,14 @@ class AccountService extends BaseService {
         // Register user to the app
         const { appUser, newAccount, isActive } = await this.services.User.getAppUser(app.id, user);
 
-        // Create exchange token
-        const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
+        // Create redirect url
+        appUser.app = app;
+        const { redirectUrl, expiredAt } = await this.getAppRedirectUrl(appUser, payload.source);
 
         // Compose response
-        const { dateUtil } = this.components;
         return {
-            exchangeToken,
-            expiredAt: dateUtil.toEpoch(expiredAt),
+            redirectUrl,
+            expiredAt,
             user: {
                 isActive,
                 newAccount,

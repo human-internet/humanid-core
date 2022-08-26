@@ -498,6 +498,13 @@ class UserService extends BaseService {
         return now - verifiedAt <= 7776000; // 90 days in second
     };
 
+    /**
+     * Get existing App User or create a new one if not exists
+     *
+     * @param appId
+     * @param user
+     * @return {Promise<{appUser: AppUser, newAccount: boolean, isActive: boolean}>}
+     */
     getAppUser = async (appId, user) => {
         // Register user to the app
         const timestamp = new Date();
