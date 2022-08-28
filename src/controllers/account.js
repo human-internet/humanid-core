@@ -203,7 +203,7 @@ class AccountController extends BaseController {
                 const data = await this.services.Account.recoverFromLogIn(payload);
 
                 return { data };
-            }),
+            })
         );
     }
 }
