@@ -139,6 +139,7 @@ class WebLoginController extends BaseController {
 
                 // Set appId
                 body.appId = client.appId;
+                body.appCredentialId = client.appCredentialId;
 
                 // Get exchange token
                 const { expiredAt, exchangeToken, user } = await this.services.User.login(body);

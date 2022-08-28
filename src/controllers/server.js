@@ -51,7 +51,8 @@ class ServerController extends BaseController {
                 // Validate exchange token
                 const { Auth: AuthService } = this.services;
                 const { sessionId, appUserId, countryCode } = await AuthService.validateExchangeToken(
-                    body.exchangeToken
+                    body.exchangeToken,
+                    req.client.appCredentialId
                 );
 
                 // Clear exchange token

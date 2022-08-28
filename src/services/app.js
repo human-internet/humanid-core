@@ -297,6 +297,7 @@ class AppService extends BaseService {
         const redirectUrl = this.getRedirectUrl(app, source);
 
         return {
+            appCredentialId: appCred.id,
             appId: appCred.appId,
             environmentId: appCred.environmentId,
             clientId: appCred.clientId,

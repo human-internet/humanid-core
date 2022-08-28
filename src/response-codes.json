@@ -188,5 +188,10 @@
         "success": false,
         "status": 400,
         "message": "Account Recovery has already been set-up"
+    },
+    "ERR_39": {
+        "success": false,
+        "status": 403,
+        "message": "Invalid server credential"
     }
 }

@@ -58,6 +58,7 @@ class AuthService extends BaseService {
         return {
             appId: appCred.appId,
             appExtId: appCred.appExtId,
+            appCredentialId: appCred.id,
             appCredential: credential,
             environmentId: appCred.environmentId,
         };
@@ -84,12 +85,12 @@ class AuthService extends BaseService {
         return token;
     }
 
-    async validateExchangeToken(exchangeToken) {
+    async validateExchangeToken(exchangeToken, appCredentialId) {
         // Clean exchange token
         exchangeToken = this.cleanExchangeToken(exchangeToken);
 
         // Get references
-        const { UserExchangeSession, AppUser, User } = this.models;
+        const { UserExchangeSession, AppUser, AppCredential, User } = this.models;
         const { dateUtil } = this.components;
 
         // extract exchange id and encrypted payload
@@ -103,10 +104,17 @@ class AuthService extends BaseService {
                 {
                     model: AppUser,
                     as: "appUser",
+                    required: true,
                     include: {
                         model: User,
                         as: "user",
+                        required: true,
                     },
+                },
+                {
+                    model: AppCredential,
+                    as: "appCredential",
+                    required: true,
                 },
             ],
         });
@@ -120,6 +128,11 @@ class AuthService extends BaseService {
         // Validate expiry
         if (dateUtil.compare(new Date(), session.expiredAt) === dateUtil.GREATER_THAN) {
             throw new APIError("ERR_2");
+        }
+
+        // Check if credential to be used for exchange token is the same with credential to validate
+        if (`${session.appCredentialId}` !== `${appCredentialId}`) {
+            throw new APIError("ERR_39");
         }
 
         // Decrypt token
@@ -171,7 +184,7 @@ class AuthService extends BaseService {
                     lastVerifiedAt: new Date(),
                     updatedAt: new Date(),
                 },
-                { where: { id: user.id } },
+                { where: { id: user.id } }
             );
 
             // Set updated values to appUser
@@ -204,7 +217,7 @@ class AuthService extends BaseService {
         this.logger.debug(`Deleted dangling exchange session: ${count}`);
     }
 
-    async createExchangeToken(appUser) {
+    async createExchangeToken(appUser, appCredentialId) {
         // Get references
         const { dateUtil } = this.components;
         const { UserExchangeSession } = this.models;
@@ -226,6 +239,7 @@ class AuthService extends BaseService {
             iv: iv.toString("hex"),
             expiredAt: expiredAt,
             createdAt: timestamp,
+            appCredentialId,
         });
 
         // Create payload

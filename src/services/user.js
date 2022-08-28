@@ -570,7 +570,10 @@ class UserService extends BaseService {
         const { appUser, newAccount, isActive } = await this.getAppUser(payload.appId, user);
 
         // Create exchange token
-        const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(appUser);
+        const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(
+            appUser,
+            payload.appCredentialId
+        );
 
         // Compose response
         const { dateUtil } = this.components;

@@ -34,6 +34,10 @@ module.exports = (sequelize) => {
                 type: Sequelize.DATE,
                 allowNull: false,
             },
+            appCredentialId: {
+                type: Sequelize.BIGINT,
+                allowNull: false,
+            },
         },
         {
             tableName: TABLE_NAME,
@@ -45,6 +49,10 @@ module.exports = (sequelize) => {
         Model.belongsTo(models.AppUser, {
             foreignKey: "appUserId",
             as: "appUser",
+        });
+        Model.belongsTo(models.AppCredential, {
+            foreignKey: "appCredentialId",
+            as: "appCredential",
         });
     };
 
