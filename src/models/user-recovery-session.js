@@ -69,6 +69,14 @@ module.exports = (sequelize) => {
                     key: "id",
                 },
             },
+            appCredentialId: {
+                type: Sequelize.BIGINT,
+                allowNull: false,
+                references: {
+                    model: "AppCredential",
+                    key: "id",
+                },
+            },
         },
         {
             tableName: TABLE_NAME,
@@ -104,6 +112,11 @@ module.exports = (sequelize) => {
         Model.belongsTo(models.AppUser, {
             foreignKey: "targetAppUserId",
             as: "targetAppUser",
+        });
+
+        Model.belongsTo(models.AppCredential, {
+            foreignKey: "appCredentialId",
+            as: "appCredential",
         });
     };
 

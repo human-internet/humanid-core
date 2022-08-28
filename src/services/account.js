@@ -28,10 +28,15 @@ class AccountService extends BaseService {
         this.newRecoveryOTPCode = nanoId.customAlphabet("0123456789", RECOVERY_OTP_RULE.otpCodeLength);
     }
 
-    async setRecoveryEmail(payload) {
-        // Validate exchange token
+    /**
+     * Get app user from exchange token
+     *
+     * @param exchangeToken
+     * @return {Promise<{appUser: *, user: *, sessionId: string, appCredential: *}>}
+     */
+    getAppUser = async (exchangeToken) => {
         const { Auth: AuthService } = this.services;
-        const { appUserId, sessionId } = await AuthService.validateExchangeToken(payload.exchangeToken);
+        const { appUserId, sessionId, appCredential } = await AuthService.validateExchangeToken(exchangeToken);
 
         // Get app user id instance
         const appUser = await this.models.AppUser.findOne({
@@ -53,8 +58,12 @@ class AccountService extends BaseService {
             throw new Error(`unexpected AppUser not found. appUserId = ${appUserId}`);
         }
 
-        // Get user
-        const { user } = appUser;
+        return { appUser, user: appUser.user, sessionId, appCredential };
+    };
+
+    async setRecoveryEmail(payload) {
+        // Get app user from exchange token
+        const { appUser, user, sessionId, appCredential } = await this.getAppUser(payload.exchangeToken);
 
         // Check if recovery email has been set
         if (user.recoveryEmail) {
@@ -67,22 +76,25 @@ class AccountService extends BaseService {
         await user.save();
 
         // Clear exchange token
+        const { Auth: AuthService } = this.services;
         await AuthService.clearExchangeToken(sessionId, new Date());
 
-        return this.getAppRedirectUrl(appUser, payload.source);
+        // Generate redirect url
+        return this.getAppRedirectUrl(appCredential.id, appUser, payload.source);
     }
 
     /**
      * Create redirect url to client application
      *
+     * @param {string} appCredentialId
      * @param appUser
      * @param source
      * @return {Promise<{expiredAt: number, redirectUrl: string}>}
      */
-    async getAppRedirectUrl(appUser, source) {
+    async getAppRedirectUrl(appCredentialId, appUser, source) {
         // Issue new exchange token
         const { Auth: AuthService, App: AppService } = this.services;
-        const { token, expiredAt } = await AuthService.createExchangeToken(appUser);
+        const { token, expiredAt } = await AuthService.createExchangeToken(appUser, appCredentialId);
 
         // Compose redirect url
         const redirectUrl = AppService.getRedirectUrl(appUser.app, source);
@@ -683,7 +695,11 @@ class AccountService extends BaseService {
 
         // Create redirect url
         appUser.app = app;
-        const { exchangeToken, redirectUrl, expiredAt } = await this.getAppRedirectUrl(appUser, payload.source);
+        const { exchangeToken, redirectUrl, expiredAt } = await this.getAppRedirectUrl(
+            recoverySession.appCredentialId,
+            appUser,
+            payload.source
+        );
 
         // Compose response
         return {
@@ -701,6 +717,28 @@ class AccountService extends BaseService {
                 },
             },
         };
+    };
+
+    recoverFromLogIn = async (payload) => {
+        // Get user app from exchange token
+        const { user, sessionId, appCredential } = await this.getAppUser(payload.exchangeToken);
+
+        // Create recovery session
+        const result = await this.createRecoverySession(
+            {
+                appCredentialId: appCredential.id,
+                appId: appCredential.appId,
+                clientId: appCredential.clientId,
+                clientSecret: appCredential.clientSecret,
+            },
+            user.id
+        );
+
+        // Clear exchange token
+        const { Auth: AuthService } = this.services;
+        await AuthService.clearExchangeToken(sessionId, new Date());
+
+        return result;
     };
 }
 
