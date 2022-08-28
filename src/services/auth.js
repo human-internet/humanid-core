@@ -191,7 +191,7 @@ class AuthService extends BaseService {
         // Compose response
         return {
             sessionId: session.id,
-            appCredentialId: session.appCredentialId,
+            appCredential: session.appCredential,
             appUserId: appUser.extId,
             countryCode: user.countryCode,
         };

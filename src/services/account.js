@@ -88,7 +88,7 @@ class AccountService extends BaseService {
      *
      * @param {string} appCredentialId
      * @param appUser
-     * @param source
+     * @param {string} source
      * @return {Promise<{expiredAt: number, redirectUrl: string}>}
      */
     async getAppRedirectUrl(appCredentialId, appUser, source) {
@@ -153,6 +153,42 @@ class AccountService extends BaseService {
         });
     }
 
+    createRecoverySession = async (client, userId) => {
+        // Create User Recovery Session record
+        const createdAt = new Date();
+        const expiredAt = dateUtil.toEpoch(createdAt) + config.RECOVERY_SESSION_LIFETIME;
+        const requestId = this.newUserRecoverySessionRequestId();
+
+        // Define rule
+        const { App: AppService } = this.services;
+        await this.models.UserRecoverySession.create({
+            userId: userId,
+            appId: client.appId,
+            requestId,
+            rule: RECOVERY_OTP_RULE,
+            otpCount: 0,
+            failAttemptCount: 0,
+            expiredAt: dateUtil.fromEpoch(expiredAt),
+            appCredentialId: client.appCredentialId,
+            createdAt,
+            updatedAt: createdAt,
+        });
+
+        // Create a session
+        const result = AppService.createWebLoginSessionToken({
+            clientId: client.clientId,
+            clientSecret: client.clientSecret,
+            sessionId: requestId,
+            purpose: Constants.JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT,
+        });
+
+        // Check new phone has Account
+        const existingAccount = await this.getAccount(client.appId, userId);
+        result.hasAccount = existingAccount != null;
+
+        return result;
+    };
+
     async verifyNewPhone(payload) {
         // Breakdown phone and country code
         const phone = parsePhoneNumber(payload.phone);
@@ -179,36 +215,7 @@ class AccountService extends BaseService {
         const user = await UserService.getUser(hashId, phone.country);
 
         // Create User Recovery Session record
-        const createdAt = new Date();
-        const requestId = this.newUserRecoverySessionRequestId();
-        const expiredAt = dateUtil.toEpoch(createdAt) + config.RECOVERY_SESSION_LIFETIME;
-
-        // Define rule
-        await this.models.UserRecoverySession.create({
-            userId: user.id,
-            appId: client.appId,
-            requestId,
-            rule: RECOVERY_OTP_RULE,
-            otpCount: 0,
-            failAttemptCount: 0,
-            expiredAt: dateUtil.fromEpoch(expiredAt),
-            createdAt,
-            updatedAt: createdAt,
-        });
-
-        // Create a session
-        const result = AppService.createWebLoginSessionToken({
-            clientId: client.clientId,
-            clientSecret: client.clientSecret,
-            sessionId: requestId,
-            purpose: Constants.JWT_PURPOSE_RECOVERY_TRANSFER_ACCOUNT,
-        });
-
-        // Check new phone has Account
-        const existingAccount = await this.getAccount(client.appId, user.id);
-        result.hasAccount = existingAccount != null;
-
-        return result;
+        return this.createRecoverySession(client, user.id);
     }
 
     async getRecoverySession(token, source) {
@@ -656,7 +663,7 @@ class AccountService extends BaseService {
         await this.clearRecoverySession(recoverySession.id);
 
         // Compose redirect url
-        const result = await this.getAppRedirectUrl(oldAppUser, payload.source);
+        const result = await this.getAppRedirectUrl(recoverySession.appCredentialId, oldAppUser, payload.source);
 
         // Set app to result
         result.app = {
@@ -670,7 +677,7 @@ class AccountService extends BaseService {
      * Log-in with Recovery Session
      *
      * @param payload
-     * @return {Promise<{app: *, exchangeToken: string, redirectUrl: Promise<{expiredAt: number, redirectUrl: string}>, user: {newAccount: boolean, hasSetupRecovery: boolean, isActive: boolean}}>}
+     * @return {Promise<{app: {config: {accountRecovery: boolean}}, expiredAt: number, redirectUrl: string, exchangeToken: *, user: {newAccount: *, hasSetupRecovery: boolean, isActive: *}}>}
      */
     logInWithRecoverySession = async (payload) => {
         // Get session
