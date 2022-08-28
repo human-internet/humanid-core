@@ -85,7 +85,7 @@ class AuthService extends BaseService {
         return token;
     }
 
-    async validateExchangeToken(exchangeToken, appCredentialId) {
+    async validateExchangeToken(exchangeToken) {
         // Clean exchange token
         exchangeToken = this.cleanExchangeToken(exchangeToken);
 
@@ -128,11 +128,6 @@ class AuthService extends BaseService {
         // Validate expiry
         if (dateUtil.compare(new Date(), session.expiredAt) === dateUtil.GREATER_THAN) {
             throw new APIError("ERR_2");
-        }
-
-        // Check if credential to be used for exchange token is the same with credential to validate
-        if (`${session.appCredentialId}` !== `${appCredentialId}`) {
-            throw new APIError("ERR_39");
         }
 
         // Decrypt token
@@ -196,6 +191,7 @@ class AuthService extends BaseService {
         // Compose response
         return {
             sessionId: session.id,
+            appCredentialId: session.appCredentialId,
             appUserId: appUser.extId,
             countryCode: user.countryCode,
         };
