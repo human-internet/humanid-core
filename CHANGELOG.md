@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.9.0
+
+- feat(account): Add API to switch from User Exchange Session to Recovery Session
+- feat(account): Store app credential that is being used in Recovery
+- feat(login): Store app credential that is being used in user exchange session
+- fix(user): Return exchange token on Log In
+- fix(account): Return account recovery offering flag on Log-in from Recovery Session
+- fix(account): Return exchange token on Log-in with Recovery Session for Setting Email Recovery
+- fix(account): Return redirect url on Log-in with Recovery Session
+
 ## 1.8.0
 
 - feat(account): Add API Log-in to App from Recovery Session
