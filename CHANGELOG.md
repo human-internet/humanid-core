@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.1
+
+- fix(account): Add flag to prevent mark reset User on switch session from log-in to recovery
+
 ## 1.9.0
 
 - feat(account): Add API to switch from User Exchange Session to Recovery Session
