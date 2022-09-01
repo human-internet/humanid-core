@@ -424,11 +424,6 @@ class AccountService extends BaseService {
         // Get app user
         const { appUser } = await this.getExistingUser(session.appId, oldPhone, payload.recoveryEmail);
 
-        // Validate app user and existing user
-        if (appUser.userId === recoverySession.userId) {
-            throw new APIError("ERR_36");
-        }
-
         // Create Email OTP
         const otp = await this.createRecoveryOTP(recoverySession, appUser, new Date());
 
@@ -530,16 +525,29 @@ class AccountService extends BaseService {
         this.logger.debug(`Recovery session deleted. SessionId = ${sessionId}, Count = ${count}`);
     }
 
-    async updateTransferAccount(oldUser, appId, newUserId) {
+    async updateTransferAccount(oldUser, newUserId) {
         // Begin transaction
         const transaction = await AppUser.sequelize.transaction();
 
         try {
-            // Remove existing account
-            await this.removeAccount(newUserId, transaction);
+            const timestamp = new Date();
+
+            if (oldUser.id !== newUserId) {
+                // Remove old account
+                await this.removeAccount(newUserId, transaction);
+
+                // Update old user as new account
+                await User.update(
+                    {
+                        lastVerifiedAt: null,
+                        recoveryEmail: null,
+                        updatedAt: timestamp,
+                    },
+                    { where: { id: oldUser.id }, transaction }
+                );
+            }
 
             // Transfer all AppUser to new User
-            const timestamp = new Date();
             await AppUser.update(
                 {
                     userId: newUserId,
@@ -557,16 +565,6 @@ class AccountService extends BaseService {
                     updatedAt: timestamp,
                 },
                 { where: { id: newUserId }, transaction }
-            );
-
-            // Update old user as new account
-            await User.update(
-                {
-                    lastVerifiedAt: null,
-                    recoveryEmail: null,
-                    updatedAt: timestamp,
-                },
-                { where: { id: oldUser.id }, transaction }
             );
 
             await transaction.commit();
@@ -655,9 +653,9 @@ class AccountService extends BaseService {
         // Validate otp
         await this.validateTransferOtp(recoverySession, payload.otpCode);
 
-        // Transfer appUser to new user
+        // If new user is the same with old user, then remove mark reset flag
         const oldUser = oldAppUser.user;
-        await this.updateTransferAccount(oldUser, oldAppUser.appId, recoverySession.userId);
+        await this.updateTransferAccount(oldUser, recoverySession.userId);
 
         // Clear session
         await this.clearRecoverySession(recoverySession.id);
