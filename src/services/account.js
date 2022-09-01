@@ -36,7 +36,7 @@ class AccountService extends BaseService {
      */
     getAppUser = async (exchangeToken) => {
         const { Auth: AuthService } = this.services;
-        const { appUserId, sessionId, appCredential } = await AuthService.validateExchangeToken(exchangeToken);
+        const { appUserId, sessionId, appCredential } = await AuthService.validateExchangeToken(exchangeToken, true);
 
         // Get app user id instance
         const appUser = await this.models.AppUser.findOne({

@@ -85,7 +85,7 @@ class AuthService extends BaseService {
         return token;
     }
 
-    async validateExchangeToken(exchangeToken) {
+    async validateExchangeToken(exchangeToken, preventReset) {
         // Clean exchange token
         exchangeToken = this.cleanExchangeToken(exchangeToken);
 
@@ -161,7 +161,7 @@ class AuthService extends BaseService {
 
         // If mark reset, then update appUser.extId and update user.lastVerifiedAt
         const user = appUser.user;
-        if (appUser.markReset) {
+        if (appUser.markReset && !preventReset) {
             // Generate new appUser ext id
             const extId = this.generateAppUserExtId();
 
