@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.9.2
+
+- fix(account): Fix reactivate account on recovering the same phone number
+
 ## 1.9.1
 
 - fix(account): Add flag to prevent mark reset User on switch session from log-in to recovery
