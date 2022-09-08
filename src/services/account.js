@@ -265,9 +265,8 @@ class AccountService extends BaseService {
         }
 
         // Check if recovery email is correct
-        try {
-            await argon2.verify(user.recoveryEmail, recoveryEmail);
-        } catch (err) {
+        const valid = await argon2.verify(user.recoveryEmail, recoveryEmail);
+        if (!valid) {
             throw new APIError("ERR_35");
         }
 
