@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.9.3
+
+- fix(account): Fix email recovery input validation with hash
+
 ## 1.9.2
 
 - fix(account): Fix reactivate account on recovering the same phone number
