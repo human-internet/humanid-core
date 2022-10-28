@@ -9,12 +9,12 @@ const APIError = require("../server/api_error"),
     Joi = require("joi"),
     _ = require("lodash"),
     fs = require("fs"),
-    util = require("util"),
-    path = require("path"),
+    s3 = require("../components/s3"),
     CountryValidator = require("../validator/country-validator");
 
 const BaseService = require("./base"),
     Constants = require("../constants");
+const { promisify } = require("util");
 
 const APP_UNVERIFIED = 1;
 
@@ -46,7 +46,9 @@ const PLATFORM_ANDROID_SLUG = "android",
 
 const ORG_REGISTERED_DEV_USER_LIMIT = 2;
 
-const moveFile = util.promisify(fs.rename);
+const APP_PATH = "apps";
+
+const deleteFile = promisify(fs.unlink);
 
 class AppService extends BaseService {
     constructor(services, args) {
@@ -117,7 +119,7 @@ class AppService extends BaseService {
         }
 
         return {
-            thumbnail: this.config["ASSETS_URL"] + "/images/app-thumbnails/" + fileName,
+            thumbnail: s3.getUrl(APP_PATH, fileName),
         };
     }
 
@@ -237,13 +239,8 @@ class AppService extends BaseService {
         const { common } = this.components;
         const jwtSecret = this.config["WEB_LOGIN_SESSION_SECRET"];
 
-        let payload;
-        try {
-            payload = await common.verifyJWT(token, jwtSecret);
-        } catch (e) {
-            // TODO: Handle jwt error and Re-throw exception with APIError
-            throw e;
-        }
+        // TODO: Handle jwt error and Re-throw exception with APIError
+        const payload = await common.verifyJWT(token, jwtSecret);
 
         // Parse payload
         const clientId = payload.sub;
@@ -530,10 +527,27 @@ class AppService extends BaseService {
 
         // Get destination
         const fileName = this.createFileName(file);
-        const filePath = path.join(this.config["ASSETS_DIR"], "/images/app-thumbnails/", fileName);
+        const objectName = s3.getObjectName(APP_PATH, fileName);
 
-        // Move file
-        await moveFile(file.path, filePath);
+        // Upload file to s3
+        const fileContent = fs.readFileSync(file.path);
+        try {
+            await s3.client
+                .upload({
+                    Bucket: s3.bucketName,
+                    Key: objectName,
+                    Body: fileContent,
+                    ContentType: file.mimetype,
+                })
+                .promise();
+            this.logger.debug(`File uploaded to S3. ObjectName = ${objectName}`);
+        } catch (err) {
+            this.logger.error(`an error occurred during upload to s3. Error = ${err}`);
+            throw err;
+        }
+
+        // Delete temporary file
+        await this.deleteTempFile(file.path);
 
         // Update app logo file
         const count = await App.update(
@@ -551,6 +565,17 @@ class AppService extends BaseService {
             logoFile: fileName,
             logoUrls: this.resolveLogoUrl(fileName),
         };
+    }
+
+    async deleteTempFile(filePath) {
+        try {
+            await deleteFile(filePath);
+            this.logger.debug(`successfully delete temporary file. filePath = ${filePath}`);
+        } catch (err) {
+            this.logger.warn(`failed to delete temporary file. filePath = ${filePath}`, {
+                error: err,
+            });
+        }
     }
 
     async getAppDetail(extId) {

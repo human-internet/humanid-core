@@ -73,6 +73,14 @@ config.AWS_SMS_REGION = process.env.AWS_SMS_REGION || config.AWS_SMS_REGION || "
 // Components.Firebase
 config.FIREBASE_SERVER_KEY = process.env.FIREBASE_SERVER_KEY || config.FIREBASE_SERVER_KEY;
 
+// Components.S3
+config.S3_ACCESS_KEY_ID = process.env.S3_ACCESS_KEY_ID || config.S3_ACCESS_KEY_ID;
+config.S3_SECRET_ACCESS_KEY = process.env.S3_SECRET_ACCESS_KEY || config.S3_SECRET_ACCESS_KEY;
+config.S3_BUCKET_NAME = process.env.S3_BUCKET_NAME || config.S3_BUCKET_NAME;
+config.S3_REGION = process.env.S3_REGION || config.S3_REGION;
+config.S3_CDN_BASE_URL = process.env.S3_CDN_BASE_URL || config.S3_CDN_BASE_URL;
+config.S3_DIR_PREFIX = process.env.S3_DIR_PREFIX || config.S3_DIR_PREFIX;
+
 const SECRET = config.APP_SECRET;
 
 // hash data using secret
