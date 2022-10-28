@@ -4,9 +4,7 @@ module.exports = {
         es6: true,
     },
     extends: ["prettier", "eslint:recommended"],
-    parserOptions: {
-        ecmaVersion: 12,
-    },
+    parser: "@babel/eslint-parser",
     plugins: ["prettier"],
     rules: {
         // no-unused-vars
