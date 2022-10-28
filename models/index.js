@@ -72,7 +72,7 @@ db.migrate = async () => {
                 sequelize.getQueryInterface(),
                 Sequelize
             ],
-            path: path.join(__dirname, '../migrations/sequential')
+            path: path.join(__dirname, '../migrations/scripts')
         }
     }).up([])
 }
