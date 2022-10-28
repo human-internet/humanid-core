@@ -1,16 +1,16 @@
-'use strict'
+"use strict";
 
-const BaseController = require('./base'),
-    router = require('express').Router(),
-    bcrypt = require('bcryptjs')
+const BaseController = require("./base"),
+    router = require("express").Router(),
+    bcrypt = require("bcryptjs");
 
 class WebConsoleController extends BaseController {
     constructor(models, common, middlewares) {
-        super(models)
-        this.router = router
-        this.middlewares = middlewares
-        this.common = common
-        this.hmac = common.hmac
+        super(models);
+        this.router = router;
+        this.middlewares = middlewares;
+        this.common = common;
+        this.hmac = common.hmac;
 
         /**
          * @apiIgnore WIP
@@ -24,32 +24,32 @@ class WebConsoleController extends BaseController {
          * @apiSuccess {String} email
          * @apiSuccess {String} accessToken
          */
-        this.router.post('/login', async (req, res, next) => {
-            let body = req.body
-            let error = this.validate({email: 'required', password: 'required'}, body)
+        this.router.post("/login", async (req, res, next) => {
+            let body = req.body;
+            let error = this.validate({ email: "required", password: "required" }, body);
             if (error) {
-                return res.status(400).send(error)
+                return res.status(400).send(error);
             }
-            const email = req.body.email
-            const password = req.body.password
+            const email = req.body.email;
+            const password = req.body.password;
             try {
                 let admin = await this.models.LegacyAdmin.findOne({
-                    where: {email: email},
-                })
+                    where: { email: email },
+                });
                 if (!admin) {
-                    return res.status(400).send('Invalid credential')
+                    return res.status(400).send("Invalid credential");
                 }
-                let valid = await bcrypt.compare(password, admin.password)
+                let valid = await bcrypt.compare(password, admin.password);
                 if (!valid) {
-                    return res.status(400).send('Invalid credential')
+                    return res.status(400).send("Invalid credential");
                 }
-                let obj = admin.toJSON()
-                obj.accessToken = this.common.createJWT(admin)
-                return res.send(obj)
+                let obj = admin.toJSON();
+                obj.accessToken = this.common.createJWT(admin);
+                return res.send(obj);
             } catch (e) {
-                next(e)
+                next(e);
             }
-        })
+        });
 
         /**
          * @apiIgnore WIP
@@ -68,26 +68,29 @@ class WebConsoleController extends BaseController {
          * @apiSuccess {String} [serverKey] Firebase Cloud Messaging Server Key
          * @apiSuccess {String} [urls] Whitelisted domain URLs for web client (comma-separated). Example: <code>https://foo.com,https://bar.com</code>
          */
-        this.router.post('/apps', this.middlewares.verifyJWT, async (req, res, next) => {
-            let body = req.body
-            let error = this.validate({
-                appId: 'required',
-                platform: 'required',
-            }, body)
+        this.router.post("/apps", this.middlewares.verifyJWT, async (req, res, next) => {
+            let body = req.body;
+            let error = this.validate(
+                {
+                    appId: "required",
+                    platform: "required",
+                },
+                body
+            );
             if (error) {
-                return res.status(400).send(error)
+                return res.status(400).send(error);
             }
             try {
-                let hash = this.hmac(body.appId)
+                let hash = this.hmac(body.appId);
                 let app = await this.models.LegacyApp.findOrCreate({
-                    where: {id: body.appId},
-                    defaults: {id: body.appId, secret: hash, platform: body.platform, serverKey: body.serverKey}
-                })
-                return res.send(app[0])
+                    where: { id: body.appId },
+                    defaults: { id: body.appId, secret: hash, platform: body.platform, serverKey: body.serverKey },
+                });
+                return res.send(app[0]);
             } catch (e) {
-                next(e)
+                next(e);
             }
-        })
+        });
 
         /**
          * @apiIgnore WIP
@@ -101,23 +104,23 @@ class WebConsoleController extends BaseController {
          * @apiSuccess {Array} data
          * @apiSuccess {Integer} total
          * @apiSuccess {Integer} pages
-         * 
+         *
          */
-        this.router.get('/apps', this.middlewares.verifyJWT, async (req, res, next) => {
-            let limit = req.query.limit || 10
-            let skip = req.skip || 0
+        this.router.get("/apps", this.middlewares.verifyJWT, async (req, res, next) => {
+            let limit = req.query.limit || 10;
+            let skip = req.skip || 0;
             try {
                 // TODO: standardized paginated result
-                let results = await this.models.LegacyApp.findAndCountAll({limit: limit, offset: skip})
+                let results = await this.models.LegacyApp.findAndCountAll({ limit: limit, offset: skip });
                 res.send({
                     data: results.rows,
                     total: results.count,
                     pages: Math.ceil(results.count / limit),
-                })
-            } catch (e) {        
-                next(e)
+                });
+            } catch (e) {
+                next(e);
             }
-        })
+        });
 
         /**
          * @apiIgnore WIP
@@ -131,25 +134,24 @@ class WebConsoleController extends BaseController {
          * @apiSuccess {Array} data
          * @apiSuccess {Integer} total
          * @apiSuccess {Integer} pages
-         * 
+         *
          */
-        this.router.get('/users', this.middlewares.verifyJWT, async (req, res, next) => {
-            let limit = req.query.limit || 10
-            let skip = req.skip || 0
+        this.router.get("/users", this.middlewares.verifyJWT, async (req, res, next) => {
+            let limit = req.query.limit || 10;
+            let skip = req.skip || 0;
             try {
                 // TODO: standardized paginated result
-                let results = await this.models.LegacyUser.findAndCountAll({limit: limit, offset: skip})
+                let results = await this.models.LegacyUser.findAndCountAll({ limit: limit, offset: skip });
                 res.send({
                     data: results.rows,
                     total: results.count,
                     pages: Math.ceil(results.count / limit),
-                })
-            } catch (e) {        
-                next(e)
+                });
+            } catch (e) {
+                next(e);
             }
-        })
-
+        });
     }
 }
 
-module.exports = WebConsoleController
+module.exports = WebConsoleController;

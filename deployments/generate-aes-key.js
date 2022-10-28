@@ -1,5 +1,5 @@
-const crypto = require('crypto')
+const crypto = require("crypto");
 
-const key = crypto.randomBytes(32).toString('hex')
+const key = crypto.randomBytes(32).toString("hex");
 
-console.log(`AES Key: ${key}`)
+console.log(`AES Key: ${key}`);

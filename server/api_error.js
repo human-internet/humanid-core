@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 class APIError extends Error {
     /**
@@ -10,16 +10,16 @@ class APIError extends Error {
      */
     constructor(code, message = null, source = null) {
         super(message);
-        this.name = 'APIError'
-        this.code = code
-        this.message = message
-        this.source = source
+        this.name = "APIError";
+        this.code = code;
+        this.message = message;
+        this.source = source;
     }
 
     setData(data) {
-        this.data = data
-        return this
+        this.data = data;
+        return this;
     }
 }
 
-module.exports = APIError
+module.exports = APIError;
