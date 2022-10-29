@@ -11,8 +11,6 @@ services:
       dockerfile: ./deployments/api/Dockerfile
     ports:
       - "127.0.0.1:${LOCAL_PORT}:${PORT}"
-    volumes:
-      - ./public/images/app-thumbnails:/usr/src/app/public/images/app-thumbnails
     working_dir: /usr/src/app
     networks:
       local:
