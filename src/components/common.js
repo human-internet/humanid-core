@@ -81,10 +81,10 @@ config.SMTP_DEFAULT_FROM_NAME = process.env.SMTP_DEFAULT_FROM_NAME || "humanID";
 config.SMTP_DEFAULT_FROM_EMAIL = process.env.SMTP_DEFAULT_FROM_EMAIL || "no-reply@human-id.org";
 
 // Recovery
-config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIME) || 300;
+config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIME || "300");
 
 // Sandbox
-config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || 2);
+config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
 
 // hash data using secret
 const hmac = (data, secret) => {
