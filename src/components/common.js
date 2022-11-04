@@ -5,6 +5,7 @@ const APIError = require("../server/api_error"),
     path = require("path"),
     crypto = require("crypto"),
     jwt = require("jsonwebtoken"),
+    logger = require("../logger"),
     LibPhoneNo = require("libphonenumber-js");
 
 // load config
@@ -180,7 +181,12 @@ const validateReq = (rules, body) => {
     }
 };
 
-// parsePhoneNo parse phone number to E.164 format
+/**
+ * parsePhoneNo parse phone number to E.164 format
+ * @param countryCode ISO Alpha-2 Country code
+ * @param phoneNo Phone number input, without country code
+ * @return {PhoneNumber}
+ */
 const parsePhoneNo = (countryCode, phoneNo) => {
     // Clean input
     const input = "+" + countryCode + (phoneNo[0] === "0" ? phoneNo.substring(1) : phoneNo);
@@ -201,6 +207,20 @@ const parsePhoneNo = (countryCode, phoneNo) => {
     return result;
 };
 
+/**
+ * Check if phone is from limit country
+ * @param {PhoneNumber} phone
+ * @param {string[]} limitCountry
+ */
+const isLimitedCountry = (phone, limitCountry) => {
+    for (const c of limitCountry) {
+        if (phone.country === c) {
+            logger.warn(`Phone is from limited country: ${phone.country}`);
+            throw new APIError("ERR_40");
+        }
+    }
+};
+
 module.exports = {
     config: config,
     sleep: sleep,
@@ -212,4 +232,5 @@ module.exports = {
     getEpoch,
     validateReq,
     parsePhoneNo: parsePhoneNo,
+    isLimitedCountry: isLimitedCountry,
 };

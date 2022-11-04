@@ -193,5 +193,10 @@
         "success": false,
         "status": 403,
         "message": "Invalid server credential"
+    },
+    "ERR_40": {
+        "success": false,
+        "status": 400,
+        "message": "Phone from this country is not supported"
     }
 }

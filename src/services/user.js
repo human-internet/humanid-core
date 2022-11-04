@@ -410,7 +410,15 @@ class UserService extends BaseService {
         };
     }
 
-    async requestLoginOTP(phone, option) {
+    /**
+     * Request log-in OTP
+     *
+     * @param {number} appId
+     * @param {PhoneNumber} phone
+     * @param option
+     * @return {Promise<{failAttemptCount, nextResendAt, requestId, otpCount: *, config: {otpCodeLength: number, failAttemptLimit: number, otpSessionLifetime: number, nextResendDelay: number, otpCountLimit: number}}>}
+     */
+    async requestLoginOTP(appId, phone, option) {
         // Get hash id
         const hashId = this.getHashId(phone.number);
 
@@ -428,7 +436,7 @@ class UserService extends BaseService {
         if (option && option["environmentId"] === Constants.ENV_DEVELOPMENT) {
             // Check if phone number is registered or not
             const { App } = this.services;
-            devUser = await App.getSandboxDevUser(option.appId, phone.number);
+            devUser = await App.getSandboxDevUser(appId, phone.number);
         }
 
         if (devUser) {
@@ -448,7 +456,7 @@ class UserService extends BaseService {
             // Send otp
             await this.sendSms(phone.number, smsMessageResult.text, {
                 country: phone.country,
-                appId: option.appId,
+                appId: appId,
                 lang: smsMessageResult.lang,
             });
         }

@@ -5,7 +5,7 @@ const BaseService = require("./base"),
     { parsePhoneNumber } = require("libphonenumber-js"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
-    { config } = require("../components/common"),
+    { config, isLimitedCountry } = require("../components/common"),
     nanoId = require("nanoid");
 const { Op } = require("sequelize");
 const { App, AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession, User } = require("../models");
@@ -107,12 +107,6 @@ class AccountService extends BaseService {
     }
 
     async requestVerifyNewPhoneOtp(payload) {
-        // Breakdown phone and country code
-        const phone = parsePhoneNumber(payload.phone);
-        if (!phone.isValid()) {
-            throw new APIError("ERR_10");
-        }
-
         // Validate client
         const { App: AppService } = this.services;
         const client = await AppService.validateWebLoginToken({
@@ -121,10 +115,16 @@ class AccountService extends BaseService {
             source: payload.source,
         });
 
+        // Check if phone from limited country
+        const phone = parsePhoneNumber(payload.phone);
+        if (!phone.isValid()) {
+            throw new APIError("ERR_10");
+        }
+        isLimitedCountry(phone, client.app.web.limitCountry || []);
+
         // Check if the phone has been associated to an account in the same app id
         const { User: UserService } = this.services;
-        const otp = await UserService.requestLoginOTP(phone, {
-            appId: client.appId,
+        const otp = await UserService.requestLoginOTP(client.appId, phone, {
             environmentId: client.environmentId,
             language: payload.lang,
         });
