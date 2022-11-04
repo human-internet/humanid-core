@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.10.0
+
+- fix(mobile): Remove deprecated mobile apis
+- feat(web-login): Return error on request otp from limited country list
+
 ## v1.9.4
 
 - fix(web-login): Add fallback value when accountRecovery is not set in config
