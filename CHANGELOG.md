@@ -1,5 +1,10 @@
 # Changelog
 
+## v1.9.4
+
+- fix(web-login): Add fallback value when accountRecovery is not set in config
+- fix: Default value for parsing integer config value
+
 ## v1.9.3
 
 - fix(account): Fix email recovery input validation with hash
