@@ -155,7 +155,7 @@ class WebLoginController extends BaseController {
                         user,
                         app: {
                             config: {
-                                accountRecovery: client.app.config.web.accountRecovery,
+                                accountRecovery: client.app.config.web.accountRecovery || false,
                             },
                         },
                     },
