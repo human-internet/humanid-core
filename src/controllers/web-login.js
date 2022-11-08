@@ -4,7 +4,7 @@ const BaseController = require("./base"),
     express = require("express");
 
 const Constants = require("../constants");
-const { parsePhoneNo, isLimitedCountry } = require("../components/common");
+const { parsePhone } = require("../components/common");
 
 class WebLoginController extends BaseController {
     constructor(args) {
@@ -90,8 +90,10 @@ class WebLoginController extends BaseController {
                 const language = req.query["lang"] || "en";
 
                 // Check if phone is from limited country
-                const phone = parsePhoneNo(body.countryCode, body.phone);
-                isLimitedCountry(phone, client.app.config.web.limitCountry || []);
+                const phone = parsePhone(body.phone, {
+                    countryCode: body.countryCode,
+                    limitCountry: client.app.config.web.limitCountry,
+                });
 
                 // Request OTP via SMS
                 const result = await this.services.User.requestLoginOTP(client.appId, phone, {

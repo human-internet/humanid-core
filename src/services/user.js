@@ -563,7 +563,7 @@ class UserService extends BaseService {
 
     async login(payload) {
         // Parse phone number input
-        const phone = this.components.common.parsePhoneNo(payload.countryCode, payload.phone);
+        const phone = this.components.common.parsePhone(payload.phone, { countryCode: payload.countryCode });
 
         // Get hash id
         const hashId = this.getHashId(phone.number);

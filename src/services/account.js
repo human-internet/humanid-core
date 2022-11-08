@@ -2,10 +2,9 @@ const BaseService = require("./base"),
     argon2 = require("argon2"),
     dateUtil = require("../components/date_util"),
     mailer = require("../adapters/mailer"),
-    { parsePhoneNumber } = require("libphonenumber-js"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
-    { config, isLimitedCountry } = require("../components/common"),
+    { config, parsePhone } = require("../components/common"),
     nanoId = require("nanoid");
 const { Op } = require("sequelize");
 const { App, AppUser, UserRecoveryOTP, UserRecoverySession, UserExchangeSession, User } = require("../models");
@@ -116,11 +115,9 @@ class AccountService extends BaseService {
         });
 
         // Check if phone from limited country
-        const phone = parsePhoneNumber(payload.phone);
-        if (!phone.isValid()) {
-            throw new APIError("ERR_10");
-        }
-        isLimitedCountry(phone, client.app.web.limitCountry || []);
+        const phone = parsePhone(payload.phone, {
+            limitCountry: client.app.config.web.limitCountry,
+        });
 
         // Check if the phone has been associated to an account in the same app id
         const { User: UserService } = this.services;
@@ -191,11 +188,7 @@ class AccountService extends BaseService {
 
     async verifyNewPhone(payload) {
         // Breakdown phone and country code
-        const phone = parsePhoneNumber(payload.phone);
-        if (!phone.isValid()) {
-            throw new APIError("ERR_10");
-        }
-
+        const phone = parsePhone(payload.phone);
         // Validate session
         const { App: AppService } = this.services;
         const client = await AppService.validateWebLoginToken({
@@ -412,10 +405,7 @@ class AccountService extends BaseService {
 
     async requestTransferAccountOtp(payload) {
         // Breakdown phone and country code
-        const oldPhone = parsePhoneNumber(payload.oldPhone);
-        if (!oldPhone.isValid()) {
-            throw new APIError("ERR_10");
-        }
+        const oldPhone = parsePhone(payload.oldPhone);
 
         // Get session
         const { session, recoverySession } = await this.getRecoverySession(payload.token, payload.source);

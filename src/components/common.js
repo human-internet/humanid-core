@@ -6,7 +6,7 @@ const APIError = require("../server/api_error"),
     crypto = require("crypto"),
     jwt = require("jsonwebtoken"),
     logger = require("../logger"),
-    LibPhoneNo = require("libphonenumber-js");
+    LibPhoneNo = require("libphonenumber-js/max");
 
 // load config
 let config = {};
@@ -182,43 +182,58 @@ const validateReq = (rules, body) => {
 };
 
 /**
- * parsePhoneNo parse phone number to E.164 format
- * @param countryCode ISO Alpha-2 Country code
- * @param phoneNo Phone number input, without country code
+ * parsePhone parse phone number to E.164 format
+ *
+ * @param phoneStr Phone number input, without country code
+ * @param {object?} options Optional input
+ * @param {string?} options.countryCode For parsing old phone input format. Prefix of country in phone number
+ * @param {string[]?} options.limitCountry List of unsupported country. Defined in ISO Alpha-2 Country code list
  * @return {PhoneNumber}
  */
-const parsePhoneNo = (countryCode, phoneNo) => {
-    // Clean input
-    const input = "+" + countryCode + (phoneNo[0] === "0" ? phoneNo.substring(1) : phoneNo);
+const parsePhone = (phoneStr, options = {}) => {
+    // Init options
+    if (!options) {
+        options = {};
+    }
 
-    // Clean phoneNo number with libphonenumber
-    const result = LibPhoneNo.parsePhoneNumberFromString(input);
+    // Parse old format
+    if (options.countryCode) {
+        // Combine format to e.164
+        phoneStr = "+" + options.countryCode + (phoneStr[0] === "0" ? phoneStr.substring(1) : phoneStr);
+    }
 
-    // If failed to parse phoneNo number, then throw error
-    if (!result) {
+    // Parse phone
+    let phone;
+    try {
+        phone = LibPhoneNo.parsePhoneNumber(phoneStr);
+    } catch (err) {
+        logger.error(`Failed to parse phone number input. Error = ${phone}, Input = ${phoneStr}`);
+        throw new APIError("ERR_10");
+    }
+
+    // Check if it's valid
+    if (!phone.isValid()) {
+        logger.error(`Invalid phone number input. Input = ${phoneStr}`);
         throw new APIError("ERR_10");
     }
 
     // Check for country
-    if (!result.country) {
+    if (!phone.country) {
+        logger.error(`Country not found in phone number input. Error = ${phone}, Input = ${phoneStr}`);
         throw new APIError("ERR_10");
     }
 
-    return result;
-};
-
-/**
- * Check if phone is from limit country
- * @param {PhoneNumber} phone
- * @param {string[]} limitCountry
- */
-const isLimitedCountry = (phone, limitCountry) => {
-    for (const c of limitCountry) {
-        if (phone.country === c) {
-            logger.warn(`Phone is from limited country: ${phone.country}`);
-            throw new APIError("ERR_40");
+    // Check if phone number is unsupported
+    if (options.limitCountry && options.limitCountry.length > 0) {
+        for (const c of options.limitCountry) {
+            if (phone.country === c) {
+                logger.warn(`Phone is from unsupported country: ${phone.country}`);
+                throw new APIError("ERR_40");
+            }
         }
     }
+
+    return phone;
 };
 
 module.exports = {
@@ -231,6 +246,5 @@ module.exports = {
     combinePhone: combinePhone,
     getEpoch,
     validateReq,
-    parsePhoneNo: parsePhoneNo,
-    isLimitedCountry: isLimitedCountry,
+    parsePhone: parsePhone,
 };

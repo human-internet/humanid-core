@@ -699,7 +699,7 @@ class AppService extends BaseService {
         }
 
         // Parse phone number
-        const phone = this.components.common.parsePhoneNo(inputCountryCode, inputPhoneNo);
+        const phone = this.components.common.parsePhone(inputPhoneNo, { countryCode: inputCountryCode });
         const phoneNo = phone.number;
 
         // Generate dev user hash id
