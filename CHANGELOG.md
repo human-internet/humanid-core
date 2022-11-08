@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.10.1
+
+- fix: Phone number input validation
+
 ## v1.10.0
 
 - fix(mobile): Remove deprecated mobile apis
