@@ -409,7 +409,7 @@ class UserService extends BaseService {
 
     async requestLoginOTP(inputCountryCode, inputPhoneNo, option) {
         // Parse phone number input
-        const phone = this.components.common.parsePhoneNo(inputCountryCode, inputPhoneNo);
+        const phone = this.components.common.parsePhone(inputPhoneNo, { countryCode: inputCountryCode });
 
         // Get hash id
         const hashId = this.getHashId(phone.number);
@@ -467,7 +467,7 @@ class UserService extends BaseService {
         const { User, AppUser } = this.models;
 
         // Parse phone number input
-        const phone = this.components.common.parsePhoneNo(payload.countryCode, payload.phone);
+        const phone = this.components.common.parsePhone(payload.phone, { countryCode: payload.countryCode });
 
         // Get hash id
         const hashId = this.getHashId(phone.number);
