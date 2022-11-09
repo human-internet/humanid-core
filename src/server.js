@@ -208,16 +208,20 @@ class Server {
         };
     };
 
-    logRequest = (method, originalUrl, { headersSent, statusCode }) => {
+    logRequest = (method, originalUrl, res) => {
+        if (!res) {
+            res = {};
+        }
+
         // Only log request when response has been sent
-        if (!headersSent) {
+        if (!res.headersSent) {
             return;
         }
 
         // Remove base path from original url
         const pattern = new RegExp(`^${this.basePath}`);
         const path = originalUrl.replace(pattern, "");
-        this.logger.info(`Path: ${method} ${path}, HttpStatus: ${statusCode}`);
+        this.logger.info(`Path: ${method} ${path}, HttpStatus: ${res.statusCode}`);
     };
 
     /**
