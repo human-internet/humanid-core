@@ -204,11 +204,11 @@ class Server {
                 this.sendErrorResponse(res, err);
             }
 
-            this.logRequest(req.originalUrl, res);
+            this.logRequest(req.method, req.originalUrl, res);
         };
     };
 
-    logRequest = (originalUrl, { headersSent, statusCode }) => {
+    logRequest = (method, originalUrl, { headersSent, statusCode }) => {
         // Only log request when response has been sent
         if (!headersSent) {
             return;
@@ -217,7 +217,7 @@ class Server {
         // Remove base path from original url
         const pattern = new RegExp(`^${this.basePath}`);
         const path = originalUrl.replace(pattern, "");
-        this.logger.info(`Path: ${path}, HttpStatus: ${statusCode}`);
+        this.logger.info(`Path: ${method} ${path}, HttpStatus: ${statusCode}`);
     };
 
     /**
