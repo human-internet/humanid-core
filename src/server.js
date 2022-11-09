@@ -209,10 +209,6 @@ class Server {
     };
 
     logRequest = (method, originalUrl, res) => {
-        if (!res) {
-            res = {};
-        }
-
         // Only log request when response has been sent
         if (!res.headersSent) {
             return;
@@ -240,7 +236,7 @@ class Server {
                 this.sendErrorResponse(res, err);
             }
 
-            this.logRequest(req.originalUrl, res);
+            this.logRequest(req.method, req.originalUrl, res);
         };
     };
 
