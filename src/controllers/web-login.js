@@ -89,10 +89,18 @@ class WebLoginController extends BaseController {
                 // Get localization parameters from query, language code must be in ISO 639-1
                 const language = req.query["lang"] || "en";
 
+                // Init config if set
+                let { config } = client.app;
+                if (!config) {
+                    config = client.app.config = App.initConfig();
+                    await client.app.save();
+                    this.logger.debug(`Fix null config. AppId = ${client.appId}`);
+                }
+
                 // Check if phone is from limited country
                 const phone = parsePhone(body.phone, {
                     countryCode: body.countryCode,
-                    limitCountry: client.app.config.web.limitCountry,
+                    limitCountry: config.web.limitCountry,
                 });
 
                 // Request OTP via SMS
