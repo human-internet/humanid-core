@@ -1,5 +1,12 @@
 # Changelog
 
+## v1.10.2
+
+- fix(app): Init null config
+- fix: Async wrapper log request
+- fix: Handle undefined res
+- fix: Log request method
+
 ## v1.10.1
 
 - fix: Phone number input validation
