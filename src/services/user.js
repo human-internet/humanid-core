@@ -494,16 +494,18 @@ class UserService extends BaseService {
     }
 
     isActive = (lastVerifiedAt) => {
-        if (lastVerifiedAt == null) {
-            return true;
-        }
-
-        // Convert to epoch
-        const verifiedAt = dateUtil.toEpoch(lastVerifiedAt);
-        const now = dateUtil.toEpoch(new Date());
-
-        // Check user is still active within 90 days
-        return now - verifiedAt <= 7776000; // 90 days in second
+        return true;
+        // 90 days logic
+        // if (lastVerifiedAt == null) {
+        //     return true;
+        // }
+        //
+        // // Convert to epoch
+        // const verifiedAt = dateUtil.toEpoch(lastVerifiedAt);
+        // const now = dateUtil.toEpoch(new Date());
+        //
+        // // Check user is still active within 90 days
+        // return now - verifiedAt <= 7776000; // 90 days in second
     };
 
     /**
