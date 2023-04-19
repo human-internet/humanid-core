@@ -1,5 +1,11 @@
 # Changelog
 
+## v1.11.0
+
+- feat(server): Return requestId on Verify Exchange Token
+- feat(web-login): Return requestId on Get Web Log-in URL API and append requestId to redirected URL
+- feat(recovery): Disable 90 days active check
+
 ## v1.10.2
 
 - fix(app): Init null config
