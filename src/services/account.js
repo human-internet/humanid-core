@@ -202,6 +202,7 @@ class AccountService extends BaseService {
         const hashId = UserService.getHashId(phone.number);
 
         // Verify code
+        // TODO: Handles requestId
         await UserService.verifyOtpCode(hashId, payload.otpCode);
 
         // Get user (create user if exists)
