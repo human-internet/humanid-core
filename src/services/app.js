@@ -13,7 +13,7 @@ const APIError = require("../server/api_error"),
     s3 = require("../adapters/s3"),
     BaseService = require("./base"),
     Constants = require("../constants"),
-    { config } = require("../components/common"),
+    { config, newRequestId } = require("../components/common"),
     { promisify } = require("util");
 
 const APP_UNVERIFIED = 1;
@@ -224,12 +224,14 @@ class AppService extends BaseService {
         });
 
         // Generate web login URL
+        const requestId = newRequestId();
         const webLoginURL = new URL(this.config["WEB_LOGIN_URL"]);
         webLoginURL.searchParams.append("t", session.token);
         webLoginURL.searchParams.append("a", app.extId);
         webLoginURL.searchParams.append("lang", languageCode);
         webLoginURL.searchParams.append("priority_country", priorityCountry.toUpperCase());
         webLoginURL.searchParams.append("s", source);
+        webLoginURL.searchParams.append("id", requestId);
 
         // Append limit country if set
         if (limitCountry.length > 0) {
@@ -238,6 +240,7 @@ class AppService extends BaseService {
 
         return {
             webLoginUrl: webLoginURL.href,
+            requestId,
         };
     }
 

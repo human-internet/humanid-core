@@ -6,7 +6,8 @@ const APIError = require("../server/api_error"),
     crypto = require("crypto"),
     jwt = require("jsonwebtoken"),
     logger = require("../logger"),
-    LibPhoneNo = require("libphonenumber-js/max");
+    LibPhoneNo = require("libphonenumber-js/max"),
+    nanoId = require("nanoid");
 
 // load config
 let config = {};
@@ -247,4 +248,5 @@ module.exports = {
     getEpoch,
     validateReq,
     parsePhone: parsePhone,
+    newRequestId: nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24),
 };
