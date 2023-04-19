@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.1
+
+- fix: Update vulnerable dependency jsonwebtoken and multer
+
 ## v1.11.0
 
 - feat(server): Return requestId on Verify Exchange Token
