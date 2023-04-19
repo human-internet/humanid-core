@@ -107,6 +107,7 @@ class WebLoginController extends BaseController {
                 const result = await this.services.User.requestLoginOTP(client.appId, phone, {
                     environmentId: client.environmentId,
                     language: language,
+                    requestId: body.requestId,
                 });
 
                 // Generate web login session token for login purpose

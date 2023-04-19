@@ -194,6 +194,7 @@ class AuthService extends BaseService {
             appCredential: session.appCredential,
             appUserId: appUser.extId,
             countryCode: user.countryCode,
+            requestId: session.requestId,
         };
     }
 
@@ -213,7 +214,7 @@ class AuthService extends BaseService {
         this.logger.debug(`Deleted dangling exchange session: ${count}`);
     }
 
-    async createExchangeToken(appUser, appCredentialId) {
+    async createExchangeToken(appUser, appCredentialId, requestId) {
         // Get references
         const { dateUtil } = this.components;
         const { UserExchangeSession } = this.models;
@@ -236,6 +237,7 @@ class AuthService extends BaseService {
             expiredAt: expiredAt,
             createdAt: timestamp,
             appCredentialId,
+            requestId,
         });
 
         // Create payload

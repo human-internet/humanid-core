@@ -13,7 +13,7 @@ const APIError = require("../server/api_error"),
 const BaseService = require("./base");
 
 const Localization = require("../server/localization");
-const dateUtil = require("../components/date_util");
+const { newRequestId } = require("../components/common");
 
 const USER_STATUS_VERIFIED = 2,
     HASH_ID_FORMAT_VERSION = 1,
@@ -35,7 +35,6 @@ class UserService extends BaseService {
 
         // Init nano id generator for
         this.generateOTPCode = nanoId.customAlphabet("0123456789", OTP_RULE.otpCodeLength);
-        this.generateOTPReqId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24);
         this.generateAppUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 20);
     }
 
@@ -108,7 +107,7 @@ class UserService extends BaseService {
         return hash;
     }
 
-    async getOTPSession(hashId, timestamp) {
+    async getOTPSession(hashId, timestamp, requestId) {
         // Get model reference
         const { UserOTPSession } = this.models;
         const { dateUtil } = this.components;
@@ -117,7 +116,9 @@ class UserService extends BaseService {
         const expiredAt = dateUtil.addSecond(timestamp, OTP_RULE.otpSessionLifetime);
 
         // Generate request id
-        const requestId = this.generateOTPReqId();
+        if (!requestId) {
+            requestId = newRequestId();
+        }
 
         // Create default object
         const defaultSession = {
@@ -423,7 +424,7 @@ class UserService extends BaseService {
         const hashId = this.getHashId(phone.number);
 
         // Get session
-        const session = await this.getOTPSession(hashId, new Date());
+        const session = await this.getOTPSession(hashId, new Date(), option.requestId);
 
         // Validate session against rules
         this.validateNewOTP(session);
@@ -571,7 +572,7 @@ class UserService extends BaseService {
         const hashId = this.getHashId(phone.number);
 
         // Verify code
-        await this.verifyOtpCode(hashId, payload.verificationCode);
+        const requestId = await this.verifyOtpCode(hashId, payload.verificationCode);
 
         // Get user, if user not found create a new one
         const user = await this.getUser(hashId, phone.country);
@@ -582,7 +583,8 @@ class UserService extends BaseService {
         // Create exchange token
         const { token: exchangeToken, expiredAt } = await this.services.Auth.createExchangeToken(
             appUser,
-            payload.appCredentialId
+            payload.appCredentialId,
+            requestId
         );
 
         // Compose response
@@ -617,6 +619,12 @@ class UserService extends BaseService {
         this.logger.debug(`DeletedRowCount=${count}`);
     }
 
+    /**
+     * Verify OTP Code and returns requestId
+     * @param hashId
+     * @param verificationCode
+     * @return {Promise<string>} Request Id
+     */
     async verifyOtpCode(hashId, verificationCode) {
         // Get references
         const { dateUtil } = this.components;
@@ -677,6 +685,9 @@ class UserService extends BaseService {
 
         // Clear otp session
         await this.clearOTPSession(session.id);
+
+        // Return request id
+        return session.requestId;
     }
 
     async clearOTPSession(id) {

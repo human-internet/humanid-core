@@ -50,7 +50,7 @@ class ServerController extends BaseController {
 
                 // Validate exchange token
                 const { Auth: AuthService } = this.services;
-                const { sessionId, appUserId, countryCode } = await AuthService.validateExchangeToken(
+                const { sessionId, appUserId, countryCode, requestId } = await AuthService.validateExchangeToken(
                     body.exchangeToken
                 );
 
@@ -61,6 +61,7 @@ class ServerController extends BaseController {
                     data: {
                         appUserId,
                         countryCode,
+                        requestId,
                     },
                 };
             })

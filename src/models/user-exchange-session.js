@@ -38,6 +38,10 @@ module.exports = (sequelize) => {
                 type: Sequelize.BIGINT,
                 allowNull: false,
             },
+            requestId: {
+                type: Sequelize.STRING,
+                allowNull: true,
+            },
         },
         {
             tableName: TABLE_NAME,
