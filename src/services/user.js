@@ -118,6 +118,7 @@ class UserService extends BaseService {
         // Generate request id
         if (!requestId) {
             requestId = newRequestId();
+            this.logger.warn(`requestId is not set. New requestId is generated. requestId=${requestId}`);
         }
 
         // Create default object
