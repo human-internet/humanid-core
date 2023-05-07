@@ -1,5 +1,9 @@
 # Changelog
 
+## v1.11.2
+
+- fix: Add warning log if requestId is not set
+
 ## v1.11.1
 
 - fix: Update vulnerable dependency jsonwebtoken and multer
