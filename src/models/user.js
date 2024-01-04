@@ -55,6 +55,14 @@ module.exports = (sequelize) => {
                 type: Sequelize.STRING,
                 allowNull: true,
             },
+            accountBalance: {
+                type: Sequelize.FLOAT,
+                allowNull: false,
+                defaultValue: 0,
+                validate: {
+                    min: 0,
+                },
+            },
         },
         {
             tableName: TABLE_NAME,
