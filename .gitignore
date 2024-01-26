@@ -3,6 +3,7 @@ node_modules/
 
 # Configurations
 .env
+.env_prod
 config.json
 serviceAccountKey.json
 

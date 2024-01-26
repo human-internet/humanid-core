@@ -1,4 +1,5 @@
 "use strict";
+require('dotenv').config();
 
 const APIError = require("../server/api_error"),
     Constants = require("../constants"),

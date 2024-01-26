@@ -23,7 +23,7 @@ COPY src ./src
 COPY package.json package-lock.json .sequelizerc entrypoint.sh ./
 COPY --from=manifest /usr/src/app/manifest.js ./src/manifest.js
 
-RUN npm i -g npm \
+RUN npm i -g npm@9 \
     && mkdir -p storage/temp
 
 ENV NODE_ENV="production"

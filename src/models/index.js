@@ -1,4 +1,5 @@
 "use strict";
+require('dotenv').config();
 
 const logger = require("../logger").child({ scope: "Core.Sequelize" }),
     Sequelize = require("sequelize"),
