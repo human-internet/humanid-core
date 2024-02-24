@@ -75,7 +75,7 @@ class AuthService extends BaseService {
             // for web login on staging
             return true;
         }
-        return true;
+        return false;
     }
 
     cleanExchangeToken(token) {
