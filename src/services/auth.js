@@ -71,6 +71,9 @@ class AuthService extends BaseService {
             return true;
         } else if (scope === Constants.AUTH_SCOPE_WEB_LOGIN && credentialTypeId === WEB_LOGIN_CRED_TYPE) {
             return true;
+        } else if (scope === Constants.AUTH_SCOPE_WEB_LOGIN && credentialTypeId === SERVER_CRED_TYPE){
+            // for web login on staging
+            return true;
         }
         return false;
     }
