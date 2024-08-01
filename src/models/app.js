@@ -6,7 +6,7 @@ const MODEL_NAME = "App",
     TABLE_NAME = "App";
 
 module.exports = (sequelize) => {
-    return sequelize.define(
+    const Model = sequelize.define(
         MODEL_NAME,
         {
             id: {
@@ -52,4 +52,11 @@ module.exports = (sequelize) => {
             timestamps: true,
         }
     );
+    Model.associate = function (models) {
+        Model.hasMany(models.AppUser, {
+            foreignKey: "appId",
+            as: "appUser",
+        });
+    };
+    return Model;
 };

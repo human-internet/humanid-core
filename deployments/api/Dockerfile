@@ -13,7 +13,7 @@ COPY .git ./.git
 
 RUN gen-manifest
 
-FROM node:16-alpine
+FROM node:18-alpine
 
 WORKDIR /usr/src/app
 
