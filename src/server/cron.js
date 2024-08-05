@@ -39,6 +39,7 @@ module.exports.checkUpdateBalance = new CronJob(
                                     },
                                     { where: { id: appUser.userId }, transaction }
                                 );
+                                await transaction.commit();
                             });
                         }
                     }
