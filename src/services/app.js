@@ -56,16 +56,16 @@ class AppService extends BaseService {
         this.generateClientId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 22);
         this.generateClientSecret = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.~",
-            64
+            64,
         );
         this.generateDevUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24);
         this.generateWebLoginSessionId = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            64
+            64,
         );
         this.generateLogoFileName = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            16
+            16,
         );
 
         // Init validation schemas
@@ -185,7 +185,7 @@ class AppService extends BaseService {
 
     async getWebLoginURL(args) {
         // Get client id and client secret
-        const { appId, appCredential, languageCode } = args;
+        const { appId, appCredential, languageCode, webLoginVersion } = args;
         let { priorityCountry, source } = args;
 
         // Normalize source
@@ -232,6 +232,7 @@ class AppService extends BaseService {
         webLoginURL.searchParams.append("priority_country", priorityCountry.toUpperCase());
         webLoginURL.searchParams.append("s", source);
         webLoginURL.searchParams.append("id", requestId);
+        webLoginURL.searchParams.append("v", webLoginVersion);
 
         // Append limit country if set
         if (limitCountry.length > 0) {
@@ -579,7 +580,7 @@ class AppService extends BaseService {
             },
             {
                 where: { id: app.id },
-            }
+            },
         );
         this.logger.debug(`updated app logoFile count = ${count}`);
 
@@ -989,7 +990,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            }
+            },
         );
         this.logger.debug(`AppUserSession deleted count = ${result[1]}. appId = ${app.id}`);
 
@@ -999,7 +1000,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            }
+            },
         );
         this.logger.debug(`UserExchangeSession deleted count = ${result[1]}. appId = ${app.id}`);
 

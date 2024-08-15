@@ -24,7 +24,7 @@ class ServerController extends BaseController {
                 // Get language parameter
                 const lang = req.query["lang"] || "en";
                 const priorityCountry = req.query["priority_country"] || "";
-
+                const webLoginVersion = req.query["web_login_version"] || "v1";
                 // Validate requester credentials
                 const { App } = this.services;
                 const result = await App.getWebLoginURL({
@@ -32,12 +32,13 @@ class ServerController extends BaseController {
                     appCredential: req.client.appCredential,
                     languageCode: lang,
                     priorityCountry: priorityCountry,
+                    webLoginVersion: webLoginVersion,
                 });
 
                 return {
                     data: result,
                 };
-            })
+            }),
         );
 
         this.router.post(
@@ -51,7 +52,7 @@ class ServerController extends BaseController {
                 // Validate exchange token
                 const { Auth: AuthService } = this.services;
                 const { sessionId, appUserId, countryCode, requestId } = await AuthService.validateExchangeToken(
-                    body.exchangeToken
+                    body.exchangeToken,
                 );
 
                 // Clear exchange token
@@ -64,7 +65,7 @@ class ServerController extends BaseController {
                         requestId,
                     },
                 };
-            })
+            }),
         );
     }
 }
