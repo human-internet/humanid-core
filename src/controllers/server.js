@@ -24,7 +24,23 @@ class ServerController extends BaseController {
                 // Get language parameter
                 const lang = req.query["lang"] || "en";
                 const priorityCountry = req.query["priority_country"] || "";
-                const webLoginVersion = req.query["web_login_version"] || "v1";
+                // const webLoginVersion = req.query["web_login_version"] || "v1"; // todo: always undefined
+
+                // Convert req.query to an array
+                const queryArray = Object.entries(req.query);
+
+                // Initialize webLoginVersion to 'v1' as a default value
+                let webLoginVersion = "v1";
+
+                // Iterate over the array to find the key that contains 'web_login_version'
+                // todo: revise thhis when the undefined issue above is fixed
+                for (let [key, value] of queryArray) {
+                    if (key.includes("web_login_version")) {
+                        webLoginVersion = value;
+                        break;
+                    }
+                }
+
                 // Validate requester credentials
                 const { App } = this.services;
                 const result = await App.getWebLoginURL({
@@ -34,7 +50,6 @@ class ServerController extends BaseController {
                     priorityCountry: priorityCountry,
                     webLoginVersion: webLoginVersion,
                 });
-
                 return {
                     data: result,
                 };
