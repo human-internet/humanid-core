@@ -29,6 +29,7 @@ class MobileController extends BaseController {
                 const lang = req.query.lang || "en";
                 const priorityCountry = req.query["priority_country"] || "";
                 const source = Constants.WebLogin.SourceMobile;
+                const webLoginVersion = req.query["web_login_version"] || "v1";
 
                 // Validate requester credentials
                 const { App } = this.services;
@@ -38,6 +39,7 @@ class MobileController extends BaseController {
                     languageCode: lang,
                     priorityCountry,
                     source,
+                    webLoginVersion,
                 });
 
                 return {
