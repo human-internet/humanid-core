@@ -35,7 +35,7 @@ module.exports.checkUpdateBalance = new CronJob(
                                 const transaction = await User.sequelize.transaction();
                                 await User.update(
                                     {
-                                        accountBalance: data.credit_balance,
+                                        accountBalance: +data.credit_balance > 0 ? data.credit_balance : 0,
                                     },
                                     { where: { id: appUser.userId }, transaction }
                                 );
