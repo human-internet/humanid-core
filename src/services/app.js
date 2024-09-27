@@ -42,7 +42,9 @@ const CREDENTIAL_ACTIVE = 1,
     CREDENTIAL_INACTIVE = 2;
 
 const PLATFORM_ANDROID_SLUG = "android",
-    PLATFORM_IOS_SLUG = "ios";
+    PLATFORM_IOS_SLUG = "ios",
+    PLATFORM_DISCORD_SLUG = "discord",
+    PLATFORM_WEB_SLUG = "web";
 
 const APP_PATH = "apps";
 
@@ -56,16 +58,16 @@ class AppService extends BaseService {
         this.generateClientId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 22);
         this.generateClientSecret = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.~",
-            64,
+            64
         );
         this.generateDevUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24);
         this.generateWebLoginSessionId = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            64,
+            64
         );
         this.generateLogoFileName = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            16,
+            16
         );
 
         // Init validation schemas
@@ -580,7 +582,7 @@ class AppService extends BaseService {
             },
             {
                 where: { id: app.id },
-            },
+            }
         );
         this.logger.debug(`updated app logoFile count = ${count}`);
 
@@ -787,6 +789,7 @@ class AppService extends BaseService {
         switch (platformSlug) {
             case PLATFORM_ANDROID_SLUG:
             case PLATFORM_IOS_SLUG:
+            case PLATFORM_DISCORD_SLUG:
                 return true;
             default:
                 throw new APIError("ERR_20");
@@ -801,6 +804,9 @@ class AppService extends BaseService {
                 break;
             case PLATFORM_IOS_SLUG:
                 rules = { bundleId: "required" };
+                break;
+            case PLATFORM_DISCORD_SLUG:
+                rules = { serverId: "required" };
                 break;
             default:
                 throw new APIError("ERR_21");
@@ -825,6 +831,11 @@ class AppService extends BaseService {
                     bundleId: options.bundleId,
                 };
 
+            case PLATFORM_DISCORD_SLUG:
+                return {
+                    platform: platformSlug,
+                    serverId: options.serverId,
+                };
             default:
                 return {};
         }
@@ -878,7 +889,7 @@ class AppService extends BaseService {
 
         // Get options from payload
         let options = {};
-        if (credentialTypeId === MOBILE_SDK_CRED_TYPE) {
+        if (!(credentialTypeId === SERVER_CRED_TYPE && payload?.options?.platform === PLATFORM_WEB_SLUG)) {
             options = this.parseCredentialPlatformOption(payload["options"]);
         }
 
@@ -990,7 +1001,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            },
+            }
         );
         this.logger.debug(`AppUserSession deleted count = ${result[1]}. appId = ${app.id}`);
 
@@ -1000,7 +1011,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            },
+            }
         );
         this.logger.debug(`UserExchangeSession deleted count = ${result[1]}. appId = ${app.id}`);
 
