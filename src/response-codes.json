@@ -97,7 +97,7 @@
     "ERR_20": {
         "success": false,
         "status": 400,
-        "message": "options.platform must be defined with values ios, android or web"
+        "message": "options.platform must be defined with values ios, android, discord or web"
     },
     "ERR_21": {
         "success": false,
