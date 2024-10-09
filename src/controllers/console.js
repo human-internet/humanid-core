@@ -412,7 +412,7 @@ class ConsoleController extends BaseController {
 
         // Check exist
         const [dcUser, transaction] = await Promise.all([
-            this.models.DevConsoleUser.findOne({ where: { dcUserId: req.params.dcUserId } }),
+            this.models.DevConsoleUser.findOne({ where: { id: req.params.id } }),
             this.components.stripe.getTransactionById(body.transactionId),
         ]);
 
@@ -433,7 +433,7 @@ class ConsoleController extends BaseController {
     });
 
     handleGetDCUser = this.handleRESTAsync(async (req) => {
-        const dcUser = await this.models.DevConsoleUser.findOne({ where: { dcUserId: req.params.dcUserId } });
+        const dcUser = await this.models.DevConsoleUser.findOne({ where: { id: req.params.id } });
 
         if (!dcUser) {
             throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
