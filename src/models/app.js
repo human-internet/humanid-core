@@ -18,8 +18,12 @@ module.exports = (sequelize) => {
                 type: Sequelize.INTEGER,
                 allowNull: false,
             },
-            ownerId: {
+            dcProjectId: {
                 type: Sequelize.STRING(64),
+                allowNull: false,
+            },
+            ownerId: {
+                type: Sequelize.BIGINT,
                 allowNull: false,
             },
             extId: {

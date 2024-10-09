@@ -43,6 +43,7 @@
         "nodemailer": "6.9.9",
         "sequelize": "^6.17.0",
         "sequelize-cli": "^6.4.1",
+        "stripe": "^17.1.0",
         "winston": "^3.6.0"
     },
     "devDependencies": {

@@ -251,7 +251,7 @@ class UserService extends BaseService {
         const { appId, providerSnapshot, targetCountry, statusId, trxSnapshot, timestamp } = metadata;
 
         // Get references
-        const { App, SMSTransaction, SMSTransactionLog } = this.models;
+        const { App, SMSTransaction, SMSTransactionLog, DevConsoleUser } = this.models;
 
         // Get app snapshot
         const appSnapshot = {};
@@ -320,6 +320,18 @@ class UserService extends BaseService {
             );
             await tx.rollback();
             throw err;
+        }
+
+        const dcUser = await DevConsoleUser.findOne({ where: { dcUserId: trx.ownerId } });
+        if (dcUser) {
+            await DevConsoleUser.update(
+                {
+                    balance:
+                        parseFloat(dcUser.balance) -
+                        (trx.providerId === 1 ? 0.014 : parseFloat(trx.trxSnapshot["message-price"])),
+                },
+                { where: { id: dcUser.id } }
+            );
         }
     }
 
