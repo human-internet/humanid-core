@@ -419,7 +419,8 @@ class ConsoleController extends BaseController {
         if (!dcUser || !transaction) {
             throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
         }
-        const currentBalance = dcUser.balance + transaction.amount / 100;
+
+        const currentBalance = parseFloat(dcUser.balance) + transaction.amount / 100;
         await this.models.DevConsoleUser.update({ balance: currentBalance }, { where: { id: dcUser.id } });
 
         return {
@@ -442,7 +443,7 @@ class ConsoleController extends BaseController {
             data: {
                 id: dcUser.id,
                 dcUserId: dcUser.dcUserId,
-                balance: dcUser.balance,
+                balance: parseFloat(dcUser.balance),
             },
         };
     });

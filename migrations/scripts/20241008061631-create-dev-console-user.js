@@ -15,7 +15,7 @@ module.exports = {
                 unique: true,
             },
             balance: {
-                type: Sequelize.FLOAT,
+                type: Sequelize.DECIMAL(20, 5),
                 allowNull: false,
                 defaultValue: 5,
             },

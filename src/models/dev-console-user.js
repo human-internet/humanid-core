@@ -1,5 +1,3 @@
-"use strict";
-
 const Sequelize = require("sequelize");
 
 const TABLE_NAME = "DevConsoleUser",
@@ -20,7 +18,7 @@ module.exports = (sequelize) => {
                 unique: true,
             },
             balance: {
-                type: Sequelize.FLOAT,
+                type: Sequelize.DECIMAL(20, 5),
                 allowNull: false,
                 defaultValue: 5,
             },
@@ -29,6 +27,11 @@ module.exports = (sequelize) => {
             tableName: TABLE_NAME,
             timestamps: true,
             paranoid: true,
+            indexes: [
+                {
+                    fields: ["dcUserId"],
+                },
+            ],
         }
     );
 

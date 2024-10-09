@@ -326,7 +326,9 @@ class UserService extends BaseService {
         if (dcUser) {
             await DevConsoleUser.update(
                 {
-                    balance: dcUser.balance - (trx.providerId === 1 ? 0.014 : trx.trxSnapshot["message-price"]),
+                    balance:
+                        parseFloat(dcUser.balance) -
+                        (trx.providerId === 1 ? 0.014 : parseFloat(trx.trxSnapshot["message-price"])),
                 },
                 { where: { id: dcUser.id } }
             );
