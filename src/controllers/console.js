@@ -146,6 +146,9 @@ class ConsoleController extends BaseController {
         this.router.get("/sandbox/dev-users", this.handleConsoleAuth, this.handleListDevUser);
         this.router.delete("/sandbox/dev-users/:extId", this.handleConsoleAuth, this.handleDeleteDevUser);
         this.router.get("/sandbox/otps", this.handleConsoleAuth, this.handleListSandboxOTPs);
+        this.router.post("/dc-users", this.handleConsoleAuth, this.handleCreateDCUser);
+        this.router.patch("/dc-users/:dcUserId", this.handleConsoleAuth, this.handleUpdateBalanceDCUser);
+        this.router.get("/dc-users/:dcUserId", this.handleConsoleAuth, this.handleGetDCUser);
     }
 
     handleDeleteDevUser = this.handleRESTAsync(async (req) => {
@@ -246,6 +249,7 @@ class ConsoleController extends BaseController {
             {
                 ownerEntityTypeId: "required",
                 ownerId: "required",
+                dcProjectId: "required",
                 name: "required",
             },
             body
@@ -363,6 +367,85 @@ class ConsoleController extends BaseController {
 
         next();
     };
+
+    handleCreateDCUser = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                dcUserId: "required",
+            },
+            body
+        );
+
+        // Check exist
+        const dcUser = await this.models.DevConsoleUser.findOne({ where: { dcUserId: body.dcUserId } });
+
+        if (dcUser) {
+            return {
+                data: {
+                    id: dcUser.id,
+                    dcUserId: dcUser.dcUserId,
+                },
+            };
+        }
+        // Create DevConsoleUser
+        const result = await this.models.DevConsoleUser.create(body);
+
+        return {
+            data: {
+                id: result.id,
+                dcUserId: result.dcUserId,
+            },
+        };
+    });
+
+    handleUpdateBalanceDCUser = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                transactionId: "required",
+            },
+            body
+        );
+
+        // Check exist
+        const [dcUser, transaction] = await Promise.all([
+            this.models.DevConsoleUser.findOne({ where: { dcUserId: req.params.dcUserId } }),
+            this.components.stripe.getTransactionById(body.transactionId),
+        ]);
+
+        if (!dcUser || !transaction) {
+            throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
+        }
+        const currentBalance = dcUser.balance + transaction.amount / 100;
+        await this.models.DevConsoleUser.update({ balance: currentBalance }, { where: { id: dcUser.id } });
+
+        return {
+            data: {
+                id: dcUser.id,
+                dcUserId: dcUser.dcUserId,
+                balance: currentBalance,
+            },
+        };
+    });
+
+    handleGetDCUser = this.handleRESTAsync(async (req) => {
+        const dcUser = await this.models.DevConsoleUser.findOne({ where: { dcUserId: req.params.dcUserId } });
+
+        if (!dcUser) {
+            throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
+        }
+
+        return {
+            data: {
+                id: dcUser.id,
+                dcUserId: dcUser.dcUserId,
+                balance: dcUser.balance,
+            },
+        };
+    });
 }
 
 module.exports = ConsoleController;

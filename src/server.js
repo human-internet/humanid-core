@@ -30,7 +30,6 @@ const ConsoleController = require("./controllers/console"),
     WebLoginController = require("./controllers/web-login");
 
 const Middlewares = require("./server/middlewares");
-const { checkUpdateBalance } = require("./server/cron");
 
 class Server {
     constructor({ config, components, models, services, logger }) {
@@ -63,8 +62,6 @@ class Server {
 
         // Set start time
         this.startedAt = new Date();
-
-        checkUpdateBalance.start();
     }
 
     initRouter() {

@@ -8,7 +8,7 @@ const APIError = require("../server/api_error"),
     logger = require("../logger"),
     LibPhoneNo = require("libphonenumber-js/max"),
     nanoId = require("nanoid");
-
+require("dotenv").config();
 // load config
 let config = {};
 
@@ -87,6 +87,9 @@ config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIM
 
 // Sandbox
 config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
+
+// Stripe
+config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
 
 // hash data using secret
 const hmac = (data, secret) => {

@@ -266,13 +266,7 @@ class AppService extends BaseService {
         const { common } = this.components;
         const jwtSecret = this.config["WEB_LOGIN_SESSION_SECRET"];
 
-        let payload;
-        try {
-            payload = await common.verifyJWT(token, jwtSecret);
-        } catch (e) {
-            // TODO: Handle jwt error and Re-throw exception with APIError
-            throw e;
-        }
+        const payload = await common.verifyJWT(token, jwtSecret);
 
         // Parse payload
         const clientId = payload.sub;
@@ -755,7 +749,7 @@ class AppService extends BaseService {
         };
     }
 
-    async create({ ownerEntityTypeId, ownerId, name }) {
+    async create({ ownerEntityTypeId, ownerId, dcProjectId, name }) {
         // Validate ownerEntityTypeId
         if (ownerEntityTypeId !== OWNER_ENTITY_ORGANIZATION) {
             throw new APIError("ERR_16");
@@ -769,10 +763,11 @@ class AppService extends BaseService {
 
         // Insert app
         const result = await App.create({
-            ownerEntityTypeId: ownerEntityTypeId,
-            ownerId: ownerId,
+            ownerEntityTypeId,
+            ownerId,
+            dcProjectId,
             extId: this.generateExtId(),
-            name: name,
+            name,
             appStatusId: APP_UNVERIFIED,
             config: this.initConfig(),
             createdAt: timestamp,
