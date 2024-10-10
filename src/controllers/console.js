@@ -2,6 +2,7 @@
 
 const BaseController = require("./base"),
     express = require("express"),
+    { Op } = require("sequelize"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
     multer = require("multer"),
@@ -142,6 +143,7 @@ class ConsoleController extends BaseController {
             this.handleConsoleAuth,
             this.handleToggleAppCredentialStatus
         );
+        this.router.get("/apps/:appId/sms-cost", this.handleConsoleAuth, this.handleGetSMSCost);
         this.router.post("/sandbox/dev-users", this.handleConsoleAuth, this.handleRegisterDevUser);
         this.router.get("/sandbox/dev-users", this.handleConsoleAuth, this.handleListDevUser);
         this.router.delete("/sandbox/dev-users/:extId", this.handleConsoleAuth, this.handleDeleteDevUser);
@@ -444,6 +446,45 @@ class ConsoleController extends BaseController {
                 id: dcUser.id,
                 dcUserId: dcUser.dcUserId,
                 balance: parseFloat(dcUser.balance),
+            },
+        };
+    });
+
+    handleGetSMSCost = this.handleRESTAsync(async (req) => {
+        const { date } = req.query;
+        if (!date) {
+            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "date is required");
+        }
+        const { appId } = req.params;
+
+        // Define the start and end of the day
+        const dateLocal = new Date(date);
+        const utcStartOfDay = new Date(
+            Date.UTC(dateLocal.getUTCFullYear(), dateLocal.getUTCMonth(), dateLocal.getUTCDate(), 0, 0, 0, 0)
+        );
+        const utcEndOfDay = new Date(
+            Date.UTC(dateLocal.getUTCFullYear(), dateLocal.getUTCMonth(), dateLocal.getUTCDate(), 23, 59, 59, 999)
+        );
+
+        const result = await this.models.SMSTransaction.findAll({
+            where: {
+                appId,
+                createdAt: {
+                    [Op.between]: [utcStartOfDay, utcEndOfDay],
+                },
+            },
+        });
+        const totalCost = result.reduce((total, trx) => {
+            const messagePrice =
+                trx.providerId === 1 ? 0.014 : trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"];
+            return total + (messagePrice ? parseFloat(messagePrice) : 0); // Ensure it's a number before adding
+        }, 0);
+
+        return {
+            data: {
+                date,
+                smsCount: result.length,
+                cost: totalCost,
             },
         };
     });

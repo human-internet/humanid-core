@@ -328,7 +328,9 @@ class UserService extends BaseService {
                 {
                     balance:
                         parseFloat(dcUser.balance) -
-                        (trx.providerId === 1 ? 0.014 : parseFloat(trx.trxSnapshot["message-price"])),
+                        (trx.providerId === 1
+                            ? 0.014
+                            : parseFloat(trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"] || 0)),
                 },
                 { where: { id: dcUser.id } }
             );
