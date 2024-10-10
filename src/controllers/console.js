@@ -147,8 +147,8 @@ class ConsoleController extends BaseController {
         this.router.delete("/sandbox/dev-users/:extId", this.handleConsoleAuth, this.handleDeleteDevUser);
         this.router.get("/sandbox/otps", this.handleConsoleAuth, this.handleListSandboxOTPs);
         this.router.post("/dc-users", this.handleConsoleAuth, this.handleCreateDCUser);
-        this.router.patch("/dc-users/:dcUserId", this.handleConsoleAuth, this.handleUpdateBalanceDCUser);
-        this.router.get("/dc-users/:dcUserId", this.handleConsoleAuth, this.handleGetDCUser);
+        this.router.patch("/dc-users/:id", this.handleConsoleAuth, this.handleUpdateBalanceDCUser);
+        this.router.get("/dc-users/:id", this.handleConsoleAuth, this.handleGetDCUser);
     }
 
     handleDeleteDevUser = this.handleRESTAsync(async (req) => {
