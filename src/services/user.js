@@ -322,7 +322,7 @@ class UserService extends BaseService {
             throw err;
         }
 
-        const dcUser = await DevConsoleUser.findOne({ where: { dcUserId: trx.ownerId } });
+        const dcUser = await DevConsoleUser.findOne({ where: { id: trx.ownerId } });
         if (dcUser) {
             await DevConsoleUser.update(
                 {
