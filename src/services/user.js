@@ -324,16 +324,29 @@ class UserService extends BaseService {
 
         const dcUser = await DevConsoleUser.findOne({ where: { id: trx.ownerId } });
         if (dcUser) {
+            const newBalance =
+                +dcUser.balance -
+                (trx.providerId === 1
+                    ? this.config.FIXED_PRICE_AWS_SNS
+                    : +(trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"] || 0));
             await DevConsoleUser.update(
                 {
-                    balance:
-                        parseFloat(dcUser.balance) -
-                        (trx.providerId === 1
-                            ? 0.014
-                            : parseFloat(trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"] || 0)),
+                    balance: newBalance,
                 },
                 { where: { id: dcUser.id } }
             );
+            if (newBalance <= this.config.LOW_BALANCE_ALERT_THRESHOLD) {
+                try {
+                    await fetch(this.config.LOW_BALANCE_ALERT_API, {
+                        method: "post",
+                        body: {
+                            userId: dcUser.dcUserId,
+                        },
+                    });
+                } catch (error) {
+                    console.error(`Error warning low balance:${error.message}`, error);
+                }
+            }
         }
     }
 
