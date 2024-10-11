@@ -121,6 +121,7 @@ class ConsoleController extends BaseController {
 
         this.router.get("/apps", this.handleConsoleAuth, this.handleListApp);
         this.router.post("/apps", this.handleConsoleAuth, this.handleCreateApp);
+        this.router.put("/apps", this.handleConsoleAuth, this.handleUpdateOwnerId);
         this.router.delete("/apps/:appExtId", this.handleConsoleAuth, this.handleDeleteApp);
         this.router.post("/apps/:appExtId/credentials", this.handleConsoleAuth, this.handleCreateAppCredential);
         this.router.get("/apps/:appExtId/credentials", this.handleConsoleAuth, this.handleListAppCredential);
@@ -422,7 +423,7 @@ class ConsoleController extends BaseController {
             throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
         }
 
-        const currentBalance = parseFloat(dcUser.balance) + transaction.amount / 100;
+        const currentBalance = +dcUser.balance + transaction.amount / 100;
         await this.models.DevConsoleUser.update({ balance: currentBalance }, { where: { id: dcUser.id } });
 
         return {
@@ -445,7 +446,7 @@ class ConsoleController extends BaseController {
             data: {
                 id: dcUser.id,
                 dcUserId: dcUser.dcUserId,
-                balance: parseFloat(dcUser.balance),
+                balance: +dcUser.balance,
             },
         };
     });
@@ -476,8 +477,10 @@ class ConsoleController extends BaseController {
         });
         const totalCost = result.reduce((total, trx) => {
             const messagePrice =
-                trx.providerId === 1 ? 0.014 : trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"];
-            return total + (messagePrice ? parseFloat(messagePrice) : 0); // Ensure it's a number before adding
+                trx.providerId === 1
+                    ? this.config.FIXED_PRICE_AWS_SNS
+                    : +trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"];
+            return total + (messagePrice ? messagePrice : 0); // Ensure it's a number before adding
         }, 0);
 
         return {
@@ -485,6 +488,30 @@ class ConsoleController extends BaseController {
                 date,
                 smsCount: result.length,
                 cost: totalCost,
+            },
+        };
+    });
+
+    handleUpdateOwnerId = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                dcProjectId: "required",
+                ownerId: "required",
+            },
+            body
+        );
+
+        const app = await this.models.App.findOne({ where: { dcProjectId: body.dcProjectId } });
+        app.ownerId = body.ownerId;
+
+        await app.save();
+
+        return {
+            data: {
+                id: app.id,
+                ownerId: app.ownerId,
             },
         };
     });

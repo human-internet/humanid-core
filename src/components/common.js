@@ -91,6 +91,11 @@ config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
 // Stripe
 config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
 
+// Balance
+config.FIXED_PRICE_AWS_SNS = +(process.env.FIXED_PRICE_AWS_SNS || 0.014);
+config.LOW_BALANCE_ALERT_THRESHOLD = +(process.env.LOW_BALANCE_ALERT_THRESHOLD || 2.5);
+config.LOW_BALANCE_ALERT_API = process.env.LOW_BALANCE_ALERT_API;
+
 // hash data using secret
 const hmac = (data, secret) => {
     secret = secret || config.HMAC_SECRET;

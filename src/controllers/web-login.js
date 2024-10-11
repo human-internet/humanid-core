@@ -36,7 +36,7 @@ class WebLoginController extends BaseController {
                 return {
                     data: result,
                 };
-            }),
+            })
         );
 
         this.router.post(
@@ -50,7 +50,7 @@ class WebLoginController extends BaseController {
                         partnerClientId: "required",
                         partnerClientSecret: "required",
                     },
-                    body,
+                    body
                 );
 
                 // Validate requester credentials
@@ -60,7 +60,7 @@ class WebLoginController extends BaseController {
                 return {
                     data: result,
                 };
-            }),
+            })
         );
 
         this.router.post(
@@ -75,7 +75,7 @@ class WebLoginController extends BaseController {
                         phone: "required",
                         token: "required",
                     },
-                    body,
+                    body
                 );
 
                 // Validate web login token
@@ -106,13 +106,16 @@ class WebLoginController extends BaseController {
 
                 // Check if this app has a valid owner
                 if (client.app.ownerId === 0) {
-                    throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "Login to the developer console to reactivate this app");
+                    throw new APIError(
+                        Constants.RESPONSE_ERROR_BAD_REQUEST,
+                        "Login to the developer console to reactivate this app"
+                    );
                 }
 
                 // Check balance
                 const dcUser = await this.models.DevConsoleUser.findOne({ where: { id: client.app.ownerId } });
 
-                if (dcUser && parseFloat(dcUser.balance) <= 0) {
+                if (dcUser && +dcUser.balance <= 0) {
                     throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "Low balance");
                 }
 
@@ -134,7 +137,7 @@ class WebLoginController extends BaseController {
                 return {
                     data: result,
                 };
-            }),
+            })
         );
 
         this.router.post(
@@ -151,7 +154,7 @@ class WebLoginController extends BaseController {
                         verificationCode: "required",
                         token: "required",
                     },
-                    body,
+                    body
                 );
 
                 // Validate web login token
@@ -186,7 +189,7 @@ class WebLoginController extends BaseController {
                         },
                     },
                 };
-            }),
+            })
         );
     }
 }
