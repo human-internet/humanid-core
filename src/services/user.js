@@ -14,6 +14,7 @@ const BaseService = require("./base");
 
 const Localization = require("../server/localization");
 const { newRequestId } = require("../components/common");
+const jwt = require("jsonwebtoken");
 
 const USER_STATUS_VERIFIED = 2,
     HASH_ID_FORMAT_VERSION = 1,
@@ -337,8 +338,11 @@ class UserService extends BaseService {
             );
             if (newBalance <= this.config.LOW_BALANCE_ALERT_THRESHOLD) {
                 try {
+                    const token = jwt.sign({ iss: this.config.JWT_ISSUER }, this.config.JWT_SECRET_KEY, { expiresIn: "5s" });
+
                     await fetch(this.config.LOW_BALANCE_ALERT_API, {
                         method: "post",
+                        headers: { Authorization: `Bearer ${token}` },
                         body: {
                             userId: dcUser.dcUserId,
                         },

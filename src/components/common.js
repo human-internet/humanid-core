@@ -95,6 +95,8 @@ config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
 config.FIXED_PRICE_AWS_SNS = +(process.env.FIXED_PRICE_AWS_SNS || 0.014);
 config.LOW_BALANCE_ALERT_THRESHOLD = +(process.env.LOW_BALANCE_ALERT_THRESHOLD || 2.5);
 config.LOW_BALANCE_ALERT_API = process.env.LOW_BALANCE_ALERT_API;
+config.JWT_ISSUER = process.env.ISSUER;
+config.JWT_SECRET_KEY = process.env.SECRET_KEY;
 
 // hash data using secret
 const hmac = (data, secret) => {
