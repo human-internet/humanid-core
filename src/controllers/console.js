@@ -2,11 +2,11 @@
 
 const BaseController = require("./base"),
     express = require("express"),
-    { Op } = require("sequelize"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
     multer = require("multer"),
-    path = require("path");
+    path = require("path"),
+    { DateTime } = require("luxon");
 
 class ConsoleController extends BaseController {
     constructor(args) {
@@ -144,7 +144,7 @@ class ConsoleController extends BaseController {
             this.handleConsoleAuth,
             this.handleToggleAppCredentialStatus
         );
-        this.router.get("/apps/:appId/sms-cost", this.handleConsoleAuth, this.handleGetSMSCost);
+        this.router.get("/apps/:ownerId/dashboard", this.handleConsoleAuth, this.handleListOwnerApp);
         this.router.post("/sandbox/dev-users", this.handleConsoleAuth, this.handleRegisterDevUser);
         this.router.get("/sandbox/dev-users", this.handleConsoleAuth, this.handleListDevUser);
         this.router.delete("/sandbox/dev-users/:extId", this.handleConsoleAuth, this.handleDeleteDevUser);
@@ -451,44 +451,34 @@ class ConsoleController extends BaseController {
         };
     });
 
-    handleGetSMSCost = this.handleRESTAsync(async (req) => {
-        const { date } = req.query;
-        if (!date) {
-            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "date is required");
+    handleListOwnerApp = this.handleRESTAsync(async (req) => {
+        const { startDate, endDate } = req.query;
+        if (
+            !DateTime.fromFormat(startDate, "yyyy-MM-dd").isValid ||
+            !DateTime.fromFormat(endDate, "yyyy-MM-dd").isValid
+        ) {
+            throw new APIError(
+                Constants.RESPONSE_ERROR_BAD_REQUEST,
+                "startDate and endDate must be valid dates with format yyyy-mm-dd"
+            );
         }
-        const { appId } = req.params;
+
+        const { ownerId } = req.params;
+        if (Number.isNaN(ownerId)) {
+            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "ownerId must be a number");
+        }
 
         // Define the start and end of the day
-        const dateLocal = new Date(date);
-        const utcStartOfDay = new Date(
-            Date.UTC(dateLocal.getUTCFullYear(), dateLocal.getUTCMonth(), dateLocal.getUTCDate(), 0, 0, 0, 0)
-        );
-        const utcEndOfDay = new Date(
-            Date.UTC(dateLocal.getUTCFullYear(), dateLocal.getUTCMonth(), dateLocal.getUTCDate(), 23, 59, 59, 999)
-        );
+        const start = new Date(startDate);
+        const end = new Date(endDate);
 
-        const result = await this.models.SMSTransaction.findAll({
-            where: {
-                appId,
-                createdAt: {
-                    [Op.between]: [utcStartOfDay, utcEndOfDay],
-                },
-            },
-        });
-        const totalCost = result.reduce((total, trx) => {
-            const messagePrice =
-                trx.providerId === 1
-                    ? this.config.FIXED_PRICE_AWS_SNS
-                    : +trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"];
-            return total + (messagePrice ? messagePrice : 0); // Ensure it's a number before adding
-        }, 0);
+        const utcStart = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+        const utcEnd = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+
+        const result = await this.services.App.getListDashboard(ownerId, utcStart, utcEnd);
 
         return {
-            data: {
-                date,
-                smsCount: result.length,
-                cost: totalCost,
-            },
+            data: result,
         };
     });
 

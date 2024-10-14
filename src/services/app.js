@@ -1108,6 +1108,54 @@ class AppService extends BaseService {
         ac.updatedAt = new Date();
         await ac.save();
     }
+
+    async getListDashboard(ownerId, startDate, endDate) {
+        const query = `SELECT 
+                            IF(x1.Date,x1.Date,y1.Date) AS Date, 
+                            x1.Country AS Country,
+                            x1.AppName AS Project,
+                            x1.smsSent AS 'SMS Sent', 
+                            COALESCE(y1.newUsers, 0) AS 'New Users', 
+                            x1.cost AS "Cost(USD)"
+                        FROM
+                        (
+                            SELECT 
+                                DATE(t.createdAt) AS Date, 
+                                t.targetCountry AS Country, 
+                                a.name AS AppName, 
+                                COUNT(t.id) AS smsSent,
+                                SUM(CASE WHEN t.providerId = 1 THEN :fixedPriceAwsSns ELSE CAST(JSON_EXTRACT(t.trxSnapshot, '$.provider.apiResp.messages[0]."message-price"') AS DECIMAL(20,5)) END) AS cost
+                            FROM SMSTransaction t
+                            JOIN App a ON t.appId=a.id 
+                            WHERE a.appStatusId!=4
+                            AND a.ownerId = :ownerId
+                            AND DATE(t.createdAt) BETWEEN DATE(:startDate) AND DATE(:endDate)
+                            GROUP BY DATE(t.createdAt), t.targetCountry, t.appId
+                        ) AS x1
+                        LEFT JOIN
+                        (
+                            SELECT 
+                                DATE(u.createdAt) AS Date, 
+                                u.countryCode AS Country, 
+                                a.name AS AppName, 
+                                COUNT(u.hashId) AS newUsers
+                            FROM User u
+                            JOIN AppUser ON u.id=AppUser.userId
+                            JOIN App a ON AppUser.appId=a.id 
+                            WHERE a.appStatusId!=4
+                            GROUP BY DATE(u.createdAt), u.countryCode, a.name
+                        ) AS y1 ON x1.Date=y1.Date AND x1.Country=y1.Country AND x1.AppName=y1.AppName`;
+
+        return await this.models.sequelize.query(query, {
+            replacements: {
+                ownerId,
+                startDate: startDate.toISOString().split("T")[0],
+                endDate: endDate.toISOString().split("T")[0],
+                fixedPriceAwsSns: this.config.FIXED_PRICE_AWS_SNS,
+            },
+            type: this.models.sequelize.QueryTypes.SELECT,
+        });
+    }
 }
 
 module.exports = AppService;
