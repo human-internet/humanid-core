@@ -5,7 +5,8 @@ const BaseController = require("./base"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
     multer = require("multer"),
-    path = require("path");
+    path = require("path"),
+    { DateTime } = require("luxon");
 
 class ConsoleController extends BaseController {
     constructor(args) {
@@ -452,10 +453,20 @@ class ConsoleController extends BaseController {
 
     handleListOwnerApp = this.handleRESTAsync(async (req) => {
         const { startDate, endDate } = req.query;
-        if (Number.isNaN(Date.parse(startDate)) || Number.isNaN(Date.parse(endDate))) {
-            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "startDate and endDate must be valid dates");
+        if (
+            !DateTime.fromFormat(startDate, "yyyy-MM-dd").isValid ||
+            !DateTime.fromFormat(endDate, "yyyy-MM-dd").isValid
+        ) {
+            throw new APIError(
+                Constants.RESPONSE_ERROR_BAD_REQUEST,
+                "startDate and endDate must be valid dates with format yyyy-mm-dd"
+            );
         }
+
         const { ownerId } = req.params;
+        if (Number.isNaN(ownerId)) {
+            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "ownerId must be a number");
+        }
 
         // Define the start and end of the day
         const start = new Date(startDate);
