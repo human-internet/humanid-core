@@ -115,7 +115,11 @@ class WebLoginController extends BaseController {
                 // Check balance
                 const dcUser = await this.models.DevConsoleUser.findOne({ where: { id: client.app.ownerId } });
 
-                if (dcUser && +dcUser.balance <= 0) {
+                if (
+                    dcUser &&
+                    +dcUser.balance <= this.config.BALANCE_MIN_TO_STOP_SEND_SMS &&
+                    this.config.BALANCE_MIN_STOP_SEND_SMS
+                ) {
                     throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "Low balance");
                 }
 
