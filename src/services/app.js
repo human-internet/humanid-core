@@ -884,7 +884,11 @@ class AppService extends BaseService {
 
         // Get options from payload
         let options = {};
-        if (!(credentialTypeId === SERVER_CRED_TYPE && payload?.options?.platform === PLATFORM_WEB_SLUG)) {
+
+        if (
+            credentialTypeId !== SERVER_CRED_TYPE ||
+            (credentialTypeId === SERVER_CRED_TYPE && payload?.options?.platform === PLATFORM_DISCORD_SLUG)
+        ) {
             options = this.parseCredentialPlatformOption(payload["options"]);
         }
 
