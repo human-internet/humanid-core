@@ -90,6 +90,7 @@ config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
 
 // Stripe
 config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
+config.STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
 
 // Balance
 config.FIXED_PRICE_AWS_SNS = +(process.env.FIXED_PRICE_AWS_SNS || 0.014);

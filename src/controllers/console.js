@@ -376,29 +376,29 @@ class ConsoleController extends BaseController {
         const body = req.body;
         this.validate(
             {
-                dcUserId: "required",
+                dcClientId: "required",
             },
             body
         );
 
         // Check exist
-        const dcUser = await this.models.DevConsoleUser.findOne({ where: { dcUserId: body.dcUserId } });
+        const dcUser = await this.models.DevConsoleClient.findOne({ where: { dcClientId: body.dcClientId } });
 
         if (dcUser) {
             return {
                 data: {
                     id: dcUser.id,
-                    dcUserId: dcUser.dcUserId,
+                    dcClientId: dcUser.dcClientId,
                 },
             };
         }
-        // Create DevConsoleUser
-        const result = await this.models.DevConsoleUser.create(body);
+        // Create DevConsoleClient
+        const result = await this.models.DevConsoleClient.create(body);
 
         return {
             data: {
                 id: result.id,
-                dcUserId: result.dcUserId,
+                dcClientId: result.dcClientId,
             },
         };
     });
@@ -415,7 +415,7 @@ class ConsoleController extends BaseController {
 
         // Check exist
         const [dcUser, transaction] = await Promise.all([
-            this.models.DevConsoleUser.findOne({ where: { id: req.params.id } }),
+            this.models.DevConsoleClient.findOne({ where: { id: req.params.id } }),
             this.components.stripe.getTransactionById(body.transactionId),
         ]);
 
@@ -424,19 +424,19 @@ class ConsoleController extends BaseController {
         }
 
         const currentBalance = +dcUser.balance + transaction.amount / 100;
-        await this.models.DevConsoleUser.update({ balance: currentBalance }, { where: { id: dcUser.id } });
+        await this.models.DevConsoleClient.update({ balance: currentBalance }, { where: { id: dcUser.id } });
 
         return {
             data: {
                 id: dcUser.id,
-                dcUserId: dcUser.dcUserId,
+                dcClientId: dcUser.dcClientId,
                 balance: currentBalance,
             },
         };
     });
 
     handleGetDCUser = this.handleRESTAsync(async (req) => {
-        const dcUser = await this.models.DevConsoleUser.findOne({ where: { id: req.params.id } });
+        const dcUser = await this.models.DevConsoleClient.findOne({ where: { id: req.params.id } });
 
         if (!dcUser) {
             throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
@@ -445,7 +445,7 @@ class ConsoleController extends BaseController {
         return {
             data: {
                 id: dcUser.id,
-                dcUserId: dcUser.dcUserId,
+                dcClientId: dcUser.dcClientId,
                 balance: +dcUser.balance,
             },
         };

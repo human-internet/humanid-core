@@ -252,7 +252,7 @@ class UserService extends BaseService {
         const { appId, providerSnapshot, targetCountry, statusId, trxSnapshot, timestamp } = metadata;
 
         // Get references
-        const { App, SMSTransaction, SMSTransactionLog, DevConsoleUser } = this.models;
+        const { App, SMSTransaction, SMSTransactionLog, DevConsoleClient } = this.models;
 
         // Get app snapshot
         const appSnapshot = {};
@@ -323,14 +323,14 @@ class UserService extends BaseService {
             throw err;
         }
 
-        const dcUser = await DevConsoleUser.findOne({ where: { id: trx.ownerId } });
+        const dcUser = await DevConsoleClient.findOne({ where: { id: trx.ownerId } });
         if (dcUser) {
             const newBalance =
                 +dcUser.balance -
                 (trx.providerId === 1
                     ? this.config.FIXED_PRICE_AWS_SNS
                     : +(trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"] || 0));
-            await DevConsoleUser.update(
+            await DevConsoleClient.update(
                 {
                     balance: newBalance,
                 },
@@ -338,13 +338,15 @@ class UserService extends BaseService {
             );
             if (newBalance <= this.config.LOW_BALANCE_ALERT_THRESHOLD) {
                 try {
-                    const token = jwt.sign({ iss: this.config.JWT_ISSUER }, this.config.JWT_SECRET_KEY, { expiresIn: "5s" });
+                    const token = jwt.sign({ iss: this.config.JWT_ISSUER }, this.config.JWT_SECRET_KEY, {
+                        expiresIn: "5s",
+                    });
 
                     await fetch(this.config.LOW_BALANCE_ALERT_API, {
                         method: "post",
                         headers: { Authorization: `Bearer ${token}` },
                         body: {
-                            userId: dcUser.dcUserId,
+                            userId: dcUser.dcClientId,
                         },
                     });
                 } catch (error) {

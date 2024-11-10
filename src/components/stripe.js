@@ -3,8 +3,9 @@
 const Stripe = require("stripe");
 
 class StripeProvider {
-    init({ apiKey }) {
+    init({ apiKey, webhookSecret }) {
         this.stripe = new Stripe(apiKey);
+        this.webhookSecret = webhookSecret;
     }
 
     /**
@@ -20,6 +21,23 @@ class StripeProvider {
         } catch (error) {
             console.error(`Error retrieving transaction ${transactionId}:`, error);
             throw error; // Rethrow the error to handle it where this function is called
+        }
+    }
+
+    /**
+     * Validate webhook from stripe
+     * @param {Request} request
+     * @returns
+     */
+    validateEvent(request) {
+        const sig = request.headers["stripe-signature"];
+
+        try {
+            const event = this.stripe.webhooks.constructEvent(request.body, sig, this.webhookSecret);
+            return event;
+        } catch (error) {
+            console.error(`Stripe Webhook Error: ${error.message}`, error);
+            throw error;
         }
     }
 }

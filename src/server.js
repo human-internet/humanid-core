@@ -98,6 +98,7 @@ class Server {
         this.app.use(`${this.basePath}/accounts`, new AccountController(routerParams).router);
         this.app.get(`${this.basePath}/health`, this.handleShowHealth);
         this.app.use(`${this.basePath}/public`, express.static("public"));
+        this.app.use(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
 
         // Handle Errors
         this.app.use((req, res) => {
@@ -248,6 +249,48 @@ class Server {
             data: { uptime, appVersion, buildSignature },
         });
         return true;
+    };
+
+    handleWebhook = async (req, res) => {
+        let event;
+        try {
+            event = this.components.stripe.validateEvent(req);
+        } catch (error) {
+            return res.status(400).send(`Webhook Error: ${error.message}`);
+        }
+        switch (event.type) {
+            case "payment_intent.succeeded":
+                const paymentIntent = event.data.object;
+                if (!paymentIntent.metadata.dcClientId) {
+                    console.error(
+                        `dcClientId is required, cant update balance, event id: ${event.id}, piId: ${paymentIntent.id}, amount: ${paymentIntent.amount}`,
+                        paymentIntent
+                    );
+                } else {
+                    const dcUserClient = await this.models.DevConsoleClient.findOne({
+                        where: { dcClientId: paymentIntent.metadata.dcClientId },
+                    });
+                    if (!dcUserClient) {
+                        console.error(
+                            `dcUserClient is not found, cant update balance, event id: ${event.id}, piId: ${paymentIntent.id}, amount: ${paymentIntent.amount}`,
+                            paymentIntent
+                        );
+                    } else {
+                        const currentBalance = +dcUserClient.balance + paymentIntent.amount / 100;
+                        await this.models.DevConsoleClient.update(
+                            { balance: currentBalance },
+                            { where: { id: dcUserClient.id } }
+                        );
+                    }
+                }
+
+                break;
+            default:
+                console.log(`Unhandled event type ${event.type}`);
+                break;
+        }
+
+        return res.status(200).json({ received: true });
     };
 }
 

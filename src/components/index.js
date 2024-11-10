@@ -30,7 +30,7 @@ function init({ config }) {
         logger: logger,
     });
 
-    stripe.init({ apiKey: config["STRIPE_PRIVATE_KEY"] });
+    stripe.init({ apiKey: config["STRIPE_PRIVATE_KEY"], webhookSecret: config["STRIPE_WEBHOOK_SECRET"] });
 
     // Return components
     return {
