@@ -113,7 +113,7 @@ class WebLoginController extends BaseController {
                 }
 
                 // Check balance
-                const dcUser = await this.models.DevConsoleUser.findOne({ where: { id: client.app.ownerId } });
+                const dcUser = await this.models.DevConsoleClient.findOne({ where: { id: client.app.ownerId } });
 
                 if (
                     dcUser &&

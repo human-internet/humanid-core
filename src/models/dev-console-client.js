@@ -1,7 +1,7 @@
 const Sequelize = require("sequelize");
 
-const TABLE_NAME = "DevConsoleUser",
-    MODEL_NAME = "DevConsoleUser";
+const TABLE_NAME = "DevConsoleClient",
+    MODEL_NAME = "DevConsoleClient";
 
 module.exports = (sequelize) => {
     const Model = sequelize.define(
@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
                 primaryKey: true,
                 autoIncrement: true,
             },
-            dcUserId: {
+            dcClientId: {
                 type: Sequelize.BIGINT,
                 allowNull: false,
                 unique: true,
@@ -29,7 +29,7 @@ module.exports = (sequelize) => {
             paranoid: true,
             indexes: [
                 {
-                    fields: ["dcUserId"],
+                    fields: ["dcClientId"],
                 },
             ],
         }
