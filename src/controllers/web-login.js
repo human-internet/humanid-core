@@ -104,14 +104,6 @@ class WebLoginController extends BaseController {
                     limitCountry: config.web.limitCountry,
                 });
 
-                // Check if this app has a valid owner
-                if (client.app.ownerId === 0) {
-                    throw new APIError(
-                        Constants.RESPONSE_ERROR_BAD_REQUEST,
-                        "Login to the developer console to reactivate this app"
-                    );
-                }
-
                 // Check balance
                 const dcUser = await this.models.DevConsoleClient.findOne({ where: { id: client.app.ownerId } });
 
