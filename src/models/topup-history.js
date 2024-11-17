@@ -12,7 +12,7 @@ module.exports = (sequelize) => {
                 primaryKey: true,
                 autoIncrement: true,
             },
-            dcClientId: {
+            dcUserClient: {
                 type: Sequelize.BIGINT,
                 allowNull: false,
             },
