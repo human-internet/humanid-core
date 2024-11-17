@@ -294,7 +294,7 @@ class Server {
                             { where: { id: dcUserClient.id } }
                         );
                         await this.models.TopupHistories.create({
-                            dcClientId: dcUserClient.dcClientId,
+                            dcUserClient: dcUserClient.dcClientId,
                             piId: paymentIntent.id,
                             amount: topupAmount,
                         });
