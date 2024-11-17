@@ -91,6 +91,8 @@ config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
 // Stripe
 config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
 config.STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+config.STRIPE_FEE_PERCENTAGE = +process.env.STRIPE_FEE_PERCENTAGE || 0.029;
+config.STRIPE_FIXED_FEE_CENTS = +process.env.STRIPE_FIXED_FEE_CENTS || 30;
 
 // Balance
 config.FIXED_PRICE_AWS_SNS = +(process.env.FIXED_PRICE_AWS_SNS || 0.014);

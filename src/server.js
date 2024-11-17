@@ -98,7 +98,7 @@ class Server {
         this.app.use(`${this.basePath}/accounts`, new AccountController(routerParams).router);
         this.app.get(`${this.basePath}/health`, this.handleShowHealth);
         this.app.use(`${this.basePath}/public`, express.static("public"));
-        this.app.use(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
+        this.app.post(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
 
         // Handle Errors
         this.app.use((req, res) => {
@@ -267,20 +267,37 @@ class Server {
                         paymentIntent
                     );
                 } else {
-                    const dcUserClient = await this.models.DevConsoleClient.findOne({
-                        where: { dcClientId: paymentIntent.metadata.dcClientId },
-                    });
+                    const [dcUserClient, topupHistory] = await Promise.all([
+                        this.models.DevConsoleClient.findOne({
+                            where: { dcClientId: paymentIntent.metadata.dcClientId },
+                        }),
+                        this.models.TopupHistories.findOne({
+                            where: { dcClientId: paymentIntent.metadata.dcClientId, piId: paymentIntent.id },
+                        }),
+                    ]);
                     if (!dcUserClient) {
                         console.error(
                             `dcUserClient is not found, cant update balance, event id: ${event.id}, piId: ${paymentIntent.id}, amount: ${paymentIntent.amount}`,
                             paymentIntent
                         );
-                    } else {
-                        const currentBalance = +dcUserClient.balance + paymentIntent.amount / 100;
+                    } else if (dcUserClient && !topupHistory) {
+                        const topupAmount =
+                            (paymentIntent.amount -
+                                (this.config.STRIPE_FEE_PERCENTAGE * paymentIntent.amount +
+                                    this.config.STRIPE_FIXED_FEE_CENTS)) /
+                            100;
+                        const currentBalance = +dcUserClient.balance + topupAmount;
                         await this.models.DevConsoleClient.update(
                             { balance: currentBalance },
                             { where: { id: dcUserClient.id } }
                         );
+                        await this.models.TopupHistories.create({
+                            dcClientId: dcUserClient.dcClientId,
+                            piId: paymentIntent.id,
+                            amount: topupAmount,
+                        });
+                    } else {
+                        console.log(`Duplicated Events, piId: ${paymentIntent.id} already used`);
                     }
                 }
 
