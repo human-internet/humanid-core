@@ -274,7 +274,7 @@ class Server {
                             where: { dcClientId: paymentIntent.metadata.dcClientId },
                         }),
                         this.models.TopupHistories.findOne({
-                            where: { dcClientId: paymentIntent.metadata.dcClientId, piId: paymentIntent.id },
+                            where: { dcUserClient: paymentIntent.metadata.dcClientId, piId: paymentIntent.id },
                         }),
                     ]);
                     if (!dcUserClient) {
