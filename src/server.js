@@ -86,6 +86,9 @@ class Server {
         // Init Main Routers
         this.app = express();
 
+        //webhook route must be set before bodyParser.json()
+        this.app.post(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
+
         // Configure middlewares
         this.app.use(bodyParser.json());
         this.app.use(bodyParser.urlencoded({ extended: true }));
@@ -98,7 +101,6 @@ class Server {
         this.app.use(`${this.basePath}/accounts`, new AccountController(routerParams).router);
         this.app.get(`${this.basePath}/health`, this.handleShowHealth);
         this.app.use(`${this.basePath}/public`, express.static("public"));
-        this.app.post(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
 
         // Handle Errors
         this.app.use((req, res) => {
