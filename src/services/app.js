@@ -1148,7 +1148,8 @@ class AppService extends BaseService {
                             JOIN App a ON AppUser.appId=a.id 
                             WHERE a.appStatusId!=4
                             GROUP BY DATE(u.createdAt), u.countryCode, a.name
-                        ) AS y1 ON x1.Date=y1.Date AND x1.Country=y1.Country AND x1.AppName=y1.AppName`;
+                        ) AS y1 ON x1.Date=y1.Date AND x1.Country=y1.Country AND x1.AppName=y1.AppName
+                        ORDER BY Date DESC`;
 
         return await this.models.sequelize.query(query, {
             replacements: {
