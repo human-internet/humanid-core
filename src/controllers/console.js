@@ -473,7 +473,7 @@ class ConsoleController extends BaseController {
         const end = new Date(endDate);
 
         const utcStart = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
-        const utcEnd = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()));
+        const utcEnd = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() + 1));
 
         const result = await this.services.App.getListDashboard(ownerId, utcStart, utcEnd);
 
