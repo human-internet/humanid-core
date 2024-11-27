@@ -26,6 +26,7 @@ function init({ config }) {
         senderIdMap: {
             US: config["NEXMO_SENDER_ID_US"],
             VN: config["NEXMO_SENDER_ID_VN"],
+            CA: config["NEXMO_SENDER_ID_US"],
         },
         logger: logger,
     });
