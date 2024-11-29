@@ -14,6 +14,7 @@ const BaseService = require("./base");
 
 const Localization = require("../server/localization");
 const { newRequestId } = require("../components/common");
+const jwt = require("jsonwebtoken");
 
 const USER_STATUS_VERIFIED = 2,
     HASH_ID_FORMAT_VERSION = 1,
@@ -251,7 +252,7 @@ class UserService extends BaseService {
         const { appId, providerSnapshot, targetCountry, statusId, trxSnapshot, timestamp } = metadata;
 
         // Get references
-        const { App, SMSTransaction, SMSTransactionLog } = this.models;
+        const { App, SMSTransaction, SMSTransactionLog, DevConsoleClient } = this.models;
 
         // Get app snapshot
         const appSnapshot = {};
@@ -320,6 +321,38 @@ class UserService extends BaseService {
             );
             await tx.rollback();
             throw err;
+        }
+
+        const dcUser = await DevConsoleClient.findOne({ where: { id: trx.ownerId } });
+        if (dcUser) {
+            const newBalance =
+                +dcUser.balance -
+                (trx.providerId === 1
+                    ? this.config.FIXED_PRICE_AWS_SNS
+                    : +(trx.trxSnapshot?.provider?.apiResp?.messages?.[0]?.["message-price"] || 0));
+            await DevConsoleClient.update(
+                {
+                    balance: newBalance,
+                },
+                { where: { id: dcUser.id } }
+            );
+            if (newBalance <= this.config.LOW_BALANCE_ALERT_THRESHOLD) {
+                try {
+                    const token = jwt.sign({ iss: this.config.JWT_ISSUER }, this.config.JWT_SECRET_KEY, {
+                        expiresIn: "5s",
+                    });
+
+                    await fetch(this.config.LOW_BALANCE_ALERT_API, {
+                        method: "post",
+                        headers: { Authorization: `Bearer ${token}` },
+                        body: {
+                            userId: dcUser.dcClientId,
+                        },
+                    });
+                } catch (error) {
+                    console.error(`Error warning low balance:${error.message}`, error);
+                }
+            }
         }
     }
 

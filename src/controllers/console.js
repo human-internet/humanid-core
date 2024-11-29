@@ -5,7 +5,8 @@ const BaseController = require("./base"),
     APIError = require("../server/api_error"),
     Constants = require("../constants"),
     multer = require("multer"),
-    path = require("path");
+    path = require("path"),
+    { DateTime } = require("luxon");
 
 class ConsoleController extends BaseController {
     constructor(args) {
@@ -120,6 +121,7 @@ class ConsoleController extends BaseController {
 
         this.router.get("/apps", this.handleConsoleAuth, this.handleListApp);
         this.router.post("/apps", this.handleConsoleAuth, this.handleCreateApp);
+        this.router.put("/apps", this.handleConsoleAuth, this.handleUpdateOwnerId);
         this.router.delete("/apps/:appExtId", this.handleConsoleAuth, this.handleDeleteApp);
         this.router.post("/apps/:appExtId/credentials", this.handleConsoleAuth, this.handleCreateAppCredential);
         this.router.get("/apps/:appExtId/credentials", this.handleConsoleAuth, this.handleListAppCredential);
@@ -142,10 +144,14 @@ class ConsoleController extends BaseController {
             this.handleConsoleAuth,
             this.handleToggleAppCredentialStatus
         );
+        this.router.get("/apps/:ownerId/dashboard", this.handleConsoleAuth, this.handleListOwnerApp);
         this.router.post("/sandbox/dev-users", this.handleConsoleAuth, this.handleRegisterDevUser);
         this.router.get("/sandbox/dev-users", this.handleConsoleAuth, this.handleListDevUser);
         this.router.delete("/sandbox/dev-users/:extId", this.handleConsoleAuth, this.handleDeleteDevUser);
         this.router.get("/sandbox/otps", this.handleConsoleAuth, this.handleListSandboxOTPs);
+        this.router.post("/dc-users", this.handleConsoleAuth, this.handleCreateDCUser);
+        this.router.patch("/dc-users/:id", this.handleConsoleAuth, this.handleUpdateBalanceDCUser);
+        this.router.get("/dc-users/:id", this.handleConsoleAuth, this.handleGetDCUser);
     }
 
     handleDeleteDevUser = this.handleRESTAsync(async (req) => {
@@ -246,6 +252,7 @@ class ConsoleController extends BaseController {
             {
                 ownerEntityTypeId: "required",
                 ownerId: "required",
+                dcProjectId: "required",
                 name: "required",
             },
             body
@@ -363,6 +370,141 @@ class ConsoleController extends BaseController {
 
         next();
     };
+
+    handleCreateDCUser = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                dcClientId: "required",
+            },
+            body
+        );
+
+        // Check exist
+        const dcUser = await this.models.DevConsoleClient.findOne({ where: { dcClientId: body.dcClientId } });
+
+        if (dcUser) {
+            return {
+                data: {
+                    id: dcUser.id,
+                    dcClientId: dcUser.dcClientId,
+                },
+            };
+        }
+        // Create DevConsoleClient
+        const result = await this.models.DevConsoleClient.create(body);
+
+        return {
+            data: {
+                id: result.id,
+                dcClientId: result.dcClientId,
+            },
+        };
+    });
+
+    handleUpdateBalanceDCUser = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                transactionId: "required",
+            },
+            body
+        );
+
+        // Check exist
+        const [dcUser, transaction] = await Promise.all([
+            this.models.DevConsoleClient.findOne({ where: { id: req.params.id } }),
+            this.components.stripe.getTransactionById(body.transactionId),
+        ]);
+
+        if (!dcUser || !transaction) {
+            throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
+        }
+
+        const currentBalance = +dcUser.balance + transaction.amount / 100;
+        await this.models.DevConsoleClient.update({ balance: currentBalance }, { where: { id: dcUser.id } });
+
+        return {
+            data: {
+                id: dcUser.id,
+                dcClientId: dcUser.dcClientId,
+                balance: currentBalance,
+            },
+        };
+    });
+
+    handleGetDCUser = this.handleRESTAsync(async (req) => {
+        const dcUser = await this.models.DevConsoleClient.findOne({ where: { id: req.params.id } });
+
+        if (!dcUser) {
+            throw new APIError(Constants.RESPONSE_ERROR_NOT_FOUND);
+        }
+
+        return {
+            data: {
+                id: dcUser.id,
+                dcClientId: dcUser.dcClientId,
+                balance: +dcUser.balance,
+            },
+        };
+    });
+
+    handleListOwnerApp = this.handleRESTAsync(async (req) => {
+        const { startDate, endDate } = req.query;
+        if (
+            !DateTime.fromFormat(startDate, "yyyy-MM-dd").isValid ||
+            !DateTime.fromFormat(endDate, "yyyy-MM-dd").isValid
+        ) {
+            throw new APIError(
+                Constants.RESPONSE_ERROR_BAD_REQUEST,
+                "startDate and endDate must be valid dates with format yyyy-mm-dd"
+            );
+        }
+
+        const { ownerId } = req.params;
+        if (Number.isNaN(ownerId)) {
+            throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "ownerId must be a number");
+        }
+
+        // Define the start and end of the day
+        const start = new Date(startDate);
+        const end = new Date(endDate);
+
+        const utcStart = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth(), start.getUTCDate()));
+        const utcEnd = new Date(Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate() + 1));
+
+        const result = await this.services.App.getListDashboard(ownerId, utcStart, utcEnd);
+
+        return {
+            data: result,
+        };
+    });
+
+    handleUpdateOwnerId = this.handleRESTAsync(async (req) => {
+        // Validate request
+        const body = req.body;
+        this.validate(
+            {
+                dcProjectId: "required",
+                ownerId: "required",
+            },
+            body
+        );
+
+        const app = await this.models.App.findOne({ where: { dcProjectId: body.dcProjectId } });
+        app.ownerId = body.ownerId;
+
+        await app.save();
+
+        return {
+            data: {
+                id: app.id,
+                ownerId: app.ownerId,
+            },
+        };
+    });
 }
 
 module.exports = ConsoleController;

@@ -5,6 +5,7 @@ const Common = require("./common"),
     ResponseMapper = require("./response-mapper"),
     smsAWS = require("./aws-sms"),
     smsVonage = require("./vonage-sms"),
+    stripe = require("./stripe"),
     logger = require("../logger");
 
 function init({ config }) {
@@ -29,6 +30,8 @@ function init({ config }) {
         logger: logger,
     });
 
+    stripe.init({ apiKey: config["STRIPE_PRIVATE_KEY"], webhookSecret: config["STRIPE_WEBHOOK_SECRET"] });
+
     // Return components
     return {
         response: ResponseMapper,
@@ -36,6 +39,7 @@ function init({ config }) {
         common: Common,
         smsAWS: smsAWS,
         smsVonage: smsVonage,
+        stripe: stripe,
     };
 }
 

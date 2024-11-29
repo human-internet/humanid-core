@@ -30,7 +30,6 @@ const ConsoleController = require("./controllers/console"),
     WebLoginController = require("./controllers/web-login");
 
 const Middlewares = require("./server/middlewares");
-const { checkUpdateBalance } = require("./server/cron");
 
 class Server {
     constructor({ config, components, models, services, logger }) {
@@ -63,8 +62,6 @@ class Server {
 
         // Set start time
         this.startedAt = new Date();
-
-        checkUpdateBalance.start();
     }
 
     initRouter() {
@@ -88,6 +85,9 @@ class Server {
 
         // Init Main Routers
         this.app = express();
+
+        //webhook route must be set before bodyParser.json()
+        this.app.post(`${this.basePath}/webhook`, express.raw({ type: "application/json" }), this.handleWebhook);
 
         // Configure middlewares
         this.app.use(bodyParser.json());
@@ -251,6 +251,65 @@ class Server {
             data: { uptime, appVersion, buildSignature },
         });
         return true;
+    };
+
+    handleWebhook = async (req, res) => {
+        let event;
+        try {
+            event = this.components.stripe.validateEvent(req);
+        } catch (error) {
+            return res.status(400).send(`Webhook Error: ${error.message}`);
+        }
+        switch (event.type) {
+            case "payment_intent.succeeded":
+                const paymentIntent = event.data.object;
+                if (!paymentIntent.metadata.dcClientId) {
+                    console.error(
+                        `dcClientId is required, cant update balance, event id: ${event.id}, piId: ${paymentIntent.id}, amount: ${paymentIntent.amount}`,
+                        paymentIntent
+                    );
+                } else {
+                    const [dcUserClient, topupHistory] = await Promise.all([
+                        this.models.DevConsoleClient.findOne({
+                            where: { dcClientId: paymentIntent.metadata.dcClientId },
+                        }),
+                        this.models.TopupHistories.findOne({
+                            where: { dcUserClient: paymentIntent.metadata.dcClientId, piId: paymentIntent.id },
+                        }),
+                    ]);
+                    if (!dcUserClient) {
+                        console.error(
+                            `dcUserClient is not found, cant update balance, event id: ${event.id}, piId: ${paymentIntent.id}, amount: ${paymentIntent.amount}`,
+                            paymentIntent
+                        );
+                    } else if (dcUserClient && !topupHistory) {
+                        const topupAmount =
+                            (paymentIntent.amount -
+                                (this.config.STRIPE_FEE_PERCENTAGE * paymentIntent.amount +
+                                    this.config.STRIPE_FIXED_FEE_CENTS)) /
+                            100;
+                        const currentBalance = +dcUserClient.balance + topupAmount;
+                        await this.models.DevConsoleClient.update(
+                            { balance: currentBalance },
+                            { where: { id: dcUserClient.id } }
+                        );
+                        await this.models.TopupHistories.create({
+                            dcUserClient: dcUserClient.dcClientId,
+                            piId: paymentIntent.id,
+                            amount: topupAmount,
+                        });
+                    } else {
+                        console.log(`Duplicated Events, piId: ${paymentIntent.id} already used`);
+                    }
+                }
+
+                break;
+            default:
+                console.log(`Unhandled event type ${event.type}`);
+                break;
+        }
+
+        return res.status(200).json({ received: true });
     };
 }
 

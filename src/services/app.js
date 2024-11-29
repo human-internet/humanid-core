@@ -42,7 +42,9 @@ const CREDENTIAL_ACTIVE = 1,
     CREDENTIAL_INACTIVE = 2;
 
 const PLATFORM_ANDROID_SLUG = "android",
-    PLATFORM_IOS_SLUG = "ios";
+    PLATFORM_IOS_SLUG = "ios",
+    PLATFORM_DISCORD_SLUG = "discord",
+    PLATFORM_WEB_SLUG = "web";
 
 const APP_PATH = "apps";
 
@@ -56,16 +58,16 @@ class AppService extends BaseService {
         this.generateClientId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 22);
         this.generateClientSecret = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz-_.~",
-            64,
+            64
         );
         this.generateDevUserExtId = nanoId.customAlphabet("0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ", 24);
         this.generateWebLoginSessionId = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            64,
+            64
         );
         this.generateLogoFileName = nanoId.customAlphabet(
             "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz",
-            16,
+            16
         );
 
         // Init validation schemas
@@ -264,13 +266,7 @@ class AppService extends BaseService {
         const { common } = this.components;
         const jwtSecret = this.config["WEB_LOGIN_SESSION_SECRET"];
 
-        let payload;
-        try {
-            payload = await common.verifyJWT(token, jwtSecret);
-        } catch (e) {
-            // TODO: Handle jwt error and Re-throw exception with APIError
-            throw e;
-        }
+        const payload = await common.verifyJWT(token, jwtSecret);
 
         // Parse payload
         const clientId = payload.sub;
@@ -580,7 +576,7 @@ class AppService extends BaseService {
             },
             {
                 where: { id: app.id },
-            },
+            }
         );
         this.logger.debug(`updated app logoFile count = ${count}`);
 
@@ -753,7 +749,7 @@ class AppService extends BaseService {
         };
     }
 
-    async create({ ownerEntityTypeId, ownerId, name }) {
+    async create({ ownerEntityTypeId, ownerId, dcProjectId, name }) {
         // Validate ownerEntityTypeId
         if (ownerEntityTypeId !== OWNER_ENTITY_ORGANIZATION) {
             throw new APIError("ERR_16");
@@ -767,10 +763,11 @@ class AppService extends BaseService {
 
         // Insert app
         const result = await App.create({
-            ownerEntityTypeId: ownerEntityTypeId,
-            ownerId: ownerId,
+            ownerEntityTypeId,
+            ownerId,
+            dcProjectId,
             extId: this.generateExtId(),
-            name: name,
+            name,
             appStatusId: APP_UNVERIFIED,
             config: this.initConfig(),
             createdAt: timestamp,
@@ -787,6 +784,7 @@ class AppService extends BaseService {
         switch (platformSlug) {
             case PLATFORM_ANDROID_SLUG:
             case PLATFORM_IOS_SLUG:
+            case PLATFORM_DISCORD_SLUG:
                 return true;
             default:
                 throw new APIError("ERR_20");
@@ -801,6 +799,9 @@ class AppService extends BaseService {
                 break;
             case PLATFORM_IOS_SLUG:
                 rules = { bundleId: "required" };
+                break;
+            case PLATFORM_DISCORD_SLUG:
+                rules = { serverId: "required" };
                 break;
             default:
                 throw new APIError("ERR_21");
@@ -825,6 +826,11 @@ class AppService extends BaseService {
                     bundleId: options.bundleId,
                 };
 
+            case PLATFORM_DISCORD_SLUG:
+                return {
+                    platform: platformSlug,
+                    serverId: options.serverId,
+                };
             default:
                 return {};
         }
@@ -878,7 +884,11 @@ class AppService extends BaseService {
 
         // Get options from payload
         let options = {};
-        if (credentialTypeId === MOBILE_SDK_CRED_TYPE) {
+
+        if (
+            credentialTypeId !== SERVER_CRED_TYPE ||
+            (credentialTypeId === SERVER_CRED_TYPE && payload?.options?.platform === PLATFORM_DISCORD_SLUG)
+        ) {
             options = this.parseCredentialPlatformOption(payload["options"]);
         }
 
@@ -990,7 +1000,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            },
+            }
         );
         this.logger.debug(`AppUserSession deleted count = ${result[1]}. appId = ${app.id}`);
 
@@ -1000,7 +1010,7 @@ class AppService extends BaseService {
             {
                 bind: { appId: app.id },
                 type: QueryTypes.UPDATE,
-            },
+            }
         );
         this.logger.debug(`UserExchangeSession deleted count = ${result[1]}. appId = ${app.id}`);
 
@@ -1101,6 +1111,55 @@ class AppService extends BaseService {
         ac.name = name;
         ac.updatedAt = new Date();
         await ac.save();
+    }
+
+    async getListDashboard(ownerId, startDate, endDate) {
+        const query = `SELECT 
+                            IF(x1.Date,x1.Date,y1.Date) AS Date, 
+                            x1.Country AS Country,
+                            x1.AppName AS Project,
+                            x1.smsSent AS 'SMS Sent', 
+                            COALESCE(y1.newUsers, 0) AS 'New Users', 
+                            x1.cost AS "Cost(USD)"
+                        FROM
+                        (
+                            SELECT 
+                                DATE(t.createdAt) AS Date, 
+                                t.targetCountry AS Country, 
+                                a.name AS AppName, 
+                                COUNT(t.id) AS smsSent,
+                                SUM(CASE WHEN t.providerId = 1 THEN :fixedPriceAwsSns ELSE CAST(JSON_EXTRACT(t.trxSnapshot, '$.provider.apiResp.messages[0]."message-price"') AS DECIMAL(20,5)) END) AS cost
+                            FROM SMSTransaction t
+                            JOIN App a ON t.appId=a.id 
+                            WHERE a.appStatusId!=4
+                            AND a.ownerId = :ownerId
+                            AND DATE(t.createdAt) BETWEEN DATE(:startDate) AND DATE(:endDate)
+                            GROUP BY DATE(t.createdAt), t.targetCountry, t.appId
+                        ) AS x1
+                        LEFT JOIN
+                        (
+                            SELECT 
+                                DATE(u.createdAt) AS Date, 
+                                u.countryCode AS Country, 
+                                a.name AS AppName, 
+                                COUNT(u.hashId) AS newUsers
+                            FROM User u
+                            JOIN AppUser ON u.id=AppUser.userId
+                            JOIN App a ON AppUser.appId=a.id 
+                            WHERE a.appStatusId!=4
+                            GROUP BY DATE(u.createdAt), u.countryCode, a.name
+                        ) AS y1 ON x1.Date=y1.Date AND x1.Country=y1.Country AND x1.AppName=y1.AppName
+                        ORDER BY Date DESC`;
+
+        return await this.models.sequelize.query(query, {
+            replacements: {
+                ownerId,
+                startDate: startDate.toISOString().split("T")[0],
+                endDate: endDate.toISOString().split("T")[0],
+                fixedPriceAwsSns: this.config.FIXED_PRICE_AWS_SNS,
+            },
+            type: this.models.sequelize.QueryTypes.SELECT,
+        });
     }
 }
 

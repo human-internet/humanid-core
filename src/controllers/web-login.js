@@ -5,6 +5,7 @@ const BaseController = require("./base"),
 
 const Constants = require("../constants");
 const { parsePhone } = require("../components/common");
+const APIError = require("../server/api_error");
 
 class WebLoginController extends BaseController {
     constructor(args) {
@@ -102,6 +103,17 @@ class WebLoginController extends BaseController {
                     countryCode: body.countryCode,
                     limitCountry: config.web.limitCountry,
                 });
+
+                // Check balance
+                const dcUser = await this.models.DevConsoleClient.findOne({ where: { id: client.app.ownerId } });
+
+                if (
+                    dcUser &&
+                    +dcUser.balance <= this.config.BALANCE_MIN_TO_STOP_SEND_SMS &&
+                    this.config.BALANCE_MIN_STOP_SEND_SMS
+                ) {
+                    throw new APIError(Constants.RESPONSE_ERROR_BAD_REQUEST, "Low balance");
+                }
 
                 // Request OTP via SMS
                 const result = await this.services.User.requestLoginOTP(client.appId, phone, {

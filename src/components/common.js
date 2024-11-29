@@ -8,7 +8,7 @@ const APIError = require("../server/api_error"),
     logger = require("../logger"),
     LibPhoneNo = require("libphonenumber-js/max"),
     nanoId = require("nanoid");
-
+require("dotenv").config();
 // load config
 let config = {};
 
@@ -87,6 +87,21 @@ config.RECOVERY_SESSION_LIFETIME = parseInt(process.env.RECOVERY_SESSION_LIFETIM
 
 // Sandbox
 config.ORG_DEV_USER_LIMIT = parseInt(process.env.ORG_DEV_USER_LIMIT || "2");
+
+// Stripe
+config.STRIPE_PRIVATE_KEY = process.env.STRIPE_PRIVATE_KEY;
+config.STRIPE_WEBHOOK_SECRET = process.env.STRIPE_WEBHOOK_SECRET;
+config.STRIPE_FEE_PERCENTAGE = +process.env.STRIPE_FEE_PERCENTAGE || 0.029;
+config.STRIPE_FIXED_FEE_CENTS = +process.env.STRIPE_FIXED_FEE_CENTS || 30;
+
+// Balance
+config.FIXED_PRICE_AWS_SNS = +(process.env.FIXED_PRICE_AWS_SNS || 0.014);
+config.LOW_BALANCE_ALERT_THRESHOLD = +(process.env.LOW_BALANCE_ALERT_THRESHOLD || 2.5);
+config.LOW_BALANCE_ALERT_API = process.env.LOW_BALANCE_ALERT_API;
+config.BALANCE_MIN_TO_STOP_SEND_SMS = +process.env.BALANCE_MIN_TO_STOP_SEND_SMS || 0;
+config.BALANCE_MIN_STOP_SEND_SMS = process.env.BALANCE_MIN_STOP_SEND_SMS === "true" ? true : false;
+config.JWT_ISSUER = process.env.ISSUER;
+config.JWT_SECRET_KEY = process.env.SECRET_KEY;
 
 // hash data using secret
 const hmac = (data, secret) => {
